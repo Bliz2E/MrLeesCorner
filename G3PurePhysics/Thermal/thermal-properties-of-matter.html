@@ -1,0 +1,659 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Thermal Properties Practice</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Space+Grotesk:wght@500;700&display=swap">
+<style>
+/* Layout: one centred column. Header with a heating-curve motif, three tabs, then one question at a time. */
+:root{
+  --bg:#F2F5F7;--surface:#FFFFFF;--surface-2:#E7EDF1;--ink:#14212B;--ink-2:#4A5B68;--line:#C9D5DD;
+  --hot:#C2410C;--on-hot:#FFFFFF;--hot-soft:#FDE9DD;
+  --cold:#1C6FC0;--cold-soft:#E1EEFA;
+  --good:#237A38;--good-soft:#E0F3E5;--bad:#B42323;--bad-soft:#FBE6E6;
+  --display:'Space Grotesk',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --body:'IBM Plex Sans',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --mono:'IBM Plex Mono',ui-monospace,'SFMono-Regular',Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0D151C;--surface:#15202A;--surface-2:#1D2B36;--ink:#E5EDF3;--ink-2:#9DB0BE;--line:#2B3B48;
+    --hot:#FF9055;--on-hot:#1A0C04;--hot-soft:#3B2314;
+    --cold:#7DB8F2;--cold-soft:#13283B;
+    --good:#6FD487;--good-soft:#14301B;--bad:#FF8C8C;--bad-soft:#3A1919;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0D151C;--surface:#15202A;--surface-2:#1D2B36;--ink:#E5EDF3;--ink-2:#9DB0BE;--line:#2B3B48;
+  --hot:#FF9055;--on-hot:#1A0C04;--hot-soft:#3B2314;
+  --cold:#7DB8F2;--cold-soft:#13283B;
+  --good:#6FD487;--good-soft:#14301B;--bad:#FF8C8C;--bad-soft:#3A1919;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 var(--body);
+  padding-block:0 56px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));
+  padding-right:max(16px,env(safe-area-inset-right,0px));
+}
+.wrap{max-width:880px;margin:0 auto}
+h1,h2,h3{font-family:var(--display);text-wrap:balance;margin:0}
+sub,sup{line-height:0}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+/* header */
+.top{display:flex;flex-wrap:wrap;gap:20px 28px;align-items:flex-end;justify-content:space-between;padding-block:30px 22px}
+.top-text{flex:1 1 360px;min-width:0}
+.eyebrow{margin:0 0 8px;font:500 12px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--hot)}
+h1{font-size:clamp(1.9rem,5.5vw,2.7rem);line-height:1.08;letter-spacing:-.025em;font-weight:700}
+.lede{margin:12px 0 0;color:var(--ink-2);max-width:56ch}
+.curve{flex:0 0 auto;width:210px;max-width:100%;height:auto}
+.curve .c-line{fill:none;stroke:url(#cg);stroke-width:4;stroke-linecap:round;stroke-linejoin:round}
+.curve .c-axis{stroke:var(--line);stroke-width:1.5}
+.curve .c-txt{fill:var(--ink-2);font:500 9px var(--mono);letter-spacing:.04em}
+
+/* tabs */
+.tabs{display:flex;gap:4px;background:var(--surface-2);padding:4px;border-radius:12px}
+.tab{flex:1 1 0;min-width:0;border:0;background:transparent;color:var(--ink-2);font:600 14px/1.2 var(--body);padding:10px 6px;border-radius:9px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px}
+.tab small{font:500 11px/1 var(--mono);opacity:.85}
+.tab[aria-pressed="true"]{background:var(--surface);color:var(--ink);box-shadow:0 0 0 1px var(--line),inset 0 -3px 0 var(--hot)}
+.tab:hover{color:var(--ink)}
+button{font-family:inherit}
+:focus-visible{outline:3px solid var(--cold);outline-offset:2px}
+
+/* formulae */
+.ref{margin:14px 0 0;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+.ref summary{cursor:pointer;padding:11px 14px;font:600 14px var(--body);list-style:none;display:flex;justify-content:space-between;gap:8px}
+.ref summary::-webkit-details-marker{display:none}
+.ref summary::after{content:"+";font:500 16px var(--mono);color:var(--ink-2)}
+.ref[open] summary::after{content:"–"}
+.ref-body{padding:2px 14px 14px;display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:6px 24px;font:400 14px/1.6 var(--mono)}
+.ref-body div{min-width:0}
+.ref-body .k{color:var(--ink-2)}
+
+/* cards */
+main{margin-top:18px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:22px}
+.qhead{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;margin-bottom:14px}
+.qnum{font:700 13px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2)}
+.chip{font:500 12px/1 var(--mono);padding:5px 9px;border-radius:99px;background:var(--cold-soft);color:var(--cold)}
+.qmarks{margin-left:auto;font:500 13px var(--mono);color:var(--ink-2)}
+.qtext{font-size:17px;line-height:1.55}
+.qtext p{margin:0 0 10px}
+.given{font:400 14px/1.7 var(--mono);background:var(--surface-2);padding:10px 12px;border-radius:8px}
+.fig{margin:14px 0}
+.fig figcaption{font:500 12px var(--mono);color:var(--ink-2);margin-top:4px}
+.chart{display:block;width:100%;max-width:560px;height:auto}
+.g-minor{stroke:var(--line);stroke-width:.6;opacity:.55}
+.g-major{stroke:var(--line);stroke-width:1}
+.g-axis{stroke:var(--ink);stroke-width:1.5}
+.g-text{fill:var(--ink-2);font:400 11px var(--mono)}
+.g-title{fill:var(--ink-2);font:500 12px var(--mono)}
+.g-line{fill:none;stroke:var(--hot);stroke-width:3;stroke-linejoin:round;stroke-linecap:round}
+.g-dot{fill:var(--surface);stroke:var(--hot);stroke-width:2.2}
+.g-label{fill:var(--ink);font:700 14px var(--display)}
+.tbl{overflow-x:auto;margin:6px 0 12px}
+table{border-collapse:collapse;font:400 15px var(--mono)}
+th,td{border:1px solid var(--line);padding:7px 14px;text-align:left}
+th{background:var(--surface-2);font-weight:500}
+
+/* progress dots */
+.dots{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px}
+.dot{width:38px;height:38px;border-radius:9px;border:1.5px solid var(--line);background:var(--surface);color:var(--ink-2);font:500 14px var(--mono);cursor:pointer}
+.dot.ok{background:var(--good-soft);border-color:var(--good);color:var(--good)}
+.dot.no{background:var(--bad-soft);border-color:var(--bad);color:var(--bad)}
+.dot.cur{box-shadow:0 0 0 2px var(--bg),0 0 0 4px var(--cold)}
+
+/* options */
+.opts{display:grid;gap:10px;margin:18px 0 6px;padding:0;border:0;min-width:0}
+.opt{position:relative;display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:start;padding:12px 14px;border:1.5px solid var(--line);border-radius:10px;background:var(--surface);cursor:pointer;min-width:0}
+.opt input{position:absolute;opacity:0;pointer-events:none}
+.opt:hover{border-color:var(--cold)}
+.opt:has(input:focus-visible){outline:3px solid var(--cold);outline-offset:2px}
+.opt.sel{border-color:var(--cold);background:var(--cold-soft)}
+.opt.locked{cursor:default}
+.opt.locked:not(.ok):not(.no):hover{border-color:var(--line)}
+.opt.ok{border-color:var(--good);background:var(--good-soft)}
+.opt.no{border-color:var(--bad);background:var(--bad-soft)}
+.ltr{display:grid;place-items:center;width:26px;height:26px;border-radius:7px;background:var(--surface-2);font:600 13px var(--mono);color:var(--ink)}
+.opt.sel .ltr{background:var(--cold);color:var(--surface)}
+.opt.ok .ltr{background:var(--good);color:var(--surface)}
+.opt.no .ltr{background:var(--bad);color:var(--surface)}
+.otxt{min-width:0;overflow-wrap:anywhere;padding-top:1px}
+.tag{font:600 11px/1 var(--mono);letter-spacing:.04em;text-transform:uppercase;padding-top:6px;white-space:nowrap}
+.opt.ok .tag{color:var(--good)}
+.opt.no .tag{color:var(--bad)}
+.why{margin-top:14px;padding:14px 16px;border-radius:10px;background:var(--surface-2)}
+.why h3{font-size:13px;font-family:var(--mono);font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2);margin-bottom:6px}
+.why p{margin:0}
+.verdict{font:600 15px var(--display);margin:14px 0 0}
+.verdict.ok{color:var(--good)}.verdict.no{color:var(--bad)}
+
+/* buttons */
+.row{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px;align-items:center}
+.row .sp{flex:1}
+.btn{border:1.5px solid transparent;background:var(--hot);color:var(--on-hot);font:600 15px/1 var(--body);padding:12px 18px;border-radius:10px;cursor:pointer}
+.btn:hover{filter:brightness(1.07)}
+.btn[disabled]{opacity:.4;cursor:not-allowed;filter:none}
+.btn.ghost{background:transparent;color:var(--ink);border-color:var(--line)}
+.btn.ghost:hover{border-color:var(--ink-2);filter:none}
+.btn.sm{padding:9px 13px;font-size:14px}
+.btn.danger{border-color:var(--bad);color:var(--bad)}
+.btn.danger.armed{background:var(--bad);color:var(--surface)}
+
+/* structured */
+.qchips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
+.qchip{display:flex;flex-direction:column;align-items:flex-start;gap:2px;min-width:64px;padding:8px 12px;border:1.5px solid var(--line);border-radius:10px;background:var(--surface);color:var(--ink);cursor:pointer;font:600 14px var(--display)}
+.qchip small{font:400 11px var(--mono);color:var(--ink-2)}
+.qchip[aria-pressed="true"]{border-color:var(--cold);box-shadow:0 0 0 1px var(--cold)}
+.part{border-top:1px solid var(--line);margin-top:18px;padding-top:16px}
+.part-head{display:grid;grid-template-columns:28px 1fr auto;gap:8px;align-items:start}
+.plabel{font:600 14px var(--mono);color:var(--hot);padding-top:2px}
+.ptext{min-width:0}
+.ptext p{margin:0 0 6px}
+.pmarks{font:500 13px var(--mono);color:var(--ink-2);padding-top:3px}
+textarea{display:block;width:100%;margin-top:10px;padding:11px 12px;font:400 15px/1.5 var(--mono);color:var(--ink);background:var(--bg);border:1.5px solid var(--line);border-radius:9px;resize:vertical;min-height:64px}
+textarea:focus{outline:none;border-color:var(--cold);box-shadow:0 0 0 3px var(--cold-soft)}
+.part-actions{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:center;margin-top:10px}
+.pscore{font:600 13px var(--mono);color:var(--cold)}
+.scheme{margin-top:12px;padding:14px 16px;border-radius:10px;background:var(--surface-2)}
+.scheme-h{margin:0 0 6px;font:500 12px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2)}
+.model{margin-bottom:14px}
+.model div{margin:2px 0}
+.model .w{font:400 14px/1.6 var(--mono);overflow-wrap:anywhere}
+.points{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.points label{display:grid;grid-template-columns:20px 1fr;gap:10px;align-items:start;cursor:pointer}
+.points input{width:18px;height:18px;margin:3px 0 0;accent-color:var(--good)}
+.qsum{display:flex;flex-wrap:wrap;gap:6px 16px;align-items:center;margin-top:20px;padding-top:16px;border-top:1px solid var(--line);font:500 14px var(--mono);color:var(--ink-2)}
+.qsum b{color:var(--ink)}
+
+/* results */
+.sum{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;margin-bottom:22px}
+.sum .box{border:1px solid var(--line);border-radius:12px;padding:16px;background:var(--bg)}
+.sum .lab{font:500 12px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2)}
+.sum .big{font:700 34px/1.1 var(--display);margin:6px 0 10px;font-variant-numeric:tabular-nums}
+.sum .big span{font-size:18px;color:var(--ink-2);font-weight:500}
+.sum .sub{font:400 13px var(--mono);color:var(--ink-2);margin-top:8px}
+.bar{height:10px;background:var(--surface-2);border-radius:6px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--cold);border-radius:6px}
+.topics{display:grid;gap:14px;margin:12px 0 0;padding:0;list-style:none}
+.topic{display:grid;grid-template-columns:1fr auto;gap:6px 12px;align-items:center}
+.topic .n{font-weight:600}
+.topic .f{font:500 13px var(--mono);font-variant-numeric:tabular-nums;color:var(--ink-2)}
+.topic .bar{grid-column:1 / -1}
+.topic .hint{grid-column:1 / -1;font-size:13px;color:var(--ink-2)}
+.topic.weak .bar i{background:var(--hot)}
+.topic.weak .f{color:var(--hot)}
+h2{font-size:1.25rem;letter-spacing:-.01em}
+.banner{margin-top:18px;padding:16px;border-radius:12px;background:var(--cold-soft);display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center}
+.banner p{margin:0;flex:1 1 220px;font-weight:500}
+footer{margin-top:28px;font:400 12px/1.6 var(--mono);color:var(--ink-2)}
+@media (max-width:520px){
+  .card{padding:16px}
+  .qtext{font-size:16px}
+  .dot{width:34px;height:34px}
+  .part-head{grid-template-columns:24px 1fr auto}
+}
+@media (prefers-reduced-motion:no-preference){
+  .opt,.btn,.dot{transition:border-color .15s,background .15s}
+}
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div class="top-text">
+      <p class="eyebrow">Pure Physics · Unit 10</p>
+      <h1>Thermal Properties of Matter</h1>
+      <p class="lede">10 multiple choice and 5 structured questions on internal energy, heat capacity, latent heat, heating curves and evaporation. Every answer comes with working or a mark scheme.</p>
+    </div>
+    <svg class="curve" viewBox="0 0 210 118" aria-hidden="true">
+      <defs>
+        <linearGradient id="cg" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0" style="stop-color:var(--cold)"/>
+          <stop offset="1" style="stop-color:var(--hot)"/>
+        </linearGradient>
+      </defs>
+      <line class="c-axis" x1="4" y1="6" x2="4" y2="108"/>
+      <line class="c-axis" x1="4" y1="108" x2="206" y2="108"/>
+      <polyline class="c-line" points="10,100 50,66 96,66 134,38 172,38 204,10"/>
+      <text class="c-txt" x="62" y="60">MELTING</text>
+      <text class="c-txt" x="140" y="32">BOILING</text>
+    </svg>
+  </header>
+
+  <nav class="tabs" id="tabs" aria-label="Sections"></nav>
+
+  <details class="ref">
+    <summary>Formulae and constants</summary>
+    <div class="ref-body">
+      <div><span class="k">Heat transfer</span><br>Q = mcΔθ = CΔθ<br>C = mc</div>
+      <div><span class="k">Change of state</span><br>Q = ml</div>
+      <div><span class="k">Electrical heating</span><br>E = Pt = VIt</div>
+      <div><span class="k">Used in questions</span><br>c<sub>water</sub> = 4200 J/(kg °C)<br>c<sub>ice</sub> = 2100 J/(kg °C)<br>l<sub>f</sub> = 3.34 × 10<sup>5</sup> J/kg</div>
+    </div>
+  </details>
+
+  <main id="app"></main>
+  <footer>Questions are original and follow the topics in the Unit 10 notes and the P1 and P2 practice papers. Progress is saved in this browser.</footer>
+</div>
+
+<script>
+(function(){
+'use strict';
+var KEY='thermal-properties-practice-v1';
+
+/* ---------- helpers ---------- */
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function shuffle(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;}return a;}
+function W(s){return '<div class="w">'+s+'</div>';}
+function Tx(s){return '<div>'+s+'</div>';}
+
+/* ---------- charts ---------- */
+function chart(o){
+  var Wd=520,H=o.h||290,L=54,R=18,T=14,B=46,pw=Wd-L-R,ph=H-T-B,i,v,s;
+  function X(a){return L+a/o.xmax*pw;}
+  function Y(a){return T+ph-a/o.ymax*ph;}
+  s='<svg class="chart" viewBox="0 0 '+Wd+' '+H+'" role="img" aria-label="'+esc(o.alt)+'">';
+  if(!o.schematic){
+    for(i=0;i*o.xminor<=o.xmax+1e-9;i++){v=i*o.xminor;s+='<line class="g-minor" x1="'+X(v)+'" y1="'+T+'" x2="'+X(v)+'" y2="'+(T+ph)+'"/>';}
+    for(i=0;i*o.yminor<=o.ymax+1e-9;i++){v=i*o.yminor;s+='<line class="g-minor" x1="'+L+'" y1="'+Y(v)+'" x2="'+(L+pw)+'" y2="'+Y(v)+'"/>';}
+    for(i=0;i*o.xmajor<=o.xmax+1e-9;i++){v=i*o.xmajor;s+='<line class="g-major" x1="'+X(v)+'" y1="'+T+'" x2="'+X(v)+'" y2="'+(T+ph)+'"/><text class="g-text" x="'+X(v)+'" y="'+(T+ph+16)+'" text-anchor="middle">'+v+'</text>';}
+    for(i=0;i*o.ymajor<=o.ymax+1e-9;i++){v=i*o.ymajor;s+='<line class="g-major" x1="'+L+'" y1="'+Y(v)+'" x2="'+(L+pw)+'" y2="'+Y(v)+'"/><text class="g-text" x="'+(L-8)+'" y="'+(Y(v)+4)+'" text-anchor="end">'+v+'</text>';}
+  }
+  s+='<line class="g-axis" x1="'+L+'" y1="'+T+'" x2="'+L+'" y2="'+(T+ph)+'"/><line class="g-axis" x1="'+L+'" y1="'+(T+ph)+'" x2="'+(L+pw)+'" y2="'+(T+ph)+'"/>';
+  s+='<text class="g-title" x="'+(L+pw/2)+'" y="'+(H-8)+'" text-anchor="middle">'+o.xlabel+'</text>';
+  s+='<text class="g-title" transform="translate(14 '+(T+ph/2)+') rotate(-90)" text-anchor="middle">'+o.ylabel+'</text>';
+  s+='<polyline class="g-line" points="'+o.pts.map(function(p){return X(p[0])+','+Y(p[1]);}).join(' ')+'"/>';
+  if(o.dots){o.pts.forEach(function(p){s+='<circle class="g-dot" cx="'+X(p[0])+'" cy="'+Y(p[1])+'" r="4"/>';});}
+  (o.marks||[]).forEach(function(m){
+    s+='<circle class="g-dot" cx="'+X(m.x)+'" cy="'+Y(m.y)+'" r="3.5"/><text class="g-label" x="'+(X(m.x)+m.dx)+'" y="'+(Y(m.y)+m.dy)+'" text-anchor="middle">'+m.t+'</text>';
+  });
+  return s+'</svg>';
+}
+var VIS={
+  heat:function(){return chart({alt:'Temperature against time graph. Temperature rises from 20 degrees Celsius to 60 degrees at 100 seconds, stays at 60 degrees until 400 seconds, then rises to 90 degrees at 500 seconds.',xmax:500,ymax:100,xmajor:100,xminor:50,ymajor:20,yminor:10,xlabel:'time / s',ylabel:'temperature / °C',pts:[[0,20],[100,60],[400,60],[500,90]],dots:true});},
+  cool:function(){return chart({alt:'Cooling curve with points P to U. P to Q is a fall, Q to R is flat, R to S is a fall, S to T is flat and T to U is a fall.',schematic:true,h:260,xmax:100,ymax:100,xlabel:'time',ylabel:'temperature',pts:[[6,92],[22,74],[48,74],[62,50],[84,50],[96,22]],marks:[{t:'P',x:6,y:92,dx:-14,dy:4},{t:'Q',x:22,y:74,dx:0,dy:-10},{t:'R',x:48,y:74,dx:0,dy:-10},{t:'S',x:62,y:50,dx:-12,dy:16},{t:'T',x:84,y:50,dx:0,dy:-10},{t:'U',x:96,y:22,dx:-2,dy:18}]});},
+  wax:function(){return chart({alt:'Cooling curve of wax. Temperature falls from 80 degrees Celsius to 50 degrees in 3 minutes, stays at 50 degrees until 13 minutes, then falls to 20 degrees at 20 minutes.',xmax:20,ymax:100,xmajor:2,xminor:1,ymajor:20,yminor:10,xlabel:'time / min',ylabel:'temperature / °C',pts:[[0,80],[3,50],[13,50],[20,20]],dots:true});}
+};
+
+/* ---------- topics ---------- */
+var TOPICS={
+  ie:{name:'Internal energy',notes:'notes p.1'},
+  shc:{name:'Specific heat capacity',notes:'notes p.2 to 4'},
+  lh:{name:'Latent heat',notes:'notes p.5 to 7'},
+  cv:{name:'Heating and cooling curves',notes:'notes p.1, 2, 5 and 6'},
+  ev:{name:'Evaporation',notes:'notes p.4'}
+};
+
+/* ---------- multiple choice ---------- */
+var MCQ=[
+{id:'m1',topic:'ie',
+ q:'<p>A block of ice at 0 °C is heated and melts completely while its temperature stays at 0 °C. What happens to the internal kinetic energy and the internal potential energy of its particles?</p>',
+ options:['Kinetic energy increases and potential energy stays the same','Kinetic energy stays the same and potential energy increases','Both kinetic energy and potential energy increase','Kinetic energy decreases and potential energy increases'],
+ correct:1,
+ why:'The temperature is constant, so the average kinetic energy of the particles does not change. The energy absorbed is used to overcome the forces between particles as they move further apart, so the internal potential energy increases.'},
+{id:'m2',topic:'shc',shuffle:false,
+ q:'<p>A 3.0 kg metal block needs 7200 J of thermal energy to raise its temperature by 15 °C. What are the heat capacity and the specific heat capacity of the metal?</p>',
+ options:['160 J/°C and 480 J/(kg °C)','1440 J/°C and 480 J/(kg °C)','480 J/°C and 160 J/(kg °C)','7200 J/°C and 2400 J/(kg °C)'],
+ correct:2,
+ why:'Heat capacity C = Q ÷ Δθ = 7200 ÷ 15 = 480 J/°C. Specific heat capacity c = C ÷ m = 480 ÷ 3.0 = 160 J/(kg °C). Heat capacity belongs to the whole block, so it is the larger number.'},
+{id:'m3',topic:'shc',shuffle:false,
+ q:'<p>A 2.0 kW heater raises the temperature of 0.50 kg of water from 20 °C to 60 °C. Assume no thermal energy is lost. The specific heat capacity of water is 4200 J/(kg °C). How long does this take?</p>',
+ options:['42 s','84 s','168 s','840 s'],
+ correct:0,
+ why:'Q = mcΔθ = 0.50 × 4200 × 40 = 84 000 J. Power is energy per second, so t = Q ÷ P = 84 000 ÷ 2000 = 42 s. Remember to convert 2.0 kW to 2000 W.'},
+{id:'m4',topic:'shc',shuffle:false,
+ q:'<p>0.20 kg of copper at 100 °C is dropped into 0.30 kg of water at 20 °C in an insulated container. The specific heat capacity of copper is 400 J/(kg °C) and of water is 4200 J/(kg °C). What is the final temperature of the mixture?</p>',
+ options:['20.0 °C','22.4 °C','24.8 °C','60.0 °C'],
+ correct:2,
+ why:'Energy lost by copper = energy gained by water. 0.20 × 400 × (100 − θ) = 0.30 × 4200 × (θ − 20), so 8000 − 80θ = 1260θ − 25 200 and θ = 33 200 ÷ 1340 = 24.8 °C. The water has the far larger heat capacity (1260 J/°C against 80 J/°C), so the final temperature stays close to its start. The mean of the two temperatures, 60 °C, ignores this.'},
+{id:'m5',topic:'lh',shuffle:false,
+ q:'<p>How much thermal energy is needed to melt 0.25 kg of ice at 0 °C? The specific latent heat of fusion of ice is 3.34 × 10<sup>5</sup> J/kg.</p>',
+ options:['21 kJ','83.5 kJ','334 kJ','1340 kJ'],
+ correct:1,
+ why:'The temperature does not change, so use Q = ml only. Q = 0.25 × 3.34 × 10<sup>5</sup> = 8.35 × 10<sup>4</sup> J = 83.5 kJ. The 21 kJ option wrongly uses mcΔθ.'},
+{id:'m6',topic:'cv',shuffle:false,visual:'heat',
+ q:'<p>A 0.20 kg solid is heated by a 500 W heater. The graph shows how its temperature changes with time. What is the specific latent heat of fusion of the solid?</p>',
+ options:['150 kJ/kg','300 kJ/kg','750 kJ/kg','1500 kJ/kg'],
+ correct:2,
+ why:'The flat section runs from 100 s to 400 s, so melting takes 300 s. Energy = Pt = 500 × 300 = 150 000 J. Then l<sub>f</sub> = Q ÷ m = 150 000 ÷ 0.20 = 750 000 J/kg = 750 kJ/kg. The 150 kJ/kg option forgets to divide by the mass.'},
+{id:'m7',topic:'cv',visual:'cool',
+ q:'<p>A hot vapour is left to cool in a cold room. The graph shows how its temperature changes. It becomes a liquid and then a solid. In which two sections is latent heat released?</p>',
+ options:['PQ and RS','QR and ST','PQ and ST','RS and TU'],
+ correct:1,
+ why:'QR is condensation and ST is freezing. In both, intermolecular bonds form, so internal potential energy falls and thermal energy is released while the average kinetic energy, and so the temperature, stays constant. PQ, RS and TU are temperature falls, where the kinetic energy decreases.'},
+{id:'m8',topic:'ev',
+ q:'<p>Which statement explains why a liquid cools as it evaporates?</p>',
+ options:['Molecules with above-average kinetic energy escape, so the average kinetic energy of the remaining molecules decreases.','Every molecule loses some kinetic energy to the air above the surface.','Molecules with below-average kinetic energy escape first, leaving the faster molecules behind.','The surroundings are always colder than the liquid, so thermal energy flows out of it.'],
+ correct:0,
+ why:'Only molecules at the surface that move fast enough to overcome the attractive forces can escape. Removing the most energetic molecules lowers the average kinetic energy of those left behind, and temperature depends on average kinetic energy.'},
+{id:'m9',topic:'ev',shuffle:false,
+ q:'<p>Which changes increase the rate of evaporation of water from a wet cloth?</p><p>I. Raising the temperature of the water<br>II. Increasing the humidity of the air<br>III. Increasing the exposed surface area<br>IV. Blowing air across the surface</p>',
+ options:['I and II only','I, III and IV only','II, III and IV only','I, II, III and IV'],
+ correct:1,
+ why:'Evaporation speeds up with a higher temperature, a larger surface area and drier or moving air that carries vapour away. Higher humidity slows it, because more vapour molecules return to the liquid.'},
+{id:'m10',topic:'shc',
+ q:'<p>Three liquids A, B and C are heated by identical heaters for the same length of time. No thermal energy is lost to the surroundings.</p><div class="tbl"><table><thead><tr><th>Liquid</th><th>Mass / g</th><th>Temperature rise / °C</th></tr></thead><tbody><tr><td>A</td><td>100</td><td>20</td></tr><tr><td>B</td><td>200</td><td>20</td></tr><tr><td>C</td><td>200</td><td>8</td></tr></tbody></table></div><p>Which ranking of their specific heat capacities is correct?</p>',
+ options:['c<sub>A</sub> &gt; c<sub>B</sub> &gt; c<sub>C</sub>','c<sub>B</sub> &gt; c<sub>A</sub> &gt; c<sub>C</sub>','c<sub>C</sub> &gt; c<sub>A</sub> &gt; c<sub>B</sub>','c<sub>C</sub> &gt; c<sub>B</sub> &gt; c<sub>A</sub>'],
+ correct:2,
+ why:'Each liquid receives the same energy Q, and c = Q ÷ (mΔθ), so c is inversely proportional to mΔθ. For A it is 100 × 20 = 2000, for B 200 × 20 = 4000 and for C 200 × 8 = 1600. The smallest product gives the largest c, so C is greatest, then A, then B.'}
+];
+
+/* ---------- structured ---------- */
+var STR=[
+{id:'s1',topic:'lh',title:'Ice to warm water',
+ stem:'<p>A 0.30 kg block of ice at −20 °C is heated steadily until it has become water at 40 °C. Assume no thermal energy is lost to the surroundings.</p><p class="given">Specific heat capacity of ice = 2100 J/(kg °C)<br>Specific heat capacity of water = 4200 J/(kg °C)<br>Specific latent heat of fusion of ice = 3.34 × 10<sup>5</sup> J/kg</p>',
+ parts:[
+ {id:'s1a',label:'(a)',marks:2,calc:true,text:'Calculate the thermal energy needed to raise the temperature of the ice from −20 °C to 0 °C.',
+  answer:[W('Q = mcΔθ'),W('= 0.30 × 2100 × 20'),W('= 12 600 J')],
+  points:['Substitutes into Q = mcΔθ with a temperature rise of 20 °C','12 600 J (1.26 × 10<sup>4</sup> J)']},
+ {id:'s1b',label:'(b)',marks:2,calc:true,text:'Calculate the thermal energy needed to melt all of the ice at 0 °C.',
+  answer:[W('Q = ml'),W('= 0.30 × 3.34 × 10<sup>5</sup>'),W('= 100 200 J (1.0 × 10<sup>5</sup> J)')],
+  points:['Uses Q = ml with the specific latent heat of fusion','100 200 J (1.0 × 10<sup>5</sup> J)']},
+ {id:'s1c',label:'(c)',marks:2,calc:true,text:'Calculate the thermal energy needed to raise the temperature of the water from 0 °C to 40 °C.',
+  answer:[W('Q = mcΔθ'),W('= 0.30 × 4200 × 40'),W('= 50 400 J')],
+  points:['Uses c = 4200 J/(kg °C), the value for water, not ice','50 400 J']},
+ {id:'s1d',label:'(d)',marks:1,calc:true,text:'Calculate the total thermal energy supplied.',
+  answer:[W('12 600 + 100 200 + 50 400'),W('= 163 200 J (about 1.6 × 10<sup>5</sup> J)')],
+  points:['163 200 J (accept 1.6 × 10<sup>5</sup> J)']},
+ {id:'s1e',label:'(e)',marks:2,topic:'ie',text:'The temperature stays at 0 °C while the ice melts, even though energy is still being supplied. Explain this in terms of particles.',
+  answer:[Tx('The thermal energy absorbed is used to overcome the attractive forces between the particles, so they move further apart and the internal potential energy increases. The average kinetic energy of the particles does not change, so the temperature stays constant.')],
+  points:['Energy absorbed is used to break the bonds or overcome the forces between particles (internal potential energy increases)','Average kinetic energy of the particles stays the same, so the temperature does not change']}
+ ]},
+{id:'s2',topic:'shc',title:'Electrical heating of a metal block',
+ stem:'<p>A student measures the specific heat capacity of a metal. A 1.5 kg block is heated by an electric heater rated at 12 V and 5.0 A. The heater is switched on for 4.0 minutes. The temperature of the block rises from 22 °C to 46 °C.</p>',
+ parts:[
+ {id:'s2a',label:'(a)',marks:1,text:'Define specific heat capacity.',
+  answer:[Tx('The amount of thermal energy required to raise the temperature of 1 kg of a substance by 1 °C (or 1 K).')],
+  points:['Energy to raise 1 kg of the substance by 1 °C or 1 K']},
+ {id:'s2b',label:'(b)',marks:2,calc:true,text:'Show that the thermal energy supplied by the heater is 14 400 J.',
+  answer:[W('E = VIt'),W('= 12 × 5.0 × (4.0 × 60)'),W('= 14 400 J')],
+  points:['Uses E = VIt or E = Pt with P = VI','Converts 4.0 minutes to 240 s and reaches 14 400 J']},
+ {id:'s2c',label:'(c)',marks:2,calc:true,text:'Assume all of this energy is absorbed by the block. Calculate the specific heat capacity of the metal.',
+  answer:[W('Δθ = 46 − 22 = 24 °C'),W('c = Q ÷ (mΔθ)'),W('= 14 400 ÷ (1.5 × 24)'),W('= 400 J/(kg °C)')],
+  points:['Rearranges Q = mcΔθ and substitutes with Δθ = 24 °C','400 J/(kg °C)']},
+ {id:'s2d',label:'(d)',marks:2,text:'Explain why the value in (c) is likely to be higher than the true specific heat capacity.',
+  answer:[Tx('Some thermal energy is lost to the surroundings, so the block absorbs less than 14 400 J. The calculation uses the full 14 400 J, so the value of c is too large.')],
+  points:['Some thermal energy is lost to the surroundings','The energy absorbed by the block is less than the 14 400 J used, so c is overestimated']},
+ {id:'s2e',label:'(e)',marks:1,text:'Suggest one change to the experiment that improves the result.',
+  answer:[Tx('Wrap the block in insulating material (lagging) to reduce the thermal energy lost to the surroundings.')],
+  points:['Insulate or lag the block to reduce heat loss']}
+ ]},
+{id:'s3',topic:'lh',title:'Ice added to water',
+ stem:'<p>40 g of ice at 0 °C is added to 250 g of water at 30 °C in an insulated container. The heat capacity of the container is negligible.</p><p class="given">Specific heat capacity of water = 4200 J/(kg °C)<br>Specific latent heat of fusion of ice = 3.34 × 10<sup>5</sup> J/kg</p>',
+ parts:[
+ {id:'s3a',label:'(a)',marks:3,calc:true,text:'Show that all of the ice melts.',
+  answer:[W('Energy released as the water cools to 0 °C:'),W('0.25 × 4200 × 30 = 31 500 J'),W('Energy needed to melt all the ice:'),W('0.040 × 3.34 × 10<sup>5</sup> = 13 360 J'),Tx('31 500 J is greater than 13 360 J, so all the ice melts.')],
+  points:['Energy released by the water cooling to 0 °C is 31 500 J','Energy needed to melt all the ice is 13 360 J','Compares the two values and concludes that the ice melts completely']},
+ {id:'s3b',label:'(b)',marks:4,calc:true,text:'Calculate the final temperature of the mixture.',
+  answer:[W('Energy lost by warm water = energy gained by ice'),W('0.25 × 4200 × (30 − θ) = 0.040 × 3.34 × 10<sup>5</sup> + 0.040 × 4200 × θ'),W('31 500 − 1050θ = 13 360 + 168θ'),W('18 140 = 1218θ'),W('θ = 14.9 °C')],
+  points:['Energy lost by the warm water written as mcΔθ','Energy gained by the ice includes melting (ml) and warming the melted ice (mcΔθ)','Equates energy lost and energy gained and solves for θ','14.9 °C (accept 15 °C)']},
+ {id:'s3c',label:'(c)',marks:1,text:'State one assumption made in your calculation.',
+  answer:[Tx('No thermal energy is exchanged with the surroundings (and none is absorbed by the container).')],
+  points:['No energy is gained from or lost to the surroundings or the container']},
+ {id:'s3d',label:'(d)',marks:2,text:'The room is at 30 °C and the container is not perfectly insulated. State and explain whether the actual final temperature is higher or lower than your answer to (b).',
+  answer:[Tx('Higher. The mixture ends up colder than the room, so it gains thermal energy from the surroundings.')],
+  points:['Higher','The mixture is colder than the room, so it gains thermal energy from the surroundings']}
+ ]},
+{id:'s4',topic:'cv',title:'Cooling curve of wax',
+ stem:'<p>0.20 kg of liquid wax cools in a room. Fig. 1 shows how its temperature changes with time. Assume the wax loses thermal energy to the room at a constant rate of 80 W throughout.</p><figure class="fig">{{wax}}<figcaption>Fig. 1</figcaption></figure>',
+ parts:[
+ {id:'s4a',label:'(a)',marks:1,text:'State the freezing point of the wax.',
+  answer:[Tx('50 °C')],points:['50 °C']},
+ {id:'s4b',label:'(b)',marks:2,topic:'ie',text:'Explain, in terms of particles, why the temperature stays constant between 3 min and 13 min.',
+  answer:[Tx('The wax is freezing. The particles form bonds and move closer together, so the internal potential energy decreases and thermal energy is released. This balances the energy lost to the room, so the average kinetic energy of the particles does not change and the temperature stays constant.')],
+  points:['Particles form intermolecular bonds, so the internal potential energy decreases (latent heat is released)','The average kinetic energy of the particles stays the same, so the temperature is constant']},
+ {id:'s4c',label:'(c)',marks:3,calc:true,text:'Calculate the specific latent heat of fusion of the wax.',
+  answer:[W('Time = (13 − 3) × 60 = 600 s'),W('Energy lost = Pt = 80 × 600 = 48 000 J'),W('l = Q ÷ m = 48 000 ÷ 0.20'),W('= 2.4 × 10<sup>5</sup> J/kg')],
+  points:['Freezing takes 10 minutes, which is 600 s, so Q = 80 × 600 = 48 000 J','Divides by the mass: l = Q ÷ m','2.4 × 10<sup>5</sup> J/kg (240 000 J/kg)']},
+ {id:'s4d',label:'(d)',marks:3,calc:true,text:'Calculate the specific heat capacity of the liquid wax.',
+  answer:[W('Liquid section: 0 to 3 min = 180 s, Δθ = 80 − 50 = 30 °C'),W('Q = 80 × 180 = 14 400 J'),W('c = Q ÷ (mΔθ) = 14 400 ÷ (0.20 × 30)'),W('= 2400 J/(kg °C)')],
+  points:['Reads the liquid cooling time as 180 s and the fall as 30 °C','Energy lost = 80 × 180 = 14 400 J','2400 J/(kg °C)']},
+ {id:'s4e',label:'(e)',marks:2,text:'The graph is steeper when the wax is liquid than when it is solid. Compare the specific heat capacity of liquid wax with that of solid wax. Justify your answer.',
+  answer:[W('Liquid: 80 × 180 = 14 400 J for a 30 °C fall'),W('Solid: 80 × 420 = 33 600 J for a 30 °C fall'),Tx('The liquid loses less energy for the same fall in temperature, so liquid wax has the smaller specific heat capacity.')],
+  points:['Same rate of energy loss, so a steeper section means a smaller energy change per °C','Liquid wax has the smaller specific heat capacity than solid wax']}
+ ]},
+{id:'s5',topic:'ev',title:'Sweating during exercise',
+ stem:'<p>During a 30 minute training session an athlete of mass 60 kg produces thermal energy at a rate of 900 W. Sweat evaporating from the skin removes thermal energy at a rate of 600 W. Assume there is no other energy loss.</p><p class="given">Specific heat capacity of the human body = 3400 J/(kg °C)<br>Specific latent heat of vaporisation of sweat = 2.4 × 10<sup>6</sup> J/kg</p>',
+ parts:[
+ {id:'s5a',label:'(a)',marks:2,text:'Explain, in terms of particles, why evaporation of sweat cools the skin.',
+  answer:[Tx('The most energetic molecules at the surface overcome the attractive forces and escape. The molecules left behind have a lower average kinetic energy, so the temperature of the sweat and the skin decreases.')],
+  points:['The fastest, most energetic molecules at the surface escape','The average kinetic energy of the remaining molecules decreases, so the temperature falls']},
+ {id:'s5b',label:'(b)',marks:2,calc:true,text:'Calculate the net thermal energy gained by the body in 30 minutes.',
+  answer:[W('Net power = 900 − 600 = 300 W'),W('E = Pt = 300 × (30 × 60)'),W('= 5.4 × 10<sup>5</sup> J')],
+  points:['Net rate of energy gain is 300 W','5.4 × 10<sup>5</sup> J (540 000 J)']},
+ {id:'s5c',label:'(c)',marks:2,calc:true,text:'Calculate the rise in the athlete’s body temperature.',
+  answer:[W('Δθ = Q ÷ (mc)'),W('= 540 000 ÷ (60 × 3400)'),W('= 2.6 °C')],
+  points:['Uses Δθ = Q ÷ (mc) with the answer to (b)','2.6 °C (2.65 °C)']},
+ {id:'s5d',label:'(d)',marks:2,calc:true,text:'Calculate the mass of sweat that evaporates in 30 minutes.',
+  answer:[W('Energy removed = 600 × 1800 = 1.08 × 10<sup>6</sup> J'),W('m = Q ÷ l = 1.08 × 10<sup>6</sup> ÷ 2.4 × 10<sup>6</sup>'),W('= 0.45 kg')],
+  points:['Energy removed by evaporation = 600 × 1800 = 1.08 × 10<sup>6</sup> J','0.45 kg']},
+ {id:'s5e',label:'(e)',marks:2,calc:true,text:'Dehydration is mild if less than 3% of body mass is lost, moderate for 3% to 5% and severe for more than 5%. Determine the level of dehydration after the session. Assume the athlete drinks nothing.',
+  answer:[W('0.45 ÷ 60 × 100% = 0.75%'),Tx('0.75% is below 3%, so the dehydration is mild.')],
+  points:['0.75% of body mass lost','Below 3%, so mild dehydration']}
+ ]}
+];
+
+/* ---------- state ---------- */
+function fresh(){
+  var order={};MCQ.forEach(function(q){order[q.id]=q.shuffle===false?[0,1,2,3]:shuffle([0,1,2,3]);});
+  return {tab:'mcq',mi:0,si:0,order:order,picked:{},checked:{},ans:{},rev:{},open:{},tick:{}};
+}
+function load(){
+  try{
+    var r=localStorage.getItem(KEY);if(!r)return null;
+    var o=JSON.parse(r);if(!o||!o.order)return null;
+    ['picked','checked','ans','rev','open','tick'].forEach(function(k){o[k]=o[k]||{};});
+    MCQ.forEach(function(q){if(!o.order[q.id])o.order[q.id]=[0,1,2,3];});
+    o.mi=Math.min(o.mi|0,MCQ.length-1);o.si=Math.min(o.si|0,STR.length-1);
+    return o;
+  }catch(e){return null;}
+}
+var S=load()||fresh();
+var saveTimer=null;
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
+function saveSoon(){clearTimeout(saveTimer);saveTimer=setTimeout(save,300);}
+
+/* ---------- scoring ---------- */
+function partEarned(p){return (S.tick[p.id]||[]).filter(Boolean).length;}
+function mcqStats(){var r=0,d=0;MCQ.forEach(function(q){if(S.checked[q.id]){d++;if(S.picked[q.id]===q.correct)r++;}});return {right:r,done:d};}
+function qEarned(q){var e=0,a=0,n=0;q.parts.forEach(function(p){if(S.rev[p.id]){a+=p.marks;e+=partEarned(p);n++;}});return {e:e,a:a,n:n};}
+function qTotal(q){return q.parts.reduce(function(t,p){return t+p.marks;},0);}
+var STR_TOTAL=STR.reduce(function(t,q){return t+qTotal(q);},0);
+var STR_PARTS=STR.reduce(function(t,q){return t+q.parts.length;},0);
+function strStats(){var e=0,a=0,n=0;STR.forEach(function(q){var r=qEarned(q);e+=r.e;a+=r.a;n+=r.n;});return {earned:e,attempted:a,parts:n};}
+function topicStats(){
+  var t={};Object.keys(TOPICS).forEach(function(k){t[k]={e:0,a:0};});
+  MCQ.forEach(function(q){if(S.checked[q.id]){t[q.topic].a+=1;if(S.picked[q.id]===q.correct)t[q.topic].e+=1;}});
+  STR.forEach(function(q){q.parts.forEach(function(p){if(S.rev[p.id]){var k=p.topic||q.topic;t[k].a+=p.marks;t[k].e+=partEarned(p);}});});
+  return t;
+}
+
+/* ---------- rendering ---------- */
+var app=document.getElementById('app');
+var tabsEl=document.getElementById('tabs');
+
+function renderTabs(){
+  var m=mcqStats(),s=strStats();
+  var items=[['mcq','Multiple choice',m.done+'/'+MCQ.length],['str','Structured',s.parts+'/'+STR_PARTS+' parts'],['res','Results','']];
+  tabsEl.innerHTML=items.map(function(t){
+    return '<button class="tab" data-tab="'+t[0]+'" aria-pressed="'+(S.tab===t[0])+'">'+t[1]+(t[2]?'<small>'+t[2]+'</small>':'')+'</button>';
+  }).join('');
+}
+
+function mcqHtml(){
+  var q=MCQ[S.mi],ord=S.order[q.id],picked=S.picked[q.id],checked=!!S.checked[q.id];
+  var dots=MCQ.map(function(x,i){
+    var c='dot';
+    if(S.checked[x.id])c+=S.picked[x.id]===x.correct?' ok':' no';
+    if(i===S.mi)c+=' cur';
+    var st=S.checked[x.id]?(S.picked[x.id]===x.correct?', correct':', incorrect'):'';
+    return '<button class="'+c+'" data-act="mgo" data-i="'+i+'" aria-label="Question '+(i+1)+st+'">'+(i+1)+'</button>';
+  }).join('');
+  var opts=ord.map(function(orig,pos){
+    var isP=picked===orig,isC=orig===q.correct,c='opt';
+    if(checked){c+=' locked';if(isC)c+=' ok';else if(isP)c+=' no';}
+    else if(isP)c+=' sel';
+    var tag=checked?(isC?'<span class="tag">Correct</span>':(isP?'<span class="tag">Your answer</span>':'<span></span>')):'<span></span>';
+    return '<label class="'+c+'"><input type="radio" name="opt" value="'+orig+'"'+(isP?' checked':'')+(checked?' disabled':'')+'><span class="ltr">'+'ABCD'.charAt(pos)+'</span><span class="otxt">'+q.options[orig]+'</span>'+tag+'</label>';
+  }).join('');
+  var vis=q.visual?'<figure class="fig">'+VIS[q.visual]()+'</figure>':'';
+  var fb='';
+  if(checked){
+    var good=picked===q.correct;
+    fb='<p class="verdict '+(good?'ok':'no')+'">'+(good?'Correct.':'Not quite.')+'</p><div class="why"><h3>Why</h3><p>'+q.why+'</p></div>';
+  }
+  var m=mcqStats();
+  var end='';
+  if(m.done===MCQ.length){
+    end='<div class="banner"><p>All 10 answered: '+m.right+' out of 10 correct.</p><button class="btn" data-act="tab" data-t="res">See results</button><button class="btn ghost" data-act="retake">Retake with new option order</button></div>';
+  }
+  return '<div class="card"><div class="dots" role="group" aria-label="Questions">'+dots+'</div>'+
+    '<div class="qhead"><span class="qnum">Question '+(S.mi+1)+' of '+MCQ.length+'</span><span class="chip">'+TOPICS[q.topic].name+'</span><span class="qmarks">[1]</span></div>'+
+    '<div class="qtext">'+q.q+'</div>'+vis+
+    '<fieldset class="opts" aria-label="Answer options">'+opts+'</fieldset>'+fb+
+    '<div class="row"><button class="btn ghost" data-act="mgo" data-i="'+(S.mi-1)+'"'+(S.mi===0?' disabled':'')+'>Previous</button><span class="sp"></span>'+
+    (checked?'':'<button class="btn" id="checkBtn" data-act="check"'+(picked===undefined?' disabled':'')+'>Check answer</button>')+
+    '<button class="btn'+(checked?'':' ghost')+'" data-act="mgo" data-i="'+(S.mi+1)+'"'+(S.mi===MCQ.length-1?' disabled':'')+'>Next</button></div></div>'+end;
+}
+
+function partHtml(p,q){
+  var open=!!S.open[p.id],tk=S.tick[p.id]||[],got=partEarned(p);
+  var h='<section class="part" id="part-'+p.id+'"><div class="part-head"><span class="plabel">'+p.label+'</span><div class="ptext"><p>'+p.text+'</p></div><span class="pmarks">['+p.marks+']</span></div>';
+  h+='<label class="sr" for="a-'+p.id+'">Your answer for part '+p.label+'</label><textarea id="a-'+p.id+'" data-part="'+p.id+'" rows="'+(p.calc?4:3)+'" placeholder="'+(p.calc?'Show your working and answer':'Write your answer')+'">'+esc(S.ans[p.id]||'')+'</textarea>';
+  h+='<div class="part-actions"><button class="btn ghost sm" data-act="toggle" data-id="'+p.id+'" aria-expanded="'+open+'">'+(open?'Hide mark scheme':'Show mark scheme')+'</button>'+(S.rev[p.id]?'<span class="pscore" data-pscore="'+p.id+'">'+got+' / '+p.marks+' marks</span>':'')+'</div>';
+  if(open){
+    h+='<div class="scheme"><p class="scheme-h">Model answer</p><div class="model">'+p.answer.join('')+'</div><p class="scheme-h">Tick the marks you earned</p><ul class="points">'+
+      p.points.map(function(t,i){return '<li><label><input type="checkbox" data-tick="'+p.id+'" data-i="'+i+'"'+(tk[i]?' checked':'')+'><span>'+t+'</span></label></li>';}).join('')+'</ul></div>';
+  }
+  return h+'</section>';
+}
+
+function qsumHtml(q){
+  var r=qEarned(q);
+  return 'Marked: <b>'+r.n+' of '+q.parts.length+' parts</b><span>Marks: <b>'+r.e+' / '+r.a+'</b> of '+qTotal(q)+'</span>';
+}
+
+function strHtml(){
+  var q=STR[S.si];
+  var chips=STR.map(function(x,i){
+    var r=qEarned(x);
+    return '<button class="qchip" data-act="sgo" data-i="'+i+'" aria-pressed="'+(i===S.si)+'" data-chip="'+x.id+'">Q'+(i+1)+'<small>'+(r.n?r.e+'/'+r.a+' marks':qTotal(x)+' marks')+'</small></button>';
+  }).join('');
+  var stem=q.stem.replace('{{wax}}',VIS.wax());
+  var allOpen=q.parts.every(function(p){return S.open[p.id];});
+  return '<div class="card"><div class="qchips" role="group" aria-label="Structured questions">'+chips+'</div>'+
+    '<div class="qhead"><span class="qnum">Question '+(S.si+1)+' of '+STR.length+'</span><span class="chip">'+TOPICS[q.topic].name+'</span><span class="qmarks">['+qTotal(q)+' marks]</span></div>'+
+    '<h2>'+q.title+'</h2><div class="qtext" style="margin-top:10px">'+stem+'</div>'+
+    q.parts.map(function(p){return partHtml(p,q);}).join('')+
+    '<div class="qsum" id="qsum">'+qsumHtml(q)+'</div>'+
+    '<div class="row"><button class="btn ghost" data-act="sgo" data-i="'+(S.si-1)+'"'+(S.si===0?' disabled':'')+'>Previous</button><button class="btn ghost" data-act="'+(allOpen?'hideall':'showall')+'">'+(allOpen?'Hide all mark schemes':'Show all mark schemes')+'</button><span class="sp"></span>'+
+    '<button class="btn" data-act="sgo" data-i="'+(S.si+1)+'"'+(S.si===STR.length-1?' disabled':'')+'>Next question</button></div></div>';
+}
+
+var confirmReset=false,confirmTimer=null;
+function pct(a,b){return b?Math.round(a/b*100):0;}
+function resHtml(){
+  var m=mcqStats(),s=strStats(),ts=topicStats();
+  var earned=m.right+s.earned,attempted=m.done+s.attempted,total=MCQ.length+STR_TOTAL;
+  var topics=Object.keys(TOPICS).map(function(k){
+    var t=ts[k],name=TOPICS[k].name;
+    if(!t.a)return '<li class="topic"><span class="n">'+name+'</span><span class="f">not attempted</span><div class="bar"><i style="width:0"></i></div></li>';
+    var p=pct(t.e,t.a),weak=p<60;
+    return '<li class="topic'+(weak?' weak':'')+'"><span class="n">'+name+'</span><span class="f">'+t.e+' / '+t.a+' marks · '+p+'%</span><div class="bar"><i style="width:'+p+'%"></i></div>'+(weak?'<span class="hint">Revise this topic: '+TOPICS[k].notes+'.</span>':'')+'</li>';
+  }).join('');
+  var perQ=STR.map(function(q,i){var r=qEarned(q);return 'Q'+(i+1)+' '+(r.n?r.e+'/'+r.a:'–');}).join('  ·  ');
+  return '<div class="card"><div class="sum">'+
+    '<div class="box"><div class="lab">Multiple choice</div><div class="big">'+m.right+' <span>/ '+MCQ.length+'</span></div><div class="bar"><i style="width:'+pct(m.right,MCQ.length)+'%"></i></div><div class="sub">'+m.done+' of '+MCQ.length+' answered</div></div>'+
+    '<div class="box"><div class="lab">Structured</div><div class="big">'+s.earned+' <span>/ '+STR_TOTAL+'</span></div><div class="bar"><i style="width:'+pct(s.earned,STR_TOTAL)+'%"></i></div><div class="sub">'+s.parts+' of '+STR_PARTS+' parts marked<br>'+perQ+'</div></div>'+
+    '</div>'+
+    '<h2>Topic breakdown</h2><p style="margin:6px 0 0;color:var(--ink-2)">'+(attempted?'Earned '+earned+' of '+attempted+' marks attempted ('+pct(earned,attempted)+'%). The full set is worth '+total+' marks.':'Answer some questions to see how each topic is going.')+'</p>'+
+    '<ul class="topics">'+topics+'</ul>'+
+    '<div class="row"><button class="btn ghost" data-act="retake">Retake multiple choice</button><button class="btn danger'+(confirmReset?' armed':'')+'" data-act="reset">'+(confirmReset?'Confirm: clear everything':'Clear all answers')+'</button></div></div>';
+}
+
+function render(){
+  renderTabs();
+  app.innerHTML=S.tab==='mcq'?mcqHtml():S.tab==='str'?strHtml():resHtml();
+}
+function toTop(){
+  var y=tabsEl.getBoundingClientRect().top+window.pageYOffset-10;
+  window.scrollTo(0,Math.max(0,y));
+}
+function refreshStrScores(id){
+  var q=STR[S.si];
+  q.parts.forEach(function(p){
+    var el=app.querySelector('[data-pscore="'+p.id+'"]');
+    if(el)el.textContent=partEarned(p)+' / '+p.marks+' marks';
+  });
+  var qs=document.getElementById('qsum');if(qs)qs.innerHTML=qsumHtml(q);
+  STR.forEach(function(x){
+    var c=app.querySelector('[data-chip="'+x.id+'"] small');
+    if(c){var r=qEarned(x);c.textContent=r.n?r.e+'/'+r.a+' marks':qTotal(x)+' marks';}
+  });
+  renderTabs();
+}
+
+/* ---------- events ---------- */
+tabsEl.addEventListener('click',function(e){
+  var b=e.target.closest('[data-tab]');if(!b)return;
+  S.tab=b.dataset.tab;save();render();
+});
+app.addEventListener('click',function(e){
+  var b=e.target.closest('[data-act]');if(!b||b.disabled)return;
+  var a=b.dataset.act,q;
+  if(a==='check'){
+    q=MCQ[S.mi];if(S.picked[q.id]===undefined)return;
+    S.checked[q.id]=true;save();render();
+  }else if(a==='mgo'){
+    var i=parseInt(b.dataset.i,10);if(i<0||i>=MCQ.length)return;
+    S.mi=i;save();render();toTop();
+  }else if(a==='sgo'){
+    var j=parseInt(b.dataset.i,10);if(j<0||j>=STR.length)return;
+    S.si=j;save();render();toTop();
+  }else if(a==='toggle'){
+    var id=b.dataset.id;S.open[id]=!S.open[id];if(S.open[id]&&!S.rev[id])S.rev[id]=true;
+    save();var y0=window.pageYOffset;render();window.scrollTo(0,y0);
+    var nb=app.querySelector('[data-act="toggle"][data-id="'+id+'"]');if(nb)nb.focus({preventScroll:true});
+  }else if(a==='showall'||a==='hideall'){
+    STR[S.si].parts.forEach(function(p){if(a==='showall'){S.open[p.id]=true;S.rev[p.id]=true;}else{S.open[p.id]=false;}});
+    save();var y1=window.pageYOffset;render();window.scrollTo(0,y1);
+  }else if(a==='tab'){
+    S.tab=b.dataset.t;save();render();toTop();
+  }else if(a==='retake'){
+    MCQ.forEach(function(x){S.order[x.id]=x.shuffle===false?[0,1,2,3]:shuffle([0,1,2,3]);delete S.picked[x.id];delete S.checked[x.id];});
+    S.mi=0;S.tab='mcq';save();render();toTop();
+  }else if(a==='reset'){
+    if(!confirmReset){
+      confirmReset=true;clearTimeout(confirmTimer);
+      confirmTimer=setTimeout(function(){confirmReset=false;if(S.tab==='res')render();},4000);
+      render();
+    }else{
+      confirmReset=false;clearTimeout(confirmTimer);
+      S=fresh();S.tab='res';save();render();
+    }
+  }
+});
+app.addEventListener('input',function(e){
+  var t=e.target;
+  if(t.matches&&t.matches('textarea[data-part]')){S.ans[t.dataset.part]=t.value;saveSoon();}
+});
+app.addEventListener('change',function(e){
+  var t=e.target;
+  if(t.name==='opt'){
+    var q=MCQ[S.mi];if(S.checked[q.id])return;
+    S.picked[q.id]=parseInt(t.value,10);save();
+    app.querySelectorAll('.opt').forEach(function(l){l.classList.toggle('sel',l.querySelector('input').checked);});
+    var cb=document.getElementById('checkBtn');if(cb)cb.disabled=false;
+  }else if(t.dataset&&t.dataset.tick){
+    var pid=t.dataset.tick,idx=parseInt(t.dataset.i,10);
+    var arr=S.tick[pid]||(S.tick[pid]=[]);arr[idx]=t.checked;
+    save();refreshStrScores(pid);
+  }
+});
+
+render();
+})();
+</script>
+
+</body></html>
