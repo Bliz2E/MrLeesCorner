@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mr Lee's Corner</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800&family=Open+Sans:wght@400;600;700&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --cream: #fdf6ec;
+      --peach: #f9e1c8;
+      --apricot: #f4c9a0;
+      --cocoa: #5b3a29;
+      --terracotta: #c4693d;
+      --paper: rgba(255, 251, 244, 0.92);
+    }
+
+    body {
+      font-family: 'Roboto', sans-serif;
+      color: var(--cocoa);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 24px;
+      position: relative;
+      overflow-x: hidden;
+      background-color: var(--cream);
+      background-image:
+        /* warm lamp glow, top left */
+        radial-gradient(circle at 12% 10%, rgba(255, 214, 140, 0.55) 0, rgba(255, 214, 140, 0) 38%),
+        /* soft rose glow, bottom right */
+        radial-gradient(circle at 90% 92%, rgba(244, 170, 140, 0.40) 0, rgba(244, 170, 140, 0) 42%),
+        /* base gradient */
+        linear-gradient(160deg, #fff4e2 0%, #fbe3c6 55%, #f6d1b0 100%);
+      background-attachment: fixed;
+    }
+
+    /* Faint chalkboard-style doodles: maths and physics symbols */
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0.55;
+      background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='260' height='260' viewBox='0 0 260 260'><g fill='%23b98562' fill-opacity='0.30' font-family='Georgia, serif' font-size='28'><text x='20' y='48' transform='rotate(-8 20 48)'>π</text><text x='140' y='40' font-size='22' transform='rotate(6 140 40)'>∑</text><text x='205' y='110' transform='rotate(-12 205 110)'>√x</text><text x='60' y='130' font-size='20' transform='rotate(5 60 130)'>E = mc²</text><text x='150' y='185' transform='rotate(-6 150 185)'>∫</text><text x='25' y='215' font-size='24' transform='rotate(10 25 215)'>θ</text><text x='215' y='235' font-size='22' transform='rotate(-5 215 235)'>Δ</text><text x='95' y='240' font-size='18' transform='rotate(4 95 240)'>F = ma</text></g><g fill='none' stroke='%23b98562' stroke-opacity='0.25' stroke-width='1.6' stroke-linecap='round'><circle cx='110' cy='85' r='9'/><path d='M180 150 l14 -14 m0 0 l-3 12 m3 -12 l-12 3'/><path d='M40 160 q10 -14 20 0 t20 0'/></g></svg>");
+      background-size: 260px 260px;
+    }
+
+    /* Soft rolling hills along the bottom for a snug feel */
+    body::after {
+      content: "";
+      position: fixed;
+      left: 0; right: 0; bottom: 0;
+      height: 22vh;
+      pointer-events: none;
+      background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 320' preserveAspectRatio='none'><path fill='%23eab38a' fill-opacity='0.35' d='M0,224 C240,128 480,288 720,224 C960,160 1200,96 1440,192 L1440,320 L0,320 Z'/><path fill='%23d98f66' fill-opacity='0.30' d='M0,272 C300,200 520,320 800,264 C1080,208 1260,240 1440,264 L1440,320 L0,320 Z'/></svg>");
+      background-size: 100% 100%;
+      background-repeat: no-repeat;
+    }
+
+    main {
+      position: relative;
+      z-index: 1;
+      background: var(--paper);
+      max-width: 520px;
+      width: 100%;
+      padding: 48px 40px;
+      border-radius: 20px;
+      border: 1px solid rgba(196, 105, 61, 0.18);
+      box-shadow:
+        0 14px 36px rgba(122, 72, 40, 0.18),
+        0 0 0 8px rgba(255, 244, 226, 0.55);
+      text-align: center;
+    }
+
+    h1 {
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 800;
+      font-size: 2.4rem;
+      color: var(--cocoa);
+      margin-bottom: 10px;
+    }
+
+    h2 {
+      font-family: 'Open Sans', sans-serif;
+      font-weight: 600;
+      font-size: 1.2rem;
+      color: var(--terracotta);
+      margin-bottom: 28px;
+    }
+
+    ul { list-style: none; display: flex; flex-direction: column; gap: 14px; }
+
+    a {
+      display: block;
+      font-family: 'Roboto', sans-serif;
+      font-weight: 500;
+      font-size: 1.05rem;
+      text-decoration: none;
+      color: var(--cocoa);
+      background: #fff1de;
+      border: 2px solid #f0c9a0;
+      padding: 14px 18px;
+      border-radius: 12px;
+      transition: all 0.2s ease;
+    }
+
+    a:hover, a:focus {
+      background: var(--terracotta);
+      color: #fffaf3;
+      border-color: var(--terracotta);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 14px rgba(196, 105, 61, 0.30);
+      outline: none;
+    }
+
+    @media (max-width: 480px) {
+      main { padding: 32px 22px; }
+      h1 { font-size: 1.9rem; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Mr Lee's Corner</h1>
+    <h2>Test your understanding</h2>
+    <ul>
+      <li><a href="#">G3 E Math</a></li>
+      <li><a href="#">G3 A Math</a></li>
+      <li><a href="thermal-properties-of-matter-quiz-chrome.html">G3 Pure Physics</a></li>
+      <li><a href="#">H2 Math</a></li>
+    </ul>
+  </main>
+</body>
+</html>
