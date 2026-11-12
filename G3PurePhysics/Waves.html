@@ -1,0 +1,489 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Waves</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800&family=Open+Sans:wght@400;600;700&display=swap">
+<style>
+/* Layout: full-width dusk-ocean hero, then four alternating text + live canvas stages, each on its own warm-lit ground */
+:root {
+  --bg: #1b1410;
+  --bg-2: #261b15;
+  --panel: #2f221a;
+  --fg: #f3e6d3;
+  --muted: #c3ad94;
+  --amber: #f2b36b;
+  --teal: #62b6aa;
+  --rose: #d98a7a;
+  --line: rgba(243, 230, 211, 0.16);
+  --display: "Montserrat", "Segoe UI", Arial, sans-serif;
+  --body: "Open Sans", "Segoe UI", Arial, sans-serif;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; background: var(--bg); }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--body);
+  font-size: 16px;
+  line-height: 1.65;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 0;
+  overflow-x: hidden;
+}
+/* soft film grain over everything */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.07;
+  z-index: 50;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+}
+.wrap { max-width: 1120px; margin: 0 auto; }
+
+/* hero */
+.hero {
+  position: relative;
+  margin-inline: calc(50% - 50vw);
+  padding-inline: max(16px, env(safe-area-inset-left, 0px));
+  min-height: 460px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  overflow: hidden;
+}
+.hero canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: radial-gradient(120% 90% at 50% 40%, transparent 45%, rgba(20, 12, 8, 0.65) 100%);
+}
+.hero .wrap { position: relative; z-index: 2; width: 100%; }
+nav.top { display: flex; flex-wrap: wrap; gap: 6px 22px; padding-top: 22px; font-size: 14px; font-weight: 600; }
+nav.top a { color: var(--fg); text-decoration: none; padding: 4px 0; border-bottom: 2px solid transparent; opacity: 0.9; }
+nav.top a:hover, nav.top a:focus-visible { border-bottom-color: var(--amber); outline: none; }
+.hero-title { padding-bottom: 40px; }
+h1 {
+  font-family: var(--display);
+  font-weight: 800;
+  font-size: clamp(72px, 17vw, 190px);
+  line-height: 0.95;
+  letter-spacing: -0.03em;
+  margin: 0;
+  color: #fff1dc;
+  text-shadow: 0 6px 40px rgba(20, 8, 4, 0.55);
+}
+.tagline { margin: 14px 0 0; max-width: 34ch; font-size: clamp(16px, 2.4vw, 20px); color: #f6dfc0; text-shadow: 0 2px 16px rgba(20, 8, 4, 0.7); }
+
+/* sections */
+section.topic { padding-block: 72px; position: relative; margin-inline: calc(50% - 50vw); padding-inline: max(16px, env(safe-area-inset-left, 0px)); }
+#waves { background: linear-gradient(180deg, var(--bg) 0%, #1f2a2a 100%); }
+#sound { background: linear-gradient(180deg, #1f2a2a 0%, #2b1a1c 100%); }
+#em-waves { background: linear-gradient(180deg, #2b1a1c 0%, #1d1a2b 100%); }
+#light { background: linear-gradient(180deg, #1d1a2b 0%, var(--bg) 100%); padding-bottom: 40px; }
+.topic .wrap { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 40px; align-items: center; }
+.topic.flip .wrap > .text { order: 2; }
+.text, .stage { min-width: 0; }
+h2 { font-family: var(--body); font-weight: 700; font-size: clamp(32px, 5vw, 46px); line-height: 1.15; letter-spacing: -0.01em; margin: 0 0 16px; text-wrap: balance; }
+.text p { margin: 0 0 14px; color: #e6d4bc; max-width: 52ch; }
+.facts { list-style: none; padding: 0; margin: 18px 0 0; display: grid; gap: 8px; font-size: 14px; color: var(--muted); }
+.facts li { padding-left: 16px; position: relative; }
+.facts li::before { content: ""; position: absolute; left: 0; top: 0.7em; width: 7px; height: 7px; border-radius: 50%; background: var(--amber); }
+.facts b { color: var(--fg); font-weight: 600; }
+
+.stage { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; box-shadow: 0 24px 60px rgba(8, 4, 2, 0.45); }
+.stage canvas { display: block; width: 100%; height: 340px; }
+.controls { display: flex; flex-wrap: wrap; align-items: center; gap: 14px 22px; padding: 14px 18px; border-top: 1px solid var(--line); background: rgba(0, 0, 0, 0.18); font-size: 14px; }
+.controls label { display: flex; align-items: center; gap: 10px; color: var(--muted); }
+.controls output { color: var(--fg); font-weight: 600; font-variant-numeric: tabular-nums; min-width: 4.5em; }
+input[type="range"] { accent-color: var(--amber); width: 150px; max-width: 100%; }
+.readout { padding: 12px 18px 16px; font-size: 14px; color: var(--muted); border-top: 1px solid var(--line); font-variant-numeric: tabular-nums; }
+.readout b { color: var(--fg); font-weight: 600; }
+button.btn, .chip { font-family: var(--body); font-size: 14px; font-weight: 600; cursor: pointer; border-radius: 999px; border: 1px solid var(--line); background: transparent; color: var(--fg); padding: 7px 16px; }
+button.btn { background: var(--amber); color: #2a170a; border-color: var(--amber); }
+button.btn[aria-pressed="true"] { background: var(--rose); border-color: var(--rose); }
+.chip { display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; }
+.chip i { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
+.chip[aria-pressed="true"] { background: rgba(242, 179, 107, 0.18); border-color: var(--amber); }
+button:focus-visible, input:focus-visible, a:focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; padding: 14px 18px; border-top: 1px solid var(--line); background: rgba(0, 0, 0, 0.18); }
+
+footer { margin-inline: calc(50% - 50vw); padding: 30px max(16px, env(safe-area-inset-left, 0px)) calc(40px + env(safe-area-inset-bottom, 0px)); color: var(--muted); font-size: 13px; text-align: center; }
+
+@media (max-width: 820px) {
+  .topic .wrap { grid-template-columns: minmax(0, 1fr); gap: 26px; }
+  .topic.flip .wrap > .text { order: 0; }
+  section.topic { padding-block: 52px; }
+  .stage canvas { height: 280px; }
+  .hero { min-height: 400px; }
+}
+</style>
+
+<header class="hero" id="top">
+  <canvas id="cHero" aria-hidden="true"></canvas>
+  <div class="wrap">
+    <nav class="top" aria-label="Sections">
+      <a href="#waves">General Properties of Waves</a>
+      <a href="#sound">Sound</a>
+      <a href="#em-waves">Electromagnetic Waves</a>
+      <a href="#light">Light</a>
+    </nav>
+  </div>
+  <div class="wrap hero-title">
+    <h1>Waves</h1>
+    <p class="tagline">Energy on the move: from the ripple on a pond to the light in the room.</p>
+  </div>
+</header>
+
+<main>
+  <section class="topic" id="waves">
+    <div class="wrap">
+      <div class="text">
+        <h2>General Properties of Waves</h2>
+        <p>A wave carries energy from one place to another without carrying the material with it. A cork on the sea bobs up and down while the pattern of crests travels past it.</p>
+        <p>Two numbers describe most waves: how often a crest passes (frequency) and how far apart the crests are (wavelength).</p>
+        <ul class="facts">
+          <li>Wave speed: <b>v = f × λ</b></li>
+          <li>Frequency is measured in hertz, <b>1 Hz = 1 crest per second</b></li>
+        </ul>
+      </div>
+      <div class="stage">
+        <canvas id="cWave" role="img" aria-label="A transverse wave travelling to the right with dots bobbing up and down"></canvas>
+        <div class="controls">
+          <label for="wl">Wavelength <input id="wl" type="range" min="1" max="6" step="0.1" value="3"><output id="wlO">3.0 m</output></label>
+          <label for="wf">Frequency <input id="wf" type="range" min="0.2" max="1.2" step="0.05" value="0.5"><output id="wfO">0.50 Hz</output></label>
+        </div>
+        <div class="readout" id="wRead"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="topic flip" id="sound">
+    <div class="wrap">
+      <div class="text">
+        <h2>Sound</h2>
+        <p>Sound is a pressure wave. A speaker cone pushes air together, then pulls it apart, and those squeezed and stretched patches travel outward as a longitudinal wave.</p>
+        <p>Pitch is frequency. Slide it up and the rings pack closer together because the wavelength shrinks.</p>
+        <ul class="facts">
+          <li>Speed in air at 20 °C: <b>about 343 m/s</b></li>
+          <li>Human hearing: <b>about 20 Hz to 20 kHz</b></li>
+          <li>Concert A is <b>440 Hz</b>, a wavelength of roughly 0.78 m</li>
+        </ul>
+      </div>
+      <div class="stage">
+        <canvas id="cSound" role="img" aria-label="Rings spreading from a speaker, with a row of air particles bunching and spreading below"></canvas>
+        <div class="controls">
+          <label for="sf">Pitch <input id="sf" type="range" min="100" max="1000" step="10" value="440"><output id="sfO">440 Hz</output></label>
+          <button class="btn" id="tone" type="button" aria-pressed="false">Play tone</button>
+        </div>
+        <div class="readout" id="sRead"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="topic" id="em-waves">
+    <div class="wrap">
+      <div class="text">
+        <h2>Electromagnetic Waves</h2>
+        <p>An electric field and a magnetic field oscillate at right angles to each other and to the direction the wave travels. Each one keeps the other going, so no medium is needed. Light crosses empty space from the Sun this way.</p>
+        <p>Radio, microwaves, light and X-rays are the same kind of wave. Only the wavelength differs.</p>
+        <ul class="facts">
+          <li>Speed in vacuum: <b>c = 299,792,458 m/s</b></li>
+          <li>For every band: <b>c = f × λ</b></li>
+        </ul>
+      </div>
+      <div class="stage">
+        <canvas id="cEm" role="img" aria-label="An electric field wave in amber and a magnetic field wave in teal, perpendicular to each other"></canvas>
+        <div class="chips" id="bands" role="group" aria-label="Choose a band of the spectrum"></div>
+        <div class="readout" id="eRead"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="topic flip" id="light">
+    <div class="wrap">
+      <div class="text">
+        <h2><a href="./Waves/Light.html">Light</a></h2>
+        <p>Visible light is the narrow slice of the electromagnetic spectrum that our eyes detect. Each color is a different wavelength.</p>
+        <p>Glass slows each wavelength by a slightly different amount, so a prism bends violet more than red and fans white light into a rainbow.</p>
+        <ul class="facts">
+          <li>Red light: <b>about 700 nm</b></li>
+          <li>Violet light: <b>about 400 nm</b></li>
+          <li>A nanometre is <b>one billionth of a metre</b></li>
+        </ul>
+      </div>
+      <div class="stage">
+        <canvas id="cLight" role="img" aria-label="A beam of white light entering a glass prism and spreading into seven colors"></canvas>
+        <div class="controls">
+          <label for="ls">Spread <input id="ls" type="range" min="1" max="6" step="0.1" value="3"><output id="lsO">3.0°</output></label>
+        </div>
+        <div class="readout">Red is bent the least and violet the most. A larger spread mimics a glass that disperses colors more strongly.</div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>Speed of sound is for air at 20 °C. Speed of light is for a vacuum.</footer>
+
+<script>
+(function () {
+  var reduce = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var $ = function (id) { return document.getElementById(id); };
+  var TAU = Math.PI * 2;
+  var scenes = [];
+
+  function makeScene(id, draw) {
+    var canvas = $(id), ctx = canvas.getContext("2d");
+    var s = { w: 0, h: 0, vis: true, draw: draw, ctx: ctx, canvas: canvas };
+    function resize() {
+      var dpr = Math.min(window.devicePixelRatio || 1, 2);
+      var r = canvas.getBoundingClientRect();
+      s.w = r.width; s.h = r.height;
+      canvas.width = Math.max(1, Math.round(r.width * dpr));
+      canvas.height = Math.max(1, Math.round(r.height * dpr));
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      paint(s, 2);
+    }
+    window.addEventListener("resize", resize);
+    if ("IntersectionObserver" in window) {
+      new IntersectionObserver(function (e) { s.vis = e[0].isIntersecting; }).observe(canvas);
+    }
+    scenes.push(s);
+    resize();
+    return s;
+  }
+  function paint(s, t) { s.ctx.clearRect(0, 0, s.w, s.h); s.draw(s.ctx, s.w, s.h, t); }
+  function loop(ms) {
+    for (var i = 0; i < scenes.length; i++) if (scenes[i].vis) paint(scenes[i], ms / 1000);
+    requestAnimationFrame(loop);
+  }
+  function redrawAll() { if (reduce) scenes.forEach(function (s) { paint(s, 2); }); }
+
+  /* ---------- Hero: dusk ocean ---------- */
+  var waterCols = ["#46606a", "#37505a", "#2a404a", "#1f3139", "#16242a"];
+  makeScene("cHero", function (ctx, w, h, t) {
+    var sky = ctx.createLinearGradient(0, 0, 0, h * 0.66);
+    sky.addColorStop(0, "#241a2e");
+    sky.addColorStop(0.5, "#7a4048");
+    sky.addColorStop(0.85, "#d98a5a");
+    sky.addColorStop(1, "#f2b36b");
+    ctx.fillStyle = sky; ctx.fillRect(0, 0, w, h);
+    for (var i = 0; i < 46; i++) {
+      var sx = (Math.sin(i * 91.7) * 0.5 + 0.5) * w, sy = (Math.sin(i * 37.3 + 2) * 0.5 + 0.5) * h * 0.4;
+      ctx.globalAlpha = 0.25 + 0.35 * (0.5 + 0.5 * Math.sin(t * 1.3 + i));
+      ctx.fillStyle = "#fff0dc"; ctx.fillRect(sx, sy, 1.6, 1.6);
+    }
+    ctx.globalAlpha = 1;
+    var horizon = h * 0.62, sxn = w * 0.68, r = Math.min(w, h) * 0.13;
+    var glow = ctx.createRadialGradient(sxn, horizon, 0, sxn, horizon, r * 4);
+    glow.addColorStop(0, "rgba(255,214,150,0.75)"); glow.addColorStop(1, "rgba(255,214,150,0)");
+    ctx.fillStyle = glow; ctx.fillRect(0, 0, w, h);
+    ctx.fillStyle = "#ffd9a0"; ctx.beginPath(); ctx.arc(sxn, horizon, r, 0, TAU); ctx.fill();
+    for (var L = 0; L < 5; L++) {
+      var base = horizon + L * h * 0.075, amp = 5 + L * 3, k = 0.012 - L * 0.0015, sp = 0.6 + L * 0.25;
+      ctx.fillStyle = waterCols[L]; ctx.beginPath(); ctx.moveTo(0, h);
+      for (var x = 0; x <= w + 8; x += 8) {
+        ctx.lineTo(x, base + Math.sin(x * k + t * sp + L * 1.7) * amp + Math.sin(x * k * 2.3 - t * sp * 0.7) * amp * 0.35);
+      }
+      ctx.lineTo(w, h); ctx.closePath(); ctx.fill();
+      if (L < 3) {
+        ctx.fillStyle = "rgba(255,200,130," + (0.22 - L * 0.06) + ")";
+        for (var d = -3; d <= 3; d++) {
+          var dw = (r * (1.1 - Math.abs(d) * 0.12)) * (0.6 + 0.4 * Math.sin(t * 1.5 + d + L));
+          ctx.fillRect(sxn - dw / 2 + d * 3, base + 6 + Math.sin(t + d) * 2, dw, 2);
+        }
+      }
+    }
+  });
+
+  /* ---------- Waves: transverse ---------- */
+  var wl = $("wl"), wf = $("wf");
+  var sceneWave = makeScene("cWave", function (ctx, w, h, t) {
+    var lam = +wl.value, f = +wf.value, pxPerM = w / 8;
+    var lp = lam * pxPerM, A = h * 0.24, y0 = h * 0.52, phase = f * t;
+    function Y(x) { return y0 - A * Math.sin(TAU * (x / lp - phase)); }
+    ctx.strokeStyle = "rgba(243,230,211,0.25)"; ctx.setLineDash([4, 6]); ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(0, y0); ctx.lineTo(w, y0); ctx.stroke(); ctx.setLineDash([]);
+    ctx.strokeStyle = "rgba(98,182,170,0.28)";
+    for (var x = 18; x < w; x += 26) { ctx.beginPath(); ctx.moveTo(x, y0); ctx.lineTo(x, Y(x)); ctx.stroke(); }
+    ctx.strokeStyle = "#f2b36b"; ctx.lineWidth = 3.5; ctx.lineJoin = "round"; ctx.beginPath();
+    for (var xx = 0; xx <= w; xx += 3) { var yy = Y(xx); if (xx === 0) ctx.moveTo(xx, yy); else ctx.lineTo(xx, yy); }
+    ctx.stroke();
+    ctx.fillStyle = "#62b6aa";
+    for (var x2 = 18; x2 < w; x2 += 26) { ctx.beginPath(); ctx.arc(x2, Y(x2), 5, 0, TAU); ctx.fill(); }
+    var c1 = lp * (0.25 + phase), k = Math.ceil((40 - c1) / lp);
+    var xa = c1 + k * lp; while (xa < 30) xa += lp;
+    if (xa + lp < w - 20) {
+      var by = y0 - A - 22;
+      ctx.strokeStyle = "#f3e6d3"; ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.moveTo(xa, by); ctx.lineTo(xa + lp, by);
+      ctx.moveTo(xa, by - 5); ctx.lineTo(xa, by + 5); ctx.moveTo(xa + lp, by - 5); ctx.lineTo(xa + lp, by + 5); ctx.stroke();
+      ctx.fillStyle = "#f3e6d3"; ctx.font = "600 14px 'Open Sans', sans-serif"; ctx.textAlign = "center";
+      ctx.fillText("wavelength", xa + lp / 2, by - 8);
+    }
+  });
+  function wUpdate() {
+    var lam = +wl.value, f = +wf.value;
+    $("wlO").textContent = lam.toFixed(1) + " m"; $("wfO").textContent = f.toFixed(2) + " Hz";
+    $("wRead").innerHTML = "v = f × λ = " + f.toFixed(2) + " × " + lam.toFixed(1) + " = <b>" + (f * lam).toFixed(2) + " m/s</b> &middot; period <b>" + (1 / f).toFixed(1) + " s</b>";
+    redrawAll();
+  }
+  wl.addEventListener("input", wUpdate); wf.addEventListener("input", wUpdate); wUpdate();
+
+  /* ---------- Sound ---------- */
+  var sf = $("sf"), osc = null, gain = null, ac = null;
+  makeScene("cSound", function (ctx, w, h, t) {
+    var f = +sf.value, lp = 20000 / f, c = 120;
+    var cx = w * 0.17, cy = h * 0.4, maxR = w * 1.1;
+    var g = ctx.createRadialGradient(cx, cy, 0, cx, cy, h * 0.9);
+    g.addColorStop(0, "rgba(242,179,107,0.22)"); g.addColorStop(1, "rgba(242,179,107,0)");
+    ctx.fillStyle = g; ctx.fillRect(0, 0, w, h);
+    var off = (t * c) % lp;
+    for (var r = off; r < maxR; r += lp) {
+      ctx.strokeStyle = "rgba(217,138,122," + Math.max(0, 0.75 * (1 - r / maxR)) + ")";
+      ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(cx, cy, r, 0, TAU); ctx.stroke();
+    }
+    var pulse = 1 + 0.06 * Math.sin(TAU * (t * c / lp));
+    ctx.fillStyle = "#3b281d"; ctx.strokeStyle = "#f2b36b"; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.arc(cx, cy, 26 * pulse, 0, TAU); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = "#f2b36b"; ctx.beginPath(); ctx.arc(cx, cy, 9 * pulse, 0, TAU); ctx.fill();
+    var rows = [h * 0.78, h * 0.86, h * 0.94];
+    ctx.fillStyle = "rgba(243,230,211,0.9)";
+    for (var ri = 0; ri < rows.length; ri++) {
+      for (var x = 8; x < w; x += 7) {
+        var d = 5 * Math.sin(TAU * (x - c * t) / lp);
+        ctx.fillRect(x + d, rows[ri], 2.2, 2.2);
+      }
+    }
+    ctx.fillStyle = "#c3ad94"; ctx.font = "600 12px 'Open Sans', sans-serif"; ctx.textAlign = "left";
+    ctx.fillText("air particles: bunched = high pressure, spread = low pressure", 14, h * 0.7);
+  });
+  function sUpdate() {
+    var f = +sf.value;
+    $("sfO").textContent = f + " Hz";
+    $("sRead").innerHTML = "Wavelength in air: 343 ÷ " + f + " = <b>" + (343 / f).toFixed(2) + " m</b>";
+    if (osc) { try { osc.frequency.value = f; } catch (e) {} }
+    redrawAll();
+  }
+  sf.addEventListener("input", sUpdate); sUpdate();
+  var toneBtn = $("tone");
+  toneBtn.addEventListener("click", function () {
+    try {
+      if (!osc) {
+        ac = ac || new (window.AudioContext || window.webkitAudioContext)();
+        if (ac.state === "suspended") ac.resume();
+        osc = ac.createOscillator(); gain = ac.createGain();
+        osc.type = "sine"; osc.frequency.value = +sf.value; gain.gain.value = 0;
+        osc.connect(gain); gain.connect(ac.destination); osc.start();
+        gain.gain.setTargetAtTime(0.06, ac.currentTime, 0.05);
+        toneBtn.textContent = "Stop tone"; toneBtn.setAttribute("aria-pressed", "true");
+      } else {
+        var o = osc; gain.gain.setTargetAtTime(0, ac.currentTime, 0.05);
+        setTimeout(function () { try { o.stop(); } catch (e) {} }, 250);
+        osc = null; toneBtn.textContent = "Play tone"; toneBtn.setAttribute("aria-pressed", "false");
+      }
+    } catch (e) { toneBtn.textContent = "Audio unavailable"; }
+  });
+
+  /* ---------- Electromagnetic waves ---------- */
+  var bands = [
+    { n: "Radio", px: 300, c: "#d98a7a", d: "about 3 m (FM radio, 100 MHz)" },
+    { n: "Microwave", px: 220, c: "#e0a070", d: "about 12 cm (Wi-Fi, 2.4 GHz)" },
+    { n: "Infrared", px: 160, c: "#f2705a", d: "about 10 µm (warmth from a fire, 30 THz)" },
+    { n: "Visible", px: 110, c: "#f2d36b", d: "400 to 700 nm (430 to 750 THz)" },
+    { n: "Ultraviolet", px: 75, c: "#a98af2", d: "10 to 400 nm (sunburn, about 1 PHz)" },
+    { n: "X-ray", px: 50, c: "#62b6d8", d: "0.01 to 10 nm (medical imaging)" },
+    { n: "Gamma", px: 32, c: "#62b6aa", d: "below 0.01 nm (radioactive decay)" }
+  ];
+  var cur = 1, chipWrap = $("bands");
+  bands.forEach(function (b, i) {
+    var el = document.createElement("button");
+    el.type = "button"; el.className = "chip"; el.setAttribute("aria-pressed", i === cur ? "true" : "false");
+    el.innerHTML = "<i style='background:" + b.c + "'></i>" + b.n;
+    el.addEventListener("click", function () {
+      cur = i;
+      Array.prototype.forEach.call(chipWrap.children, function (c, j) { c.setAttribute("aria-pressed", j === i ? "true" : "false"); });
+      eUpdate();
+    });
+    chipWrap.appendChild(el);
+  });
+  function eUpdate() {
+    var b = bands[cur];
+    $("eRead").innerHTML = "<b>" + b.n + "</b>: wavelength " + b.d + ". Drawn here with the wavelength scaled to fit the screen.";
+    redrawAll();
+  }
+  makeScene("cEm", function (ctx, w, h, t) {
+    var lp = bands[cur].px, y0 = h * 0.5, A = h * 0.26, ph = t * 0.45;
+    var x0 = 24, x1 = w - 24;
+    ctx.strokeStyle = "rgba(243,230,211,0.3)"; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x1, y0); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(x1 - 9, y0 - 5); ctx.lineTo(x1, y0); ctx.lineTo(x1 - 9, y0 + 5); ctx.stroke();
+    function s(x) { return Math.sin(TAU * (x / lp - ph)); }
+    for (var x = x0; x < x1 - 10; x += 12) {
+      var v = s(x);
+      ctx.strokeStyle = "rgba(98,182,170,0.3)"; ctx.beginPath(); ctx.moveTo(x, y0); ctx.lineTo(x + 0.65 * A * v, y0 + 0.4 * A * v); ctx.stroke();
+      ctx.strokeStyle = "rgba(242,179,107,0.3)"; ctx.beginPath(); ctx.moveTo(x, y0); ctx.lineTo(x, y0 - A * v); ctx.stroke();
+    }
+    ctx.lineWidth = 3; ctx.lineJoin = "round";
+    ctx.strokeStyle = "#62b6aa"; ctx.beginPath();
+    for (var xb = x0; xb <= x1 - 10; xb += 3) { var vb = s(xb), px = xb + 0.65 * A * vb, py = y0 + 0.4 * A * vb; if (xb === x0) ctx.moveTo(px, py); else ctx.lineTo(px, py); }
+    ctx.stroke();
+    ctx.strokeStyle = "#f2b36b"; ctx.beginPath();
+    for (var xe = x0; xe <= x1 - 10; xe += 3) { var ye = y0 - A * s(xe); if (xe === x0) ctx.moveTo(xe, ye); else ctx.lineTo(xe, ye); }
+    ctx.stroke();
+    ctx.font = "700 14px 'Open Sans', sans-serif"; ctx.textAlign = "left";
+    ctx.fillStyle = "#f2b36b"; ctx.fillText("E  electric field", 16, 26);
+    ctx.fillStyle = "#62b6aa"; ctx.fillText("B  magnetic field", 16, 46);
+    ctx.fillStyle = "#c3ad94"; ctx.textAlign = "right"; ctx.fillText("direction of travel", w - 16, h - 16);
+  });
+  eUpdate();
+
+  /* ---------- Light: prism ---------- */
+  var ls = $("ls");
+  var rainbow = ["#ff4d4d", "#ff9a3d", "#ffe14d", "#6fdc6f", "#4dc3ff", "#5a6cff", "#b46bff"];
+  makeScene("cLight", function (ctx, w, h, t) {
+    var spread = (+ls.value) * Math.PI / 180;
+    var side = Math.min(w * 0.3, h * 0.66), hh = side * 0.866, cx = w * 0.46, cy = h * 0.5;
+    var A = { x: cx, y: cy - hh / 2 }, B = { x: cx - side / 2, y: cy + hh / 2 }, C = { x: cx + side / 2, y: cy + hh / 2 };
+    function lerp(p, q, u) { return { x: p.x + (q.x - p.x) * u, y: p.y + (q.y - p.y) * u }; }
+    var P = lerp(B, A, 0.45), Q = lerp(C, A, 0.32), S = { x: w * 0.05, y: P.y - h * 0.1 };
+    var lg = ctx.createRadialGradient(S.x, S.y, 0, S.x, S.y, h * 0.5);
+    lg.addColorStop(0, "rgba(255,214,150,0.5)"); lg.addColorStop(1, "rgba(255,214,150,0)");
+    ctx.fillStyle = lg; ctx.fillRect(0, 0, w, h);
+    ctx.fillStyle = "rgba(255,238,210,0.10)"; ctx.strokeStyle = "rgba(255,230,200,0.55)"; ctx.lineWidth = 2; ctx.lineJoin = "round";
+    ctx.beginPath(); ctx.moveTo(A.x, A.y); ctx.lineTo(B.x, B.y); ctx.lineTo(C.x, C.y); ctx.closePath(); ctx.fill(); ctx.stroke();
+    ctx.save();
+    ctx.shadowColor = "rgba(255,230,190,0.9)"; ctx.shadowBlur = 12;
+    ctx.strokeStyle = "#fff3dc"; ctx.lineWidth = 4; ctx.setLineDash([]);
+    ctx.beginPath(); ctx.moveTo(S.x, S.y); ctx.lineTo(P.x, P.y); ctx.lineTo(Q.x, Q.y); ctx.stroke();
+    ctx.restore();
+    ctx.strokeStyle = "rgba(255,240,220,0.9)"; ctx.lineWidth = 1.5; ctx.setLineDash([3, 14]); ctx.lineDashOffset = -t * 60;
+    ctx.beginPath(); ctx.moveTo(S.x, S.y); ctx.lineTo(P.x, P.y); ctx.lineTo(Q.x, Q.y); ctx.stroke();
+    ctx.setLineDash([]);
+    var base = Math.atan2(Q.y - P.y, Q.x - P.x) + 0.12;
+    ctx.globalCompositeOperation = "lighter"; ctx.lineWidth = 4; ctx.lineCap = "round";
+    for (var i = 0; i < 7; i++) {
+      var th = base + i * spread, len = (w - Q.x) / Math.max(0.2, Math.cos(th)) + 10;
+      ctx.strokeStyle = rainbow[i]; ctx.globalAlpha = 0.8;
+      ctx.beginPath(); ctx.moveTo(Q.x, Q.y); ctx.lineTo(Q.x + Math.cos(th) * len, Q.y + Math.sin(th) * len); ctx.stroke();
+    }
+    ctx.globalAlpha = 1; ctx.globalCompositeOperation = "source-over";
+    ctx.fillStyle = "#c3ad94"; ctx.font = "600 12px 'Open Sans', sans-serif"; ctx.textAlign = "left";
+    ctx.fillText("white light", 14, h - 16);
+    ctx.textAlign = "right"; ctx.fillText("red to violet", w - 14, 22);
+  });
+  function lUpdate() { $("lsO").textContent = (+ls.value).toFixed(1) + "°"; redrawAll(); }
+  ls.addEventListener("input", lUpdate); lUpdate();
+
+  if (!reduce) requestAnimationFrame(loop);
+})();
+</script>
+
+</body></html>
