@@ -1,0 +1,544 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Waves Practice Paper</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: one reading column under a sticky tab bar; questions sit in bordered cards, figures on graph-paper grids drawn in SVG. */
+:root{
+  --bg:#F2F5F7; --surface:#FFFFFF; --ink:#13202B; --muted:#586976; --line:#D3DCE2; --grid:#E2E9EE;
+  --accent:#0A7C86; --accent-soft:#DDF0F2; --on-accent:#FFFFFF;
+  --good:#1B7F4B; --good-soft:#E0F2E8; --bad:#B3342B; --bad-soft:#F9E3E0;
+  --font-body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --font-mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0E161C; --surface:#16212A; --ink:#E5ECF1; --muted:#95A6B3; --line:#2A3945; --grid:#1E2C37;
+    --accent:#4CC3CE; --accent-soft:#143338; --on-accent:#06262A;
+    --good:#62D393; --good-soft:#12301F; --bad:#FF8F85; --bad-soft:#3B1E1B;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0E161C; --surface:#16212A; --ink:#E5ECF1; --muted:#95A6B3; --line:#2A3945; --grid:#1E2C37;
+  --accent:#4CC3CE; --accent-soft:#143338; --on-accent:#06262A;
+  --good:#62D393; --good-soft:#12301F; --bad:#FF8F85; --bad-soft:#3B1E1B;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{
+  background:var(--bg); color:var(--ink); font-family:var(--font-body); font-size:16px; line-height:1.55;
+  padding-block:0 56px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));
+  padding-right:max(16px,env(safe-area-inset-right,0px));
+}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--bg);z-index:10}
+.wrap{max-width:780px;margin:0 auto}
+h1,h2,h3,p{margin:0}
+.top{padding-block:28px 14px}
+.eyebrow{font-family:var(--font-mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+h1{font-size:clamp(28px,6vw,40px);line-height:1.1;font-weight:600;margin-top:6px;text-wrap:balance}
+.lede{color:var(--muted);margin-top:10px;max-width:62ch}
+.trace{display:block;margin-top:14px;max-width:100%}
+.trace path{fill:none;stroke:var(--accent);stroke-width:2}
+details.formulae{margin-top:14px;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 14px}
+details.formulae summary{cursor:pointer;font-weight:500}
+details.formulae summary:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+.fgrid{display:flex;flex-wrap:wrap;gap:8px 28px;margin-top:8px;font-family:var(--font-mono);font-size:14px}
+.tabs{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);display:flex;gap:2px;border-bottom:1px solid var(--line);overflow-x:auto}
+.tab{font:inherit;background:none;border:0;border-bottom:3px solid transparent;padding:12px 14px 9px;color:var(--muted);cursor:pointer;white-space:nowrap;display:flex;gap:8px;align-items:baseline}
+.tab:hover{color:var(--ink)}
+.tab:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.tab[aria-selected="true"]{color:var(--ink);font-weight:600;border-bottom-color:var(--accent)}
+.cnt{font-family:var(--font-mono);font-size:12px;font-weight:400;color:var(--muted)}
+.sechead{margin-top:22px}
+.sechead h2{font-size:20px;font-weight:600}
+.sechead p{color:var(--muted);margin-top:4px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:18px;margin-top:16px}
+.qhead{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap;margin-bottom:8px}
+.qn{font-family:var(--font-mono);font-weight:500;background:var(--accent-soft);color:var(--accent);padding:1px 8px;border-radius:4px;font-size:13px}
+.topic{font-family:var(--font-mono);font-size:12px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted)}
+.src{font-family:var(--font-mono);font-size:12px;color:var(--muted);margin-left:auto}
+.stem{max-width:68ch}
+.figbox{margin-top:12px;padding:8px;border:1px solid var(--line);border-radius:8px;background:var(--surface);overflow-x:auto}
+.figrow{display:flex;flex-wrap:wrap;gap:10px}
+.figrow>*{flex:1 1 260px;min-width:0}
+.fig{display:block;width:100%;height:auto;color:var(--ink);font-size:12px}
+.fig .ax{stroke:var(--ink);stroke-width:1.4;fill:none}
+.fig .gr{stroke:var(--grid);stroke-width:1}
+.fig .tk{stroke:var(--ink);stroke-width:1.2}
+.fig text{fill:var(--ink);font-family:var(--font-mono);font-size:12px}
+.fig .wave{stroke:var(--accent);stroke-width:2.4;fill:none}
+.fig .wave2{stroke:var(--muted);stroke-width:2.2;stroke-dasharray:7 5;fill:none}
+.fig .model{stroke:var(--good);stroke-width:2.6;fill:none}
+.fig .pt{fill:var(--ink)}
+.fig .wf{stroke:var(--ink);stroke-width:2.6}
+.fig .gen{fill:var(--muted)}
+.fig .dim{stroke:var(--ink);stroke-width:1.2}
+.opts{display:grid;gap:8px;margin-top:14px}
+.opt{display:flex;gap:12px;align-items:flex-start;width:100%;text-align:left;font:inherit;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:10px 12px;cursor:pointer}
+.opt:hover{border-color:var(--accent)}
+.opt:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.ltr{font-family:var(--font-mono);font-weight:500;min-width:1.3em;color:var(--muted)}
+.otx{min-width:0;overflow-wrap:anywhere}
+.card.done .opt{cursor:default}
+.card.done .opt:hover{border-color:var(--line)}
+.opt.correct{border-color:var(--good);background:var(--good-soft)}
+.opt.correct:hover{border-color:var(--good)!important}
+.opt.wrong{border-color:var(--bad);background:var(--bad-soft)}
+.opt.wrong:hover{border-color:var(--bad)!important}
+.why{margin-top:12px;padding:10px 14px;border:1px solid var(--line);border-radius:8px;background:var(--bg);max-width:70ch}
+.why b.ok{color:var(--good)} .why b.no{color:var(--bad)}
+.intro{max-width:68ch;margin-top:4px}
+.part{margin-top:18px;padding-top:16px;border-top:1px solid var(--line)}
+.ptxt{max-width:68ch}
+.plabel{font-family:var(--font-mono);font-weight:500;margin-right:6px}
+.marks{font-family:var(--font-mono);font-size:13px;color:var(--muted);white-space:nowrap}
+textarea{display:block;width:100%;margin-top:10px;font:inherit;font-size:15px;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 10px;resize:vertical;min-height:62px}
+textarea:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.btn{font:inherit;font-weight:500;font-size:15px;background:var(--accent);color:var(--on-accent);border:0;border-radius:8px;padding:8px 14px;cursor:pointer;margin-top:10px}
+.btn:focus-visible,.mini:focus-visible,.chip:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.mini{font:inherit;font-size:13px;background:transparent;color:var(--muted);border:1px solid var(--line);border-radius:6px;padding:3px 10px;cursor:pointer;margin-top:8px}
+.padbox{position:relative;max-width:560px}
+.padc{position:absolute;inset:0;width:100%;height:100%;touch-action:none;cursor:crosshair;color:var(--accent)}
+.modelbox{margin-top:12px;border:1px solid var(--good);background:var(--good-soft);border-radius:8px;padding:12px 14px}
+.modelbox .mh{font-family:var(--font-mono);font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--good)}
+.modelbox p{margin-top:6px;max-width:68ch}
+.modelbox .figbox{background:var(--surface)}
+.selfmark{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:12px}
+.chip{font-family:var(--font-mono);font-size:14px;min-width:38px;padding:4px 10px;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:6px;cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-top:16px}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+.stat .k{font-family:var(--font-mono);font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.stat .v{font-size:30px;font-weight:600;font-variant-numeric:tabular-nums;line-height:1.2;margin-top:4px}
+.stat .v small{font-size:16px;font-weight:400;color:var(--muted)}
+.rows{margin-top:12px}
+.row{display:flex;gap:12px;align-items:baseline;padding:9px 0;border-top:1px solid var(--line);font-variant-numeric:tabular-nums}
+.row:first-child{border-top:0}
+.row a{color:var(--ink);text-decoration:none;flex:1;min-width:0}
+.row a:hover{text-decoration:underline}
+.row .r{font-family:var(--font-mono);font-size:14px;white-space:nowrap}
+.r.ok{color:var(--good)} .r.no{color:var(--bad)} .r.na{color:var(--muted)}
+.rows h3{font-size:16px;margin-bottom:4px}
+.actions{display:flex;gap:10px;flex-wrap:wrap}
+@media (prefers-reduced-motion:no-preference){.opt,.btn,.chip{transition:background-color .12s,border-color .12s}}
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
+<marker id="arw" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" style="fill:var(--ink)"/></marker>
+</defs></svg>
+
+<div class="wrap">
+  <header class="top">
+    <p class="eyebrow">Pure Physics · Waves and Sound</p>
+    <h1>Waves Practice Paper</h1>
+    <svg class="trace" width="260" height="22" viewBox="0 0 260 22" aria-hidden="true"><path d="M0,11 C10,-3 20,-3 30,11 S50,25 60,11 S80,-3 90,11 S110,25 120,11 S140,-3 150,11 S170,25 180,11 S200,-3 210,11 S230,25 240,11 S250,2 260,11"/></svg>
+    <p class="lede">Section A has 10 multiple-choice questions that mark themselves. Section B has 5 structured questions: write your answer, reveal the model answer, then award yourself the marks. Progress is saved in this browser.</p>
+    <details class="formulae">
+      <summary>Formulae and facts</summary>
+      <div class="fgrid"><span>v = f&lambda;</span><span>f = 1 / T</span><span>T = 1 / f</span><span>speed = distance / time</span></div>
+      <p class="lede" style="font-size:14px;margin-top:8px">Frequency depends on the source and does not change when a wave enters a new medium. In water, a wave slows down and its wavelength shortens when it moves into shallower water. Audible sound lies between 20 Hz and 20 kHz.</p>
+    </details>
+  </header>
+
+  <nav class="tabs" role="tablist" aria-label="Paper sections">
+    <button class="tab" role="tab" data-view="section-a" id="tab-section-a" aria-selected="true"><span>A · MCQ</span><span class="cnt" id="cnt-a">0/10</span></button>
+    <button class="tab" role="tab" data-view="section-b" id="tab-section-b" aria-selected="false"><span>B · Structured</span><span class="cnt" id="cnt-b">0/39</span></button>
+    <button class="tab" role="tab" data-view="results" id="tab-results" aria-selected="false"><span>Results</span></button>
+  </nav>
+
+  <main>
+    <section id="view-section-a" role="tabpanel" aria-labelledby="tab-section-a"></section>
+    <section id="view-section-b" role="tabpanel" aria-labelledby="tab-section-b" hidden></section>
+    <section id="view-results" role="tabpanel" aria-labelledby="tab-results" hidden></section>
+  </main>
+</div>
+
+<script>
+/* ---------- figure helpers ---------- */
+function graph(o){
+  var W=o.W||520,H=o.H||240,ml=o.ml||54,mr=o.mr||24,mt=o.mt||28,mb=o.mb||44;
+  var x0=o.x0||0,x1=o.x1,ym=o.ym,iw=W-ml-mr,ih=H-mt-mb;
+  function X(v){return ml+(v-x0)/(x1-x0)*iw}
+  function Y(v){return mt+ih/2-v/ym*ih/2}
+  var s='<svg class="fig" viewBox="0 0 '+W+' '+H+'" style="max-width:'+W+'px" role="img" aria-label="'+(o.alt||'graph')+'">';
+  (o.xt||[]).forEach(function(t){
+    s+='<line class="gr" x1="'+X(t[0])+'" x2="'+X(t[0])+'" y1="'+mt+'" y2="'+(mt+ih)+'"/>';
+    s+='<line class="tk" x1="'+X(t[0])+'" x2="'+X(t[0])+'" y1="'+(Y(0)-4)+'" y2="'+(Y(0)+4)+'"/>';
+    if(t[1]!=='') s+='<text x="'+X(t[0])+'" y="'+(mt+ih+16)+'" text-anchor="middle">'+t[1]+'</text>';
+  });
+  (o.yt||[]).forEach(function(t){
+    s+='<line class="gr" x1="'+ml+'" x2="'+(ml+iw)+'" y1="'+Y(t[0])+'" y2="'+Y(t[0])+'"/>';
+    s+='<text x="'+(ml-8)+'" y="'+(Y(t[0])+4)+'" text-anchor="end">'+t[1]+'</text>';
+  });
+  s+='<line class="ax" x1="'+ml+'" y1="'+(mt+ih)+'" x2="'+ml+'" y2="'+(mt-8)+'" marker-end="url(#arw)"/>';
+  s+='<line class="ax" x1="'+ml+'" y1="'+Y(0)+'" x2="'+(ml+iw+10)+'" y2="'+Y(0)+'" marker-end="url(#arw)"/>';
+  if(o.ylabel) s+='<text x="6" y="14">'+o.ylabel+'</text>';
+  if(o.xlabel) s+='<text x="'+(ml+iw+10)+'" y="'+(H-8)+'" text-anchor="end">'+o.xlabel+'</text>';
+  (o.curves||[]).forEach(function(c){
+    var a=(c.x0===undefined?x0:c.x0),b=(c.x1===undefined?x1:c.x1),d='';
+    for(var i=0;i<=260;i++){var x=a+(b-a)*i/260;d+=(i?'L':'M')+X(x).toFixed(1)+','+Y(c.f(x)).toFixed(1);}
+    s+='<path class="'+(c.cls||'wave')+'" d="'+d+'"/>';
+  });
+  (o.pts||[]).forEach(function(p){
+    s+='<circle class="pt" cx="'+X(p.x)+'" cy="'+Y(p.y)+'" r="4.5"/>';
+    if(p.t) s+='<text x="'+(X(p.x)+(p.dx||0))+'" y="'+(Y(p.y)+(p.dy||0))+'" text-anchor="'+(p.a||'middle')+'" style="font-weight:500">'+p.t+'</text>';
+  });
+  if(o.extra) s+=o.extra(X,Y,{W:W,H:H,ml:ml,mt:mt,iw:iw,ih:ih});
+  return s+'</svg>';
+}
+function wavefronts(n,gapCm,totalLabel){
+  var k=14,x0=74,y0=18,y1=118,last=x0+(n-1)*gapCm*k,W=last+110,H=176;
+  var s='<svg class="fig" viewBox="0 0 '+W+' '+H+'" style="max-width:'+W+'px" role="img" aria-label="Top view of equally spaced wavefronts">';
+  s+='<rect class="gen" x="'+(x0-34)+'" y="'+(y0-4)+'" width="12" height="'+(y1-y0+8)+'" rx="2"/>';
+  s+='<text x="'+(x0-28)+'" y="'+(y1+22)+'" text-anchor="middle">source</text>';
+  for(var i=0;i<n;i++){var x=x0+i*gapCm*k;s+='<line class="wf" x1="'+x+'" x2="'+x+'" y1="'+y0+'" y2="'+y1+'"/>';}
+  s+='<line class="dim" x1="'+x0+'" x2="'+last+'" y1="'+(y1+16)+'" y2="'+(y1+16)+'" marker-start="url(#arw)" marker-end="url(#arw)"/>';
+  s+='<text x="'+((x0+last)/2)+'" y="'+(y1+36)+'" text-anchor="middle">'+totalLabel+'</text>';
+  s+='<line class="dim" x1="'+(last+22)+'" x2="'+(last+70)+'" y1="68" y2="68" marker-end="url(#arw)"/>';
+  s+='<text x="'+(last+22)+'" y="56">wave motion</text>';
+  return s+'</svg>';
+}
+function arrowRight(x,y,len,label){
+  return '<line class="dim" x1="'+x+'" x2="'+(x+len)+'" y1="'+(y+6)+'" y2="'+(y+6)+'" marker-end="url(#arw)"/><text x="'+x+'" y="'+(y-4)+'">'+label+'</text>';
+}
+var TAU=2*Math.PI;
+
+/* ---------- Section A: multiple choice ---------- */
+var MCQ=[
+{id:'m1',topic:'Nature of waves',
+ q:'Which statement about a travelling wave is correct?',
+ o:['It transfers matter from the source to the receiver.','Its particles move permanently away from their rest positions.','It transfers energy without transferring matter.','Its frequency depends on the medium it travels in.'],
+ a:2,
+ why:'Particles only vibrate about their equilibrium positions while the disturbance carries energy along. Frequency is set by the source, not the medium.'},
+{id:'m2',topic:'Frequency across media',
+ q:'A ripple tank wave passes from deep water into shallow water. Which quantity stays the same?',
+ o:['Frequency','Speed','Wavelength','Distance between wavefronts'],
+ a:0,
+ why:'Frequency depends only on the source. Speed and wavelength both decrease in shallow water, and the distance between wavefronts is the wavelength.'},
+{id:'m3',topic:'v = fλ with wavefronts',
+ q:'A wave generator makes 5 oscillations per second in a ripple tank. The 5 equally spaced wavefronts shown cover 16.0 cm. Which row gives the frequency, wavelength and speed?',
+ fig:function(){return wavefronts(5,4,'16.0 cm')},
+ o:['f = 5 Hz, λ = 16.0 cm, v = 80 cm/s','f = 5 Hz, λ = 3.2 cm, v = 16 cm/s','f = 0.2 Hz, λ = 4.0 cm, v = 0.8 cm/s','f = 5 Hz, λ = 4.0 cm, v = 20 cm/s'],
+ a:3,
+ why:'Five wavefronts enclose 4 wavelengths, so λ = 16.0 ÷ 4 = 4.0 cm. Then v = fλ = 5 × 4.0 = 20 cm/s. Dividing by 5 instead of 4 gives the 3.2 cm distractor.'},
+{id:'m4',topic:'Displacement-time graph',
+ q:'The graph shows how the displacement of one particle in a water wave changes with time. What is the frequency of the wave?',
+ fig:function(){return graph({W:460,H:210,x1:12,ym:2.8,ylabel:'Displacement / cm',xlabel:'Time / s',
+   xt:[[2,'2'],[4,'4'],[6,'6'],[8,'8'],[10,'10'],[12,'12']],yt:[[2,'2'],[-2,'-2']],
+   curves:[{f:function(t){return 2*Math.sin(TAU*t/4)}}],alt:'Displacement-time graph showing three complete oscillations in 12 seconds'})},
+ o:['4.0 Hz','3.0 Hz','0.33 Hz','0.25 Hz'],
+ a:3,
+ why:'Three complete oscillations take 12 s, so T = 4.0 s and f = 1 ÷ T = 0.25 Hz. The value 4.0 is the period, and 3.0 is just the number of waves.'},
+{id:'m5',topic:'Speed from two graphs',
+ q:'The left graph is a displacement-distance graph of a water wave. The right graph is a displacement-time graph of the same wave. What is the speed of the wave?',
+ fig:function(){return '<div class="figrow">'+
+   graph({W:360,H:200,x1:8,ym:1.5,ml:44,ylabel:'Displacement / cm',xlabel:'Distance / cm',xt:[[2,'2'],[4,'4'],[6,'6'],[8,'8']],yt:[[1,'1'],[-1,'-1']],curves:[{f:function(x){return Math.sin(TAU*x/4)}}],alt:'Displacement-distance graph with a wavelength of 4 cm'})+
+   graph({W:360,H:200,x1:0.16,ym:1.5,ml:44,ylabel:'Displacement / cm',xlabel:'Time / s',xt:[[0.04,'0.04'],[0.08,'0.08'],[0.12,'0.12'],[0.16,'0.16']],yt:[[1,'1'],[-1,'-1']],curves:[{f:function(t){return Math.sin(TAU*t/0.08)}}],alt:'Displacement-time graph with a period of 0.08 s'})+'</div>'},
+ o:['0.02 cm/s','0.32 cm/s','50 cm/s','100 cm/s'],
+ a:2,
+ why:'One wavelength spans 4 cm on the left graph, and one period is 0.08 s on the right. v = λ ÷ T = 4 ÷ 0.08 = 50 cm/s.'},
+{id:'m6',topic:'Particle motion in a wave',
+ q:'A transverse wave travels to the right along a rope. At the instant shown, in which directions are particles P and Q moving?',
+ fig:function(){return graph({W:440,H:200,x1:3.5*Math.PI,ym:1.5,ylabel:'Displacement',xlabel:'Distance along rope',
+   curves:[{f:function(x){return -Math.sin(x)}}],
+   pts:[{x:Math.PI,y:0,t:'P',dx:-14,dy:-10},{x:2*Math.PI,y:0,t:'Q',dx:14,dy:-10}],
+   extra:function(){return arrowRight(250,22,90,'wave motion')},alt:'Transverse wave on a rope with points P and Q on the axis'})},
+ o:['P up, Q up','P up, Q down','P down, Q down','P down, Q up'],
+ a:3,
+ why:'Each particle copies the motion of the part of the wave just behind it. The wave to the left of P is lower, so P moves down. The wave to the left of Q is higher, so Q moves up.'},
+{id:'m7',topic:'Refraction of water waves',
+ q:'A water wave in a ripple tank has wavelength 3.0 cm and speed 15 cm/s in deep water. In the shallow region its wavelength is 1.8 cm. What is its speed in the shallow region?',
+ o:['25 cm/s','15 cm/s','9.0 cm/s','5.0 cm/s'],
+ a:2,
+ why:'In deep water f = v ÷ λ = 15 ÷ 3.0 = 5.0 Hz. The frequency stays 5.0 Hz in shallow water, so v = fλ = 5.0 × 1.8 = 9.0 cm/s.'},
+{id:'m8',topic:'Sound waves',
+ q:'Which statement about a sound wave in air is correct?',
+ o:['Air particles vibrate parallel to the direction in which the wave travels.','Air particles vibrate at right angles to the direction in which the wave travels.','It can travel through a vacuum.','Its frequency increases as it moves away from the source.'],
+ a:0,
+ why:'Sound is a longitudinal wave made of compressions and rarefactions. It needs a medium, and its frequency is fixed by the source.'},
+{id:'m9',topic:'Dipper frequency',
+ q:'A dipper in a ripple tank vibrates at 4 Hz. Its frequency is changed to 8 Hz while the depth of the water stays the same. What happens to the waves?',
+ o:['The wavelength doubles.','The wavelength halves.','The speed doubles.','The speed halves.'],
+ a:1,
+ why:'The speed depends on the depth, which has not changed. Since v = fλ, doubling f halves λ.'},
+{id:'m10',topic:'Speed of sound and temperature',
+ q:'Sound travels faster in air at 30 °C than in air at 10 °C. Which explanation uses ideas about particles?',
+ o:['Air particles are heavier at the higher temperature.','Air particles are further apart at the higher temperature, so they take longer to collide.','Particles at the higher temperature vibrate and collide more quickly, so vibrations are passed on faster.','The source of the sound vibrates at a higher frequency at the higher temperature.'],
+ a:2,
+ why:'Warmer particles have more kinetic energy, move faster and collide more often, so each compression is passed from particle to particle more quickly.'}
+];
+
+/* ---------- Section B: structured questions ---------- */
+var ST=[
+{id:'s1',title:'Wave graphs and particle motion',from:'Based on P2 Q1',
+ intro:'Fig. 1 shows the displacement-distance graph of a wave at t = 0 s. The wave travels to the right. Particle C is at a trough.',
+ fig:function(){return graph({W:540,H:250,mt:34,x1:12,ym:3.6,ylabel:'Displacement / cm',xlabel:'Distance / m',
+   xt:[[6,'6.0'],[12,'12.0']],yt:[[3,'3.0'],[-3,'-3.0']],
+   curves:[{f:function(x){return 3*Math.sin(TAU*x/6)}}],
+   pts:[{x:1.5,y:3,t:'A',dy:-10},{x:3,y:0,t:'B',dx:12,dy:18},{x:4.5,y:-3,t:'C',dy:20},{x:6,y:0,t:'D',dx:12,dy:18}],
+   extra:function(){return arrowRight(300,20,110,'wave moving right')},alt:'Displacement-distance graph with points A, B, C and D'})+'<p class="marks" style="margin-top:4px">Fig. 1</p>'},
+ parts:[
+ {k:'a',l:'(a)',m:1,t:'State the wavelength of the wave.',
+  ans:'<strong>λ = 6.0 m</strong>. One complete wave runs from 0 to 6.0 m on the distance axis.'},
+ {k:'b',l:'(b)',m:1,t:'Particle C becomes a crest of the wave at t = 3.0 s. Calculate the period of the wave.',
+  ans:'A trough becomes a crest after half a period, so T ÷ 2 = 3.0 s and <strong>T = 6.0 s</strong>.'},
+ {k:'c',l:'(c)',m:2,t:'Hence, calculate the speed of the wave.',
+  ans:'v = λ ÷ T = 6.0 ÷ 6.0 = <strong>1.0 m/s</strong>.<br>Marks: 1 for the substitution, 1 for the answer with its unit. Using f = 1 ÷ 6.0 = 0.17 Hz and v = fλ gives the same value.'},
+ {k:'d',l:'(d)',m:2,t:'In the space below, sketch the displacement-time graph of particle D for the first 12 s. Draw on the axes with your mouse or finger.',
+  sketch:function(){return graph({W:540,H:240,x1:12,ym:3.6,ylabel:'Displacement / cm',xlabel:'Time / s',xt:[[3,'3'],[6,'6'],[9,'9'],[12,'12']],yt:[[3,'3.0'],[-3,'-3.0']],alt:'Blank displacement-time axes for particle D'})},
+  mfig:function(){return graph({W:540,H:240,x1:12,ym:3.6,ylabel:'Displacement / cm',xlabel:'Time / s',xt:[[3,'3'],[6,'6'],[9,'9'],[12,'12']],yt:[[3,'3.0'],[-3,'-3.0']],curves:[{f:function(t){return -3*Math.sin(TAU*t/6)},cls:'model'}],alt:'Model displacement-time graph for particle D'})},
+  ans:'D sits at equilibrium on a rising slope of a wave moving right, so it moves <strong>downwards</strong> first. The graph is a sine curve that starts at 0 and goes down to −3.0 cm at 1.5 s, returns to 0 at 3.0 s, reaches +3.0 cm at 4.5 s and returns to 0 at 6.0 s. It repeats once more to 12 s.<br>Marks: 1 for amplitude 3.0 cm with period 6.0 s (two cycles), 1 for starting by moving downwards.'}
+ ]},
+{id:'s2',title:'Water waves in a ripple tank',from:'Based on P2 Q6 and Q8',
+ intro:'Fig. 2 shows the top view of plane water waves in a ripple tank at one instant. A vibrating bar produces 4.0 waves per second and the waves travel to the right.',
+ fig:function(){return wavefronts(6,3,'15.0 cm')+'<p class="marks" style="margin-top:4px">Fig. 2 (top view)</p>'},
+ parts:[
+ {k:'a1',l:'(a)(i)',m:1,t:'Determine the wavelength of the waves.',
+  ans:'Six wavefronts enclose 5 wavelengths. <strong>λ = 15.0 ÷ 5 = 3.0 cm</strong>.'},
+ {k:'a2',l:'(a)(ii)',m:1,t:'Calculate the speed of the waves.',
+  ans:'v = fλ = 4.0 × 3.0 = <strong>12 cm/s</strong>.'},
+ {k:'b',l:'(b)',m:2,t:'The waves move into a region of shallower water. State what happens to the frequency, the wavelength and the speed.',
+  ans:'<strong>Frequency stays the same</strong> because it is set by the source. <strong>Speed decreases</strong> in shallow water. Since v = fλ with f constant, the <strong>wavelength decreases</strong>.<br>Marks: 2 for all three, 1 for two.'},
+ {k:'c',l:'(c)',m:2,t:'The speed in the shallow region is 9.0 cm/s. Calculate the wavelength there.',
+  ans:'λ = v ÷ f = 9.0 ÷ 4.0 = <strong>2.25 cm</strong> (2.3 cm to 2 s.f.). The frequency is still 4.0 Hz.<br>Marks: 1 for using f = 4.0 Hz, 1 for the answer.'},
+ {k:'d',l:'(d)',m:2,t:'The waves meet the boundary at an angle. Describe how their direction changes and explain why.',
+  ans:'The waves <strong>bend towards the normal</strong> and the wavefronts become closer together. The part of each wavefront that reaches the shallow region first <strong>slows down first</strong>, so the front pivots (refraction).<br>Marks: 1 for bending towards the normal, 1 for the explanation in terms of slowing down.'}
+ ]},
+{id:'s3',title:'Sound from a loudspeaker',from:'Based on P2 Q4, Q5 and Q13',
+ intro:'A loudspeaker produces a sound wave of frequency 200 Hz. The speed of sound in air is 340 m/s. Fig. 3 shows how the air pressure varies with distance from the loudspeaker at one instant.',
+ fig:function(){return graph({W:540,H:230,ml:62,x1:4*Math.PI,ym:1.6,ylabel:'Air pressure',xlabel:'Distance from loudspeaker',
+   yt:[[0,'normal']],curves:[{f:function(x){return Math.sin(x)}}],alt:'Air pressure against distance for a sound wave'})+'<p class="marks" style="margin-top:4px">Fig. 3</p>'},
+ parts:[
+ {k:'a',l:'(a)',m:1,t:'State what is meant by a longitudinal wave.',
+  ans:'A wave in which the particles of the medium <strong>vibrate parallel to the direction in which the wave travels</strong> (the direction of energy transfer).'},
+ {k:'b',l:'(b)',m:2,t:'Calculate the wavelength of the sound.',
+  ans:'λ = v ÷ f = 340 ÷ 200 = <strong>1.7 m</strong>.<br>Marks: 1 for the rearrangement, 1 for the answer.'},
+ {k:'c',l:'(c)',m:2,t:'A student stands 1 wavelength from the loudspeaker, then walks to a point 2 wavelengths from it. He says: “The frequency of the sound decreases as I walk away.” State whether he is correct and explain.',
+  ans:'<strong>He is not correct.</strong> The frequency is decided by the source (the loudspeaker) and stays at 200 Hz everywhere. The sound may get quieter because the amplitude decreases as the energy spreads out, but its frequency does not change.'},
+ {k:'d',l:'(d)',m:3,t:'Fig. 3 is drawn at one instant. Calculate how far the wave travels in 15 ms and say what the graph of air pressure against distance looks like after 15 ms.',
+  ans:'t = 15 ms = 0.015 s, so distance = vt = 340 × 0.015 = <strong>5.1 m</strong>.<br>5.1 ÷ 1.7 = 3, so the wave has moved exactly <strong>3 wavelengths</strong> (equivalently 3 periods, since T = 1 ÷ 200 = 0.005 s). The pattern is <strong>identical to Fig. 3</strong>.<br>Marks: 1 for 5.1 m, 1 for 3 wavelengths or 3 periods, 1 for identical graph.'},
+ {k:'e',l:'(e)',m:2,t:'State two differences between sound and ultraviolet radiation.',
+  ans:'Any two: sound is longitudinal whereas ultraviolet is transverse; sound needs a medium whereas ultraviolet can travel through a vacuum; sound travels at about 340 m/s in air whereas ultraviolet travels at 3.0 × 10⁸ m/s; sound is a mechanical wave whereas ultraviolet is an electromagnetic wave.'}
+ ]},
+{id:'s4',title:'Reading two snapshots of a wave',from:'Based on P2 Q12',
+ intro:'Fig. 4 shows a transverse wave on a rope travelling to the right. The solid line is the wave at t = 0 and the dashed line is the same wave at t = 0.50 s. X is a particle on the rope.',
+ fig:function(){return graph({W:560,H:260,mt:40,x1:10,ym:2.8,ylabel:'Displacement / cm',xlabel:'Distance / cm',
+   xt:[[2,'2.0'],[4,'4.0'],[6,'6.0'],[8,'8.0'],[10,'10.0']],yt:[[2,'2.0'],[-2,'-2.0']],
+   curves:[{f:function(x){return -2*Math.sin(TAU*x/8)}},{f:function(x){return -2*Math.sin(TAU*(x-2)/8)},cls:'wave2'}],
+   pts:[{x:2,y:-2,t:'X',dy:20}],
+   extra:function(X,Y,g){var lx=g.W-210;return '<line class="wave" x1="'+lx+'" x2="'+(lx+28)+'" y1="14" y2="14"/><text x="'+(lx+36)+'" y="18">t = 0</text><line class="wave2" x1="'+lx+'" x2="'+(lx+28)+'" y1="32" y2="32"/><text x="'+(lx+36)+'" y="36">t = 0.50 s</text>'},
+   alt:'Two snapshots of a transverse wave, solid at t = 0 and dashed at t = 0.50 s'})+'<p class="marks" style="margin-top:4px">Fig. 4</p>'},
+ parts:[
+ {k:'a',l:'(a)',m:1,t:'State the amplitude of the wave.',
+  ans:'<strong>2.0 cm</strong>, the maximum displacement from the equilibrium position.'},
+ {k:'b',l:'(b)',m:1,t:'State the wavelength of the wave.',
+  ans:'<strong>8.0 cm</strong>. One complete wave of the solid line runs from 0 to 8.0 cm.'},
+ {k:'c',l:'(c)',m:2,t:'Use Fig. 4 to calculate the speed of the wave.',
+  ans:'The crest moves from 6.0 cm to 8.0 cm, a distance of 2.0 cm in 0.50 s. <strong>v = 2.0 ÷ 0.50 = 4.0 cm/s</strong>.<br>Marks: 1 for the distance moved, 1 for the speed.'},
+ {k:'d',l:'(d)',m:1,t:'Calculate the frequency of the wave.',
+  ans:'f = v ÷ λ = 4.0 ÷ 8.0 = <strong>0.50 Hz</strong>.'},
+ {k:'e',l:'(e)',m:2,t:'Describe where particle X is at t = 3.0 s. Give its displacement and say whether it is at a crest, a trough or the equilibrium position.',
+  ans:'T = 1 ÷ f = 2.0 s, so 3.0 s is 1.5 periods. X starts at a trough, so after one and a half oscillations it is at a <strong>crest</strong>, with displacement <strong>+2.0 cm</strong>. It is still at 2.0 cm along the rope because particles move only up and down.<br>Marks: 1 for 1.5 periods, 1 for crest with +2.0 cm.'}
+ ]},
+{id:'s5',title:'Waves at sea',from:'Based on P2 Q2 and Q3',
+ intro:'A boat’s engine fails in the open sea. Waves strike the side of the boat once every 12 s. The speed of the waves is 15 m/s. Ignore wind and currents.',
+ parts:[
+ {k:'a1',l:'(a)(i)',m:1,t:'Calculate the frequency of the waves.',
+  ans:'f = 1 ÷ T = 1 ÷ 12 = <strong>0.083 Hz</strong>.'},
+ {k:'a2',l:'(a)(ii)',m:1,t:'Calculate the wavelength of the waves.',
+  ans:'λ = v ÷ f = 15 × 12 = <strong>180 m</strong>.'},
+ {k:'b',l:'(b)',m:1,t:'Where will the boat be after 3 minutes? Explain your answer.',
+  ans:'The boat will be <strong>at about the same place</strong>, bobbing up and down. A wave transfers energy without transferring matter, so the water and the boat only oscillate about their equilibrium positions.'},
+ {k:'c',l:'(c)',m:2,t:'The crew use an echo sounder. A pulse of ultrasound is sent straight down and its echo from the seabed returns after 0.80 s. The speed of sound in seawater is 1500 m/s. Calculate the depth of the sea.',
+  ans:'Distance there and back = 1500 × 0.80 = 1200 m, so <strong>depth = 1200 ÷ 2 = 600 m</strong>.<br>Marks: 1 for halving the total distance, 1 for the answer.'},
+ {k:'d',l:'(d)',m:1,t:'Explain why ultrasound rather than audible sound is used for this.',
+  ans:'Ultrasound has a higher frequency and a shorter wavelength, so it spreads out less and can be sent as a narrow beam towards the seabed. It also cannot be heard, so it does not disturb people or marine life.'},
+ {k:'e',l:'(e)',m:2,t:'The ultrasound has a frequency of 50 kHz. Calculate its wavelength in seawater.',
+  ans:'50 kHz = 50 000 Hz. λ = v ÷ f = 1500 ÷ 50 000 = <strong>0.030 m</strong> (3.0 cm).<br>Marks: 1 for converting to hertz, 1 for the answer.'}
+ ]}
+];
+
+/* ---------- state ---------- */
+var KEY='waves-practice-v1';
+var S={mcq:{},st:{}};
+try{var raw=localStorage.getItem(KEY);if(raw){var p=JSON.parse(raw);if(p&&p.mcq&&p.st)S=p;}}catch(e){}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
+function $(s,r){return (r||document).querySelector(s)}
+function $$(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s))}
+var TOTAL_B=0;ST.forEach(function(q){q.parts.forEach(function(p){TOTAL_B+=p.m})});
+
+/* ---------- render ---------- */
+function renderA(){
+  var h='<div class="sechead"><h2>Section A: multiple choice</h2><p>Choose one answer for each question. The answer is checked straight away and cannot be changed.</p></div>';
+  MCQ.forEach(function(q,n){
+    h+='<article class="card" id="'+q.id+'" data-q="'+q.id+'"><div class="qhead"><span class="qn">Q'+(n+1)+'</span><span class="topic">'+q.topic+'</span></div>';
+    h+='<p class="stem">'+q.q+'</p>';
+    if(q.fig) h+='<div class="figbox">'+q.fig()+'</div>';
+    h+='<div class="opts">';
+    q.o.forEach(function(t,i){h+='<button class="opt" data-i="'+i+'"><span class="ltr">'+'ABCD'.charAt(i)+'</span><span class="otx">'+t+'</span></button>'});
+    h+='</div><div class="why" hidden></div></article>';
+  });
+  $('#view-section-a').innerHTML=h;
+}
+function renderB(){
+  var h='<div class="sechead"><h2>Section B: structured questions</h2><p>'+TOTAL_B+' marks in total. Write your answer in the box if you like, then reveal the model answer and give yourself marks.</p></div>';
+  ST.forEach(function(q,n){
+    h+='<article class="card" id="'+q.id+'" data-s="'+q.id+'"><div class="qhead"><span class="qn">Q'+(n+1)+'</span><span class="topic">'+q.title+'</span><span class="src">'+q.from+'</span></div>';
+    h+='<p class="intro">'+q.intro+'</p>';
+    if(q.fig) h+='<div class="figbox">'+q.fig()+'</div>';
+    q.parts.forEach(function(p){
+      var id=q.id+'-'+p.k;
+      h+='<div class="part" data-part="'+id+'" data-marks="'+p.m+'"><p class="ptxt"><span class="plabel">'+p.l+'</span>'+p.t+' <span class="marks">['+p.m+']</span></p>';
+      if(p.sketch) h+='<div class="pad"><div class="padbox">'+p.sketch()+'<canvas class="padc" aria-label="Drawing area for your sketch"></canvas></div><button class="mini" data-clear type="button">Clear sketch</button></div>';
+      h+='<textarea id="ta-'+id+'" data-ta="'+id+'" rows="2" placeholder="'+(p.sketch?'Notes or working (optional)':'Your answer or working (optional)')+'"></textarea>';
+      h+='<button class="btn" data-reveal type="button">Show model answer</button>';
+      h+='<div class="modelbox" hidden><span class="mh">Model answer</span><p>'+p.ans+'</p>';
+      if(p.mfig) h+='<div class="figbox" style="margin-top:10px">'+p.mfig()+'</div>';
+      h+='<div class="selfmark"><span>Marks you earned:</span>';
+      for(var m=0;m<=p.m;m++) h+='<button class="chip" type="button" data-m="'+m+'" aria-pressed="false">'+m+'</button>';
+      h+='</div></div></div>';
+    });
+    h+='</article>';
+  });
+  $('#view-section-b').innerHTML=h;
+}
+
+/* ---------- apply state to the page ---------- */
+function applyMCQ(id){
+  var q=MCQ.filter(function(x){return x.id===id})[0],card=document.getElementById(id),sel=S.mcq[id];
+  if(sel===undefined)return;
+  card.classList.add('done');
+  $$('.opt',card).forEach(function(b,i){
+    b.classList.remove('correct','wrong');
+    if(i===q.a)b.classList.add('correct');
+    else if(i===sel)b.classList.add('wrong');
+    b.setAttribute('aria-disabled','true');
+  });
+  var w=$('.why',card);
+  w.hidden=false;
+  w.innerHTML=(sel===q.a?'<b class="ok">Correct.</b> ':'<b class="no">Not quite.</b> The answer is '+'ABCD'.charAt(q.a)+'. ')+q.why;
+}
+function applyPart(id){
+  var el=document.querySelector('[data-part="'+id+'"]'),st=S.st[id]||{};
+  if(!el)return;
+  var ta=$('textarea',el);if(st.t!==undefined&&ta.value!==st.t)ta.value=st.t;
+  $('.modelbox',el).hidden=!st.rev;
+  $('[data-reveal]',el).textContent=st.rev?'Hide model answer':'Show model answer';
+  $$('.chip',el).forEach(function(c){c.setAttribute('aria-pressed',st.m!==undefined&&st.m!==null&&Number(c.dataset.m)===st.m?'true':'false')});
+}
+function scores(){
+  var c=0,ans=0;MCQ.forEach(function(q){if(S.mcq[q.id]!==undefined){ans++;if(S.mcq[q.id]===q.a)c++}});
+  var got=0,marked=0,parts=0;
+  ST.forEach(function(q){q.parts.forEach(function(p){parts++;var s=S.st[q.id+'-'+p.k];if(s&&s.m!==undefined&&s.m!==null){got+=s.m;marked+=p.m}})});
+  return {mcq:c,mcqAns:ans,got:got,marked:marked,parts:parts};
+}
+function updateAll(){
+  var sc=scores();
+  $('#cnt-a').textContent=sc.mcq+'/10';
+  $('#cnt-b').textContent=sc.got+'/'+TOTAL_B;
+  renderResults(sc);
+}
+function renderResults(sc){
+  var pct=function(a,b){return b?Math.round(100*a/b)+'%':'–'};
+  var h='<div class="sechead"><h2>Results</h2><p>Section B marks count only for parts you have marked yourself.</p></div>';
+  h+='<div class="stats"><div class="stat"><div class="k">Section A</div><div class="v">'+sc.mcq+' <small>/ 10 correct</small></div></div>';
+  h+='<div class="stat"><div class="k">Section B</div><div class="v">'+sc.got+' <small>/ '+TOTAL_B+' marks</small></div></div>';
+  h+='<div class="stat"><div class="k">Overall</div><div class="v">'+(sc.mcq+sc.got)+' <small>/ '+(10+TOTAL_B)+'</small></div></div></div>';
+  h+='<div class="card"><h3>Section A</h3><div class="rows">';
+  MCQ.forEach(function(q,n){
+    var s=S.mcq[q.id],cls='na',txt='not answered';
+    if(s!==undefined){if(s===q.a){cls='ok';txt='correct'}else{cls='no';txt='wrong'}}
+    h+='<div class="row"><a href="#section-a" data-jump="'+q.id+'">Q'+(n+1)+' · '+q.topic+'</a><span class="r '+cls+'">'+txt+'</span></div>';
+  });
+  h+='</div></div><div class="card"><h3>Section B</h3><div class="rows">';
+  ST.forEach(function(q,n){
+    var got=0,max=0,mk=0;
+    q.parts.forEach(function(p){max+=p.m;var s=S.st[q.id+'-'+p.k];if(s&&s.m!==undefined&&s.m!==null){got+=s.m;mk+=p.m}});
+    var cls=mk===0?'na':(got===mk?'ok':'no');
+    var txt=mk===0?'not marked':got+' / '+mk+' marked ('+max+' total)';
+    h+='<div class="row"><a href="#section-b" data-jump="'+q.id+'">Q'+(n+1)+' · '+q.title+'</a><span class="r '+cls+'">'+txt+'</span></div>';
+  });
+  h+='</div></div><div class="actions" style="margin-top:16px"><button class="btn ghost" type="button" id="reset">Clear all answers and start again</button></div>';
+  $('#view-results').innerHTML=h;
+}
+
+/* ---------- tabs ---------- */
+var VIEWS=['section-a','section-b','results'];
+function show(v,noScroll){
+  if(VIEWS.indexOf(v)<0)v='section-a';
+  VIEWS.forEach(function(n){
+    $('#view-'+n).hidden=(n!==v);
+    $('#tab-'+n).setAttribute('aria-selected',n===v?'true':'false');
+  });
+  if(!noScroll)window.scrollTo(0,0);
+}
+function fromHash(noScroll){show(location.hash.replace('#',''),noScroll)}
+
+/* ---------- events ---------- */
+document.addEventListener('click',function(e){
+  var t=e.target.closest?e.target.closest('button,a'):null;if(!t)return;
+  if(t.classList.contains('tab')){location.hash=t.dataset.view;return;}
+  if(t.classList.contains('opt')){
+    var card=t.closest('.card'),id=card.dataset.q;
+    if(S.mcq[id]!==undefined)return;
+    S.mcq[id]=Number(t.dataset.i);save();applyMCQ(id);updateAll();return;
+  }
+  if(t.hasAttribute('data-reveal')){
+    var pid=t.closest('.part').dataset.part;S.st[pid]=S.st[pid]||{};S.st[pid].rev=!S.st[pid].rev;save();applyPart(pid);return;
+  }
+  if(t.classList.contains('chip')){
+    var pid2=t.closest('.part').dataset.part;S.st[pid2]=S.st[pid2]||{};
+    var v=Number(t.dataset.m);S.st[pid2].m=(S.st[pid2].m===v?null:v);save();applyPart(pid2);updateAll();return;
+  }
+  if(t.hasAttribute('data-clear')){
+    var c=$('.padc',t.closest('.pad')),g=c.getContext('2d');g.save();g.setTransform(1,0,0,1,0,0);g.clearRect(0,0,c.width,c.height);g.restore();return;
+  }
+  if(t.id==='reset'){
+    if(t.dataset.sure!=='1'){t.dataset.sure='1';t.textContent='Press again to clear everything';return;}
+    S={mcq:{},st:{}};save();init();return;
+  }
+  if(t.hasAttribute('data-jump')){
+    var target=t.dataset.jump;
+    setTimeout(function(){var el=document.getElementById(target);if(el)el.scrollIntoView({block:'start'})},30);
+  }
+});
+document.addEventListener('input',function(e){
+  var ta=e.target;if(!ta.matches||!ta.matches('textarea[data-ta]'))return;
+  var id=ta.dataset.ta;S.st[id]=S.st[id]||{};S.st[id].t=ta.value;save();
+});
+window.addEventListener('hashchange',function(){fromHash(false)});
+
+/* sketch pad */
+function fit(c){
+  var r=c.getBoundingClientRect(),d=window.devicePixelRatio||1,w=Math.round(r.width*d),h=Math.round(r.height*d);
+  if(c.width!==w||c.height!==h){c.width=w;c.height=h;}
+  var g=c.getContext('2d');g.setTransform(d,0,0,d,0,0);g.lineWidth=2.6;g.lineCap='round';g.lineJoin='round';g.strokeStyle=getComputedStyle(c).color;
+  return g;
+}
+function pos(c,e){var r=c.getBoundingClientRect();return {x:e.clientX-r.left,y:e.clientY-r.top}}
+document.addEventListener('pointerdown',function(e){
+  var c=e.target;if(!c.classList||!c.classList.contains('padc'))return;
+  e.preventDefault();var g=fit(c),p=pos(c,e);
+  try{c.setPointerCapture(e.pointerId)}catch(err){}
+  c._d=true;c._l=p;g.beginPath();g.moveTo(p.x,p.y);g.lineTo(p.x+0.01,p.y+0.01);g.stroke();
+});
+document.addEventListener('pointermove',function(e){
+  var c=e.target;if(!c._d)return;
+  var g=c.getContext('2d'),p=pos(c,e);g.beginPath();g.moveTo(c._l.x,c._l.y);g.lineTo(p.x,p.y);g.stroke();c._l=p;
+});
+['pointerup','pointercancel'].forEach(function(n){document.addEventListener(n,function(e){if(e.target._d)e.target._d=false})});
+
+/* ---------- start ---------- */
+function init(){
+  renderA();renderB();
+  MCQ.forEach(function(q){applyMCQ(q.id)});
+  ST.forEach(function(q){q.parts.forEach(function(p){applyPart(q.id+'-'+p.k)})});
+  updateAll();fromHash(true);
+}
+init();
+</script>
+
+</body></html>
