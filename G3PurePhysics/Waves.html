@@ -151,7 +151,7 @@ footer { margin-inline: calc(50% - 50vw); padding: 30px max(16px, env(safe-area-
         <p>Two numbers describe most waves: how often a crest passes (frequency) and how far apart the crests are (wavelength).</p>
         <ul class="facts">
           <li>Wave speed: <b>v = f × λ</b></li>
-          <li>Frequency is measured in hertz, <b>1 Hz = 1 crest per second</b></li>
+          <li>Frequency is measured in hertz, <br><b>1 Hz = 1 complete waves per second</b></li>
         </ul>
       </div>
       <div class="stage">
@@ -169,12 +169,13 @@ footer { margin-inline: calc(50% - 50vw); padding: 30px max(16px, env(safe-area-
     <div class="wrap">
       <div class="text">
         <h2>Sound</h2>
-        <p>Sound is a pressure wave. A speaker cone pushes air together, then pulls it apart, and those squeezed and stretched patches travel outward as a longitudinal wave.</p>
+        <p>Sound is a longitudinal wave. A speaker cone pushes air together, then pulls it apart, and those squeezed and stretched patches travel outward as a longitudinal wave.</p>
         <p>Pitch is frequency. Slide it up and the rings pack closer together because the wavelength shrinks.</p>
         <ul class="facts">
-          <li>Speed in air at 20 °C: <b>about 343 m/s</b></li>
+          <li>Speed in air : <b>about 330 m/s</b></li>
           <li>Human hearing: <b>about 20 Hz to 20 kHz</b></li>
-          <li>Concert A is <b>440 Hz</b>, a wavelength of roughly 0.78 m</li>
+          <li>Infrasound: <b>< 20 Hz</b></li>
+          <li>Ultrasound: <b>> 20 kHz</b></li>
         </ul>
       </div>
       <div class="stage">
@@ -192,10 +193,10 @@ footer { margin-inline: calc(50% - 50vw); padding: 30px max(16px, env(safe-area-
     <div class="wrap">
       <div class="text">
         <h2>Electromagnetic Waves</h2>
-        <p>An electric field and a magnetic field oscillate at right angles to each other and to the direction the wave travels. Each one keeps the other going, so no medium is needed. Light crosses empty space from the Sun this way.</p>
-        <p>Radio, microwaves, light and X-rays are the same kind of wave. Only the wavelength differs.</p>
+        <p>EM Waves are transverse waves. An electric field and a magnetic field oscillate at right angles to each other and to the direction the wave travels. Each one keeps the other going, so no medium is needed. Light crosses empty space from the Sun this way.</p>
+        <p>Radio, microwaves, light and X-rays are the same kind of wave. Only the wavelength/ frequency differs.</p>
         <ul class="facts">
-          <li>Speed in vacuum: <b>c = 299,792,458 m/s</b></li>
+          <li>Speed in vacuum: <b>c = 3 x 10<sup>8</sup> m/s</b></li>
           <li>For every band: <b>c = f × λ</b></li>
         </ul>
       </div>
@@ -230,7 +231,7 @@ footer { margin-inline: calc(50% - 50vw); padding: 30px max(16px, env(safe-area-
   </section>
 </main>
 
-<footer>Speed of sound is for air at 20 °C. Speed of light is for a vacuum.</footer>
+<footer></footer>
 
 <script>
 (function () {
@@ -368,7 +369,7 @@ footer { margin-inline: calc(50% - 50vw); padding: 30px max(16px, env(safe-area-
   function sUpdate() {
     var f = +sf.value;
     $("sfO").textContent = f + " Hz";
-    $("sRead").innerHTML = "Wavelength in air: 343 ÷ " + f + " = <b>" + (343 / f).toFixed(2) + " m</b>";
+    $("sRead").innerHTML = "Wavelength in air: 330 ÷ " + f + " = <b>" + (330 / f).toFixed(2) + " m</b>";
     if (osc) { try { osc.frequency.value = f; } catch (e) {} }
     redrawAll();
   }
