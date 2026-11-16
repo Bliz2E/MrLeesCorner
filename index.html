@@ -1,140 +1,257 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mr Lee's Corner</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800&family=Open+Sans:wght@400;600;700&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mr Lee's Corner</title>
+<style>
+  :root {
+    --amber: #f2b45a;
+    --cream: #fff3dc;
+    --ink: #1a1208;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    font-family: Georgia, "Times New Roman", serif;
+    color: var(--cream);
+    background: #2a1a0a url("background.jpeg") center / cover no-repeat fixed;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow-x: hidden;
+  }
+  /* soft vignette so text stays readable on the photo */
+  body::before {
+    content: "";
+    position: fixed; inset: 0;
+    background:
+      linear-gradient(to bottom, rgba(15,8,2,.75) 0, rgba(15,8,2,.15) 18%, rgba(15,8,2,.1) 45%, rgba(15,8,2,.85) 100%);
+    pointer-events: none;
+    z-index: 0;
+  }
 
-    :root {
-      --cream: #fdf6ec;
-      --peach: #f9e1c8;
-      --apricot: #f4c9a0;
-      --cocoa: #5b3a29;
-      --terracotta: #c4693d;
-      --paper: rgba(255, 251, 244, 0.92);
-    }
+  /* ---------- Scrolling quote banner ---------- */
+  .ticker {
+    position: relative; z-index: 2;
+    height: 64px;
+    overflow: hidden;
+    background: rgba(20,11,3,.72);
+    border-bottom: 1px solid rgba(242,180,90,.35);
+    backdrop-filter: blur(6px);
+  }
+  .ticker-text {
+    position: absolute; top: 0; left: 0;
+    height: 100%;
+    display: flex; align-items: center;
+    white-space: nowrap;
+    font-style: italic;
+    font-size: 1.15rem;
+    color: var(--cream);
+    will-change: transform;
+    transform: translateX(100vw);
+  }
+  .ticker-text .who {
+    font-style: normal;
+    color: var(--amber);
+    margin-left: .6em;
+    font-size: .95rem;
+    letter-spacing: .02em;
+  }
 
-    body {
-      font-family: 'Roboto', sans-serif;
-      color: var(--cocoa);
-      min-height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      padding: 24px;
-      position: relative;
-      overflow-x: hidden;
-      background-color: var(--cream);
-      background-image:
-        /* warm lamp glow, top left */
-        radial-gradient(circle at 12% 10%, rgba(255, 214, 140, 0.55) 0, rgba(255, 214, 140, 0) 38%),
-        /* soft rose glow, bottom right */
-        radial-gradient(circle at 90% 92%, rgba(244, 170, 140, 0.40) 0, rgba(244, 170, 140, 0) 42%),
-        /* base gradient */
-        linear-gradient(160deg, #fff4e2 0%, #fbe3c6 55%, #f6d1b0 100%);
-      background-attachment: fixed;
-    }
+  /* ---------- Hero ---------- */
+  main {
+    position: relative; z-index: 1;
+    flex: 1;
+    display: flex; flex-direction: column; justify-content: space-between;
+    padding: 2.5rem clamp(1.25rem, 5vw, 4rem) 2.5rem;
+    gap: 2rem;
+  }
+  .hero { max-width: 40rem; }
+  .hero .eyebrow {
+    font-family: system-ui, sans-serif;
+    text-transform: uppercase; letter-spacing: .22em;
+    font-size: .75rem; color: var(--amber);
+    margin-bottom: .8rem;
+  }
+  .hero h1 {
+    font-size: clamp(2rem, 4.5vw, 3.4rem);
+    line-height: 1.1;
+    text-shadow: 0 2px 18px rgba(0,0,0,.6);
+  }
+  .hero p {
+    margin-top: 1rem;
+    font-size: 1.1rem;
+    color: rgba(255,243,220,.85);
+    text-shadow: 0 1px 8px rgba(0,0,0,.7);
+  }
 
-    /* Faint chalkboard-style doodles: maths and physics symbols */
-    body::before {
-      content: "";
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
-      opacity: 0.55;
-      background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='260' height='260' viewBox='0 0 260 260'><g fill='%23b98562' fill-opacity='0.30' font-family='Georgia, serif' font-size='28'><text x='20' y='48' transform='rotate(-8 20 48)'>π</text><text x='140' y='40' font-size='22' transform='rotate(6 140 40)'>∑</text><text x='205' y='110' transform='rotate(-12 205 110)'>√x</text><text x='60' y='130' font-size='20' transform='rotate(5 60 130)'>E = mc²</text><text x='150' y='185' transform='rotate(-6 150 185)'>∫</text><text x='25' y='215' font-size='24' transform='rotate(10 25 215)'>θ</text><text x='215' y='235' font-size='22' transform='rotate(-5 215 235)'>Δ</text><text x='95' y='240' font-size='18' transform='rotate(4 95 240)'>F = ma</text></g><g fill='none' stroke='%23b98562' stroke-opacity='0.25' stroke-width='1.6' stroke-linecap='round'><circle cx='110' cy='85' r='9'/><path d='M180 150 l14 -14 m0 0 l-3 12 m3 -12 l-12 3'/><path d='M40 160 q10 -14 20 0 t20 0'/></g></svg>");
-      background-size: 260px 260px;
-    }
+  /* ---------- Course cards ---------- */
+  .courses {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+    gap: 1rem;
+    max-width: 62rem;
+  }
+  .card {
+    padding: 1.4rem 1.3rem;
+    border-radius: 14px;
+    background: rgba(26,16,6,.62);
+    border: 1px solid rgba(242,180,90,.3);
+    backdrop-filter: blur(8px);
+    transition: transform .25s ease, border-color .25s ease, background .25s ease;
+  }
+  a.card { display: block; color: inherit; text-decoration: none; cursor: default; }
+  .card:hover, .card:focus-visible {
+    transform: translateY(-4px);
+    border-color: var(--amber);
+    background: rgba(40,24,8,.75);
+  }
+  .card .tag {
+    font-family: system-ui, sans-serif;
+    font-size: .7rem; letter-spacing: .18em; text-transform: uppercase;
+    color: var(--amber);
+  }
+  .card h2 {
+    margin-top: .5rem;
+    font-size: 1.45rem;
+    font-weight: normal;
+  }
+  .card p {
+    margin-top: .4rem;
+    font-family: system-ui, sans-serif;
+    font-size: .88rem;
+    color: rgba(255,243,220,.7);
+  }
 
-    /* Soft rolling hills along the bottom for a snug feel */
-    body::after {
-      content: "";
-      position: fixed;
-      left: 0; right: 0; bottom: 0;
-      height: 22vh;
-      pointer-events: none;
-      background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 320' preserveAspectRatio='none'><path fill='%23eab38a' fill-opacity='0.35' d='M0,224 C240,128 480,288 720,224 C960,160 1200,96 1440,192 L1440,320 L0,320 Z'/><path fill='%23d98f66' fill-opacity='0.30' d='M0,272 C300,200 520,320 800,264 C1080,208 1260,240 1440,264 L1440,320 L0,320 Z'/></svg>");
-      background-size: 100% 100%;
-      background-repeat: no-repeat;
-    }
-
-    main {
-      position: relative;
-      z-index: 1;
-      background: var(--paper);
-      max-width: 520px;
-      width: 100%;
-      padding: 48px 40px;
-      border-radius: 20px;
-      border: 1px solid rgba(196, 105, 61, 0.18);
-      box-shadow:
-        0 14px 36px rgba(122, 72, 40, 0.18),
-        0 0 0 8px rgba(255, 244, 226, 0.55);
-      text-align: center;
-    }
-
-    h1 {
-      font-family: 'Montserrat', sans-serif;
-      font-weight: 800;
-      font-size: 2.4rem;
-      color: var(--cocoa);
-      margin-bottom: 10px;
-    }
-
-    h2 {
-      font-family: 'Open Sans', sans-serif;
-      font-weight: 600;
-      font-size: 1.2rem;
-      color: var(--terracotta);
-      margin-bottom: 28px;
-    }
-
-    ul { list-style: none; display: flex; flex-direction: column; gap: 14px; }
-
-    a {
-      display: block;
-      font-family: 'Roboto', sans-serif;
-      font-weight: 500;
-      font-size: 1.05rem;
-      text-decoration: none;
-      color: var(--cocoa);
-      background: #fff1de;
-      border: 2px solid #f0c9a0;
-      padding: 14px 18px;
-      border-radius: 12px;
-      transition: all 0.2s ease;
-    }
-
-    a:hover, a:focus {
-      background: var(--terracotta);
-      color: #fffaf3;
-      border-color: var(--terracotta);
-      transform: translateY(-2px);
-      box-shadow: 0 6px 14px rgba(196, 105, 61, 0.30);
-      outline: none;
-    }
-
-    @media (max-width: 480px) {
-      main { padding: 32px 22px; }
-      h1 { font-size: 1.9rem; }
-    }
-  </style>
+  @media (max-width: 600px) {
+    .ticker { height: 56px; }
+    .ticker-text { font-size: 1rem; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .card { transition: none; }
+  }
+</style>
 </head>
 <body>
-  <main>
-    <h1>Mr Lee's Corner</h1>
-    <h2>Test your understanding</h2>
-    <ul>
-      <li><a href="#">G3 E Math (Under construction)</a></li>
-      <li><a href="#">G3 A Math (Under construction)</a></li>
-      <li><a href="./G3PurePhysics/G3 Pure Physics.html">G3 Pure Physics</a></li>
-      <li><a href="#">H2 Math (Under construction)</a></li>
-    </ul>
-  </main>
+
+<div class="ticker" role="marquee" aria-label="Motivational quotes">
+  <div class="ticker-text" id="tickerText"></div>
+</div>
+
+<main>
+  <section class="hero">
+    <p class="eyebrow">Mathematics &amp; Physics</p>
+    <h1>Small steps tonight. Big wins tomorrow.</h1>
+    <p>Focused, patient teaching for the subjects that matter most.</p>
+  </section>
+
+  <section class="courses" aria-label="Courses">
+    <a class="card" href="emath.html" aria-label="G3 E Math">
+      <span class="tag">Secondary G2/G3</span>
+      <h2>Elementary Mathematics</h2>
+      <p>Sec 3/4</p>
+    </a>
+    <a class="card" href="amath.html" aria-label="G3 A Math">
+      <span class="tag">Secondary G2/G3</span>
+      <h2>Additional Mathematics</h2>
+      <p>Sec 3/4</p>
+    </a>
+    <a class="card" href="purephysics.html" aria-label="G3 Pure Physics">
+      <span class="tag">Secondary G3</span>
+      <h2>Pure Physics</h2>
+      <p>Sec 3/4</p>
+    </a>
+    <a class="card" href="h2-math.html" aria-label="H2 Math">
+      <span class="tag">Junior College</span>
+      <h2>H2 Mathematics</h2>
+      <p>JC 1/2</p>
+    </a>
+    <a class="card" href="simulators.html" aria-label="Simulators">
+      <span class="tag">Math & Physics</span>
+      <h2>Simulators</h2>
+    </a>
+  </section>
+</main>
+
+<script>
+  const quotes = [
+    {
+      text: "\u201CI train like I've never won, and I compete like I've never lost.\u201D",
+      who: "\u2014 Eileen Gu (Renowned freestyle-skier)"
+    },
+    {
+      text: "\u201CI've missed more than 9000 shots in my career. I've lost almost 300 games. 26 times, I've been trusted to take the game winning shot and missed. I've failed over and over and over again in my life. And that is why I succeed.\u201D",
+      who: "\u2014 Michael Jordan (His Airness)"
+    },
+    {
+      text: "\u201CA lot of people say they want to be great, but they’re not willing to make the sacrifices necessary to achieve greatness. They have other concerns, whether important or not, and they spread themselves out. That’s totally fine. After all, greatness is not for everybody.\u201D",
+      who: "\u2014 Kobe Bryant (The Black Mamba)"
+    },
+    {
+      text: "\u201CWe do what we have to so we can do what we want to.\u201D",
+      who: "\u2014 Denzel Washington (Academy Award Winner)"
+    }
+
+  ];
+
+  const el = document.getElementById("tickerText");
+  const box = el.parentElement;
+  const SPEED = 110; // pixels per second
+  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  // Fisher-Yates shuffle; reshuffles each cycle and avoids repeating the last quote back-to-back
+  let queue = [], last = null;
+  function nextQuote() {
+    if (!queue.length) {
+      queue = quotes.slice();
+      for (let i = queue.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [queue[i], queue[j]] = [queue[j], queue[i]];
+      }
+      if (queue.length > 1 && queue[0] === last) queue.push(queue.shift());
+    }
+    last = queue.shift();
+    return last;
+  }
+
+  function show(q) {
+    el.textContent = "";
+    el.append(document.createTextNode(q.text));
+    const who = document.createElement("span");
+    who.className = "who";
+    who.textContent = q.who;
+    el.append(who);
+  }
+
+  // Scrolls right -> left: starts fully off the right edge, exits fully off the left edge
+  function run() {
+    const q = nextQuote();
+    show(q);
+    const w = el.offsetWidth;
+    const startX = box.clientWidth;
+    const endX = -w;
+    const duration = (Math.abs(endX - startX) / SPEED) * 1000;
+    const t0 = performance.now();
+
+    function frame(now) {
+      const p = Math.min((now - t0) / duration, 1);
+      el.style.transform = "translateX(" + (startX + (endX - startX) * p) + "px)";
+      if (p < 1) requestAnimationFrame(frame);
+      else run();
+    }
+    requestAnimationFrame(frame);
+  }
+
+  if (reduceMotion) {
+    // No motion: wrap text and swap quotes every 9 seconds
+    el.style.cssText = "position:static;transform:none;white-space:normal;padding:0 1rem;font-size:.95rem;";
+    const swap = () => show(nextQuote());
+    swap();
+    setInterval(swap, 9000);
+  } else {
+    run();
+  }
+</script>
 </body>
 </html>

@@ -1,0 +1,955 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Thin Lenses Simulator</title>
+  <style>
+    :root {
+      --primary: #2563eb;
+      --bg: #f8fafc;
+      --card: #ffffff;
+      --text: #1e293b;
+      --border: #cbd5e1;
+      --muted: #64748b;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .container {
+      max-width: 1060px;
+      width: 100%;
+    }
+    h1 {
+      font-size: 1.45rem;
+      margin: 0 0 14px 0;
+      text-align: center;
+    }
+    .top-layout {
+      display: grid;
+      grid-template-columns: 1.35fr 1fr;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+    @media (max-width: 860px) {
+      .top-layout {
+        grid-template-columns: 1fr;
+      }
+    }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px 18px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    }
+    .card-title {
+      font-size: 0.9rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--muted);
+      margin-bottom: 12px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    .control-row {
+      margin-bottom: 12px;
+    }
+    .control-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.9rem;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+    .val-badge {
+      font-family: monospace;
+      font-size: 0.92rem;
+      color: var(--primary);
+      background: #eff6ff;
+      padding: 2px 8px;
+      border-radius: 4px;
+    }
+    input[type="range"] {
+      width: 100%;
+      cursor: pointer;
+    }
+    input[type="range"]:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+    .inline-inputs {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 14px;
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px solid #f1f5f9;
+    }
+    .num-group {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.88rem;
+      font-weight: 600;
+    }
+    input[type="number"] {
+      width: 66px;
+      padding: 5px 8px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 0.92rem;
+    }
+    .checkbox-label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      cursor: pointer;
+      user-select: none;
+    }
+    .checkbox-label input {
+      width: 15px;
+      height: 15px;
+      cursor: pointer;
+    }
+    .char-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 9px;
+    }
+    .char-item {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 7px;
+      padding: 8px 10px;
+    }
+    .char-label {
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+    }
+    .char-value {
+      font-size: 0.95rem;
+      font-weight: 700;
+      margin-top: 2px;
+      color: var(--text);
+    }
+    .char-note {
+      grid-column: 1 / -1;
+      font-size: 0.83rem;
+      padding: 8px 10px;
+      border-radius: 6px;
+      background: #f1f5f9;
+      color: #334155;
+      line-height: 1.35;
+    }
+    .screen-preview-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-top: 10px;
+      padding: 10px 12px;
+      border-radius: 8px;
+      background: #0f172a;
+      color: #f8fafc;
+    }
+    .screen-status-text {
+      font-size: 0.86rem;
+      line-height: 1.35;
+    }
+    .screen-status-title {
+      font-weight: 700;
+      font-size: 0.92rem;
+      margin-bottom: 2px;
+    }
+    #screenPreviewCanvas {
+      width: 110px;
+      height: 110px;
+      background: #020617;
+      border: 1px solid #334155;
+      border-radius: 6px;
+      flex-shrink: 0;
+    }
+    #lensCanvas {
+      width: 100%;
+      height: 460px;
+      display: block;
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      cursor: default;
+    }
+    .legend-bar {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 16px;
+      margin-top: 10px;
+      font-size: 0.83rem;
+      font-weight: 600;
+      color: #475569;
+    }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .swatch {
+      width: 18px;
+      height: 3px;
+      border-radius: 2px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h1>Thin Lenses Simulator</h1>
+
+  <div class="top-layout">
+    <!-- Left Card: User Inputs -->
+    <div class="card">
+      <div class="card-title">Lens, Object & Screen Controls</div>
+
+      <div class="control-row">
+        <div class="control-header">
+          <label for="focalSlider">Focal Length (f) <span style="font-weight:400; color:#64748b;">[+ Converging / − Diverging]</span></label>
+          <span class="val-badge" id="focalVal">+12.0 cm</span>
+        </div>
+        <input type="range" id="focalSlider" min="-25" max="25" step="0.5" value="12">
+      </div>
+
+      <div class="control-row">
+        <div class="control-header">
+          <label for="distSlider">Object Distance from Optical Center (u)</label>
+          <span class="val-badge" id="distVal">24.0 cm</span>
+        </div>
+        <input type="range" id="distSlider" min="3" max="42" step="0.5" value="24">
+      </div>
+
+      <div class="control-row">
+        <div class="control-header">
+          <label for="screenSlider">Projection Screen Distance (d<sub>s</sub>) <span style="font-weight:400; color:#64748b;">[or drag screen on diagram]</span></label>
+          <span class="val-badge" id="screenVal" style="color:#0f172a; background:#e2e8f0;">24.0 cm</span>
+        </div>
+        <input type="range" id="screenSlider" min="2" max="42" step="0.5" value="24">
+      </div>
+
+      <div class="inline-inputs">
+        <div class="num-group">
+          <label for="heightInput">Object Height (h<sub>o</sub>):</label>
+          <input type="number" id="heightInput" min="1" max="10" step="0.5" value="5">
+          <span>cm</span>
+        </div>
+
+        <label class="checkbox-label">
+          <input type="checkbox" id="infinityCheck">
+          Object at Infinity (u = &infin;)
+        </label>
+
+        <label class="checkbox-label">
+          <input type="checkbox" id="coverLensCheck">
+          Cover Top Half of Lens
+        </label>
+
+        <label class="checkbox-label">
+          <input type="checkbox" id="screenCheck" checked>
+          Show Projection Screen
+        </label>
+      </div>
+    </div>
+
+    <!-- Right Card: Dynamic Image Characteristics & Live Screen View -->
+    <div class="card">
+      <div class="card-title">Image Characteristics & Screen Capture</div>
+      <div class="char-grid">
+        <div class="char-item">
+          <div class="char-label">Nature</div>
+          <div class="char-value" id="charNature">Real</div>
+        </div>
+        <div class="char-item">
+          <div class="char-label">Orientation</div>
+          <div class="char-value" id="charOrientation">Inverted</div>
+        </div>
+        <div class="char-item">
+          <div class="char-label">Size & Magnification</div>
+          <div class="char-value" id="charSize">Same Size (1.00&times;)</div>
+        </div>
+        <div class="char-item">
+          <div class="char-label">Image Distance (v) & Height (h<sub>i</sub>)</div>
+          <div class="char-value" id="charPos">+24.0 cm | 5.0 cm</div>
+        </div>
+        <div class="char-note" id="charNote">
+          Full lens aperture active: all light rays focus to form a bright, complete image.
+        </div>
+      </div>
+
+      <!-- Live View on the Projection Screen -->
+      <div class="screen-preview-row" id="screenPreviewBox">
+        <div class="screen-status-text">
+          <div class="screen-status-title" id="screenStatusTitle">Sharp Real Image Captured!</div>
+          <div id="screenStatusDesc">Screen is placed right at the image plane (d<sub>s</sub> = v). Rays converge cleanly on the screen.</div>
+        </div>
+        <canvas id="screenPreviewCanvas" width="110" height="110"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Ray Diagram Canvas -->
+  <div class="card" style="padding: 12px;">
+    <canvas id="lensCanvas" width="1020" height="460"></canvas>
+    <div class="legend-bar">
+      <div class="legend-item"><span class="swatch" style="background:#dc2626;"></span>Ray 1 (Parallel &rarr; F)</div>
+      <div class="legend-item"><span class="swatch" style="background:#059669;"></span>Ray 2 (Optical Center O)</div>
+      <div class="legend-item"><span class="swatch" style="background:#7c3aed;"></span>Ray 3 (Through F &rarr; Parallel)</div>
+      <div class="legend-item"><span class="swatch" style="border-top:2px dashed #64748b; background:transparent;"></span>Virtual Extension / Behind Screen</div>
+      <div class="legend-item"><span class="swatch" style="background:#0f172a; height:5px;"></span>Movable Screen</div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const focalSlider = document.getElementById('focalSlider');
+  const distSlider = document.getElementById('distSlider');
+  const screenSlider = document.getElementById('screenSlider');
+  const heightInput = document.getElementById('heightInput');
+  const infinityCheck = document.getElementById('infinityCheck');
+  const coverLensCheck = document.getElementById('coverLensCheck');
+  const screenCheck = document.getElementById('screenCheck');
+
+  const focalVal = document.getElementById('focalVal');
+  const distVal = document.getElementById('distVal');
+  const screenVal = document.getElementById('screenVal');
+
+  const charNature = document.getElementById('charNature');
+  const charOrientation = document.getElementById('charOrientation');
+  const charSize = document.getElementById('charSize');
+  const charPos = document.getElementById('charPos');
+  const charNote = document.getElementById('charNote');
+
+  const screenPreviewBox = document.getElementById('screenPreviewBox');
+  const screenStatusTitle = document.getElementById('screenStatusTitle');
+  const screenStatusDesc = document.getElementById('screenStatusDesc');
+  const previewCanvas = document.getElementById('screenPreviewCanvas');
+  const pCtx = previewCanvas.getContext('2d');
+
+  const canvas = document.getElementById('lensCanvas');
+  const ctx = canvas.getContext('2d');
+
+  const PX_PER_CM = 11.5;
+  let isDraggingScreen = false;
+
+  function getFocalLength() {
+    let f = parseFloat(focalSlider.value);
+    if (Math.abs(f) < 1) {
+      f = f >= 0 ? 1 : -1;
+      focalSlider.value = f;
+    }
+    return f;
+  }
+
+  function drawArrowSegment(x1, y1, x2, y2, color, dashed = false, alpha = 1.0, showArrow = true) {
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    ctx.strokeStyle = color;
+    ctx.fillStyle = color;
+    ctx.lineWidth = 2.2;
+    ctx.setLineDash(dashed ? [6, 5] : []);
+
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x2, y2);
+    ctx.stroke();
+
+    if (showArrow) {
+      const dist = Math.hypot(x2 - x1, y2 - y1);
+      if (dist > 28) {
+        const midX = (x1 + x2) / 2;
+        const midY = (y1 + y2) / 2;
+        const angle = Math.atan2(y2 - y1, x2 - x1);
+        const head = 8;
+        ctx.setLineDash([]);
+        ctx.beginPath();
+        ctx.moveTo(midX + Math.cos(angle) * 4, midY + Math.sin(angle) * 4);
+        ctx.lineTo(midX - head * Math.cos(angle - Math.PI / 6), midY - head * Math.sin(angle - Math.PI / 6));
+        ctx.lineTo(midX - head * Math.cos(angle + Math.PI / 6), midY - head * Math.sin(angle + Math.PI / 6));
+        ctx.closePath();
+        ctx.fill();
+      }
+    }
+    ctx.restore();
+  }
+
+  function drawVerticalArrow(x, yBase, yTip, color, label, dashed = false, alpha = 1.0) {
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    ctx.strokeStyle = color;
+    ctx.fillStyle = color;
+    ctx.lineWidth = 3.2;
+    ctx.setLineDash(dashed ? [5, 4] : []);
+
+    ctx.beginPath();
+    ctx.moveTo(x, yBase);
+    ctx.lineTo(x, yTip);
+    ctx.stroke();
+
+    const dir = yTip < yBase ? -1 : 1;
+    const head = 10;
+    ctx.setLineDash([]);
+    ctx.beginPath();
+    ctx.moveTo(x, yTip);
+    ctx.lineTo(x - 6, yTip - dir * head);
+    ctx.lineTo(x + 6, yTip - dir * head);
+    ctx.closePath();
+    ctx.fill();
+
+    if (label) {
+      ctx.font = 'bold 13px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(label, x, yTip + (dir * 16));
+    }
+    ctx.restore();
+  }
+
+  function traceRayFromTip(objX, objY, hitY, cx, cy, lensHalfH, isCovered, color, exitSlope, screenEnabled, screenX, screenTopY, screenBotY) {
+    if (Math.abs(hitY - cy) > lensHalfH) return null;
+
+    const isBlocked = isCovered && hitY < cy;
+
+    // Incident ray from object tip to lens
+    drawArrowSegment(objX, objY, cx, hitY, color, false, 1.0, true);
+
+    if (isBlocked) {
+      ctx.save();
+      ctx.strokeStyle = '#991b1b';
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.moveTo(cx - 5, hitY - 5);
+      ctx.lineTo(cx + 5, hitY + 5);
+      ctx.moveTo(cx + 5, hitY - 5);
+      ctx.lineTo(cx - 5, hitY + 5);
+      ctx.stroke();
+      ctx.restore();
+      return null;
+    }
+
+    // Virtual backward trace to the left (x < cx)
+    const leftX = 0;
+    const leftY = hitY + exitSlope * (leftX - cx);
+    drawArrowSegment(cx, hitY, leftX, leftY, color, true, 0.42, false);
+
+    // Check if screen intercepts this refracted ray on the right
+    const yAtScreen = hitY + exitSlope * (screenX - cx);
+    const hitsScreen = screenEnabled && (yAtScreen >= screenTopY && yAtScreen <= screenBotY);
+
+    if (hitsScreen) {
+      // Solid ray stops at the opaque projection screen
+      drawArrowSegment(cx, hitY, screenX, yAtScreen, color, false, 1.0, true);
+      // Faint dotted continuation showing where ray would go without screen
+      const rightX = canvas.width;
+      const rightY = hitY + exitSlope * (rightX - cx);
+      drawArrowSegment(screenX, yAtScreen, rightX, rightY, color, true, 0.22, false);
+      return yAtScreen;
+    } else {
+      const rightX = canvas.width;
+      const rightY = hitY + exitSlope * (rightX - cx);
+      drawArrowSegment(cx, hitY, rightX, rightY, color, false, 1.0, true);
+      return null;
+    }
+  }
+
+  function drawScreenPreview(screenEnabled, isRealImage, isInfinity, v, ds, hi, isCovered, rayHitsY, cy) {
+    const pw = previewCanvas.width;
+    const ph = previewCanvas.height;
+    pCtx.clearRect(0, 0, pw, ph);
+
+    if (!screenEnabled) {
+      screenPreviewBox.style.opacity = '0.5';
+      screenStatusTitle.textContent = 'Screen Hidden';
+      screenStatusTitle.style.color = '#94a3b8';
+      screenStatusDesc.textContent = 'Enable "Show Projection Screen" to test capturing real images on a surface.';
+      return;
+    }
+
+    screenPreviewBox.style.opacity = '1.0';
+    const brightness = isCovered ? 0.48 : 1.0;
+
+    // Draw subtle grid on mini screen
+    pCtx.strokeStyle = '#1e293b';
+    pCtx.lineWidth = 1;
+    pCtx.beginPath();
+    pCtx.moveTo(0, ph / 2);
+    pCtx.lineTo(pw, ph / 2);
+    pCtx.moveTo(pw / 2, 0);
+    pCtx.lineTo(pw / 2, ph);
+    pCtx.stroke();
+
+    if (!isRealImage) {
+      // Virtual image or no convergence on right side -> only diffuse glow on screen
+      screenStatusTitle.textContent = 'No Sharp Image (Virtual / Diverging)';
+      screenStatusTitle.style.color = '#f87171';
+      screenStatusDesc.textContent = 'Rays diverge after passing the lens; virtual images cannot be captured on a screen.';
+
+      const grad = pCtx.createRadialGradient(pw / 2, ph / 2, 4, pw / 2, ph / 2, 46);
+      grad.addColorStop(0, `rgba(251, 191, 36, ${0.22 * brightness})`);
+      grad.addColorStop(1, 'rgba(251, 191, 36, 0)');
+      pCtx.fillStyle = grad;
+      pCtx.fillRect(0, 0, pw, ph);
+      return;
+    }
+
+    // Real image case: measure distance error |ds - v|
+    const errorCm = Math.abs(ds - v);
+    const maxBlurError = 8.0; // cm beyond which image is completely blurred out
+    const sharpness = Math.max(0, 1 - errorCm / maxBlurError);
+
+    if (sharpness > 0.94) {
+      screenStatusTitle.textContent = isCovered ? 'Sharp Image Captured (Dimmed)' : 'Sharp Real Image Captured!';
+      screenStatusTitle.style.color = '#4ade80';
+      screenStatusDesc.textContent = isCovered
+        ? `Screen is at the focal plane (dₛ ≈ ${v.toFixed(1)} cm). Full image is sharp, but 50% dimmer due to the covered lens half.`
+        : `Screen is aligned with the image plane (dₛ ≈ ${v.toFixed(1)} cm). Light rays converge crisply onto the screen.`;
+    } else if (sharpness > 0.25) {
+      screenStatusTitle.textContent = 'Out-of-Focus Blurry Spot';
+      screenStatusTitle.style.color = '#fbbf24';
+      screenStatusDesc.textContent = ds < v
+        ? `Screen is too close to the lens (dₛ < v). Move screen right toward ${v.toFixed(1)} cm to focus.`
+        : `Screen is past the image plane (dₛ > v). Move screen left toward ${v.toFixed(1)} cm to focus.`;
+    } else {
+      screenStatusTitle.textContent = 'Unfocused Diffuse Light';
+      screenStatusTitle.style.color = '#f87171';
+      screenStatusDesc.textContent = `Screen is far from the real image plane (v = +${v.toFixed(1)} cm). Slide screen to ${v.toFixed(1)} cm to capture a sharp image.`;
+    }
+
+    // Render arrow or point on mini screen with blur proportional to |ds - v|
+    pCtx.save();
+    const blurPx = (1 - sharpness) * 14;
+    pCtx.filter = `blur(${blurPx.toFixed(1)}px)`;
+    pCtx.globalAlpha = brightness * (0.35 + 0.65 * sharpness);
+
+    if (isInfinity) {
+      // Point focus
+      pCtx.fillStyle = '#fbbf24';
+      pCtx.beginPath();
+      pCtx.arc(pw / 2, ph / 2, 4 + (1 - sharpness) * 16, 0, Math.PI * 2);
+      pCtx.fill();
+    } else {
+      // Scaled arrow preview on screen
+      const scalePreview = 4.2;
+      const tipY = ph / 2 - Math.max(-44, Math.min(44, hi * scalePreview));
+      const baseY = ph / 2;
+      const dir = tipY < baseY ? -1 : 1;
+
+      pCtx.strokeStyle = '#fbbf24';
+      pCtx.fillStyle = '#fbbf24';
+      pCtx.lineWidth = 3.5 + (1 - sharpness) * 6;
+      pCtx.beginPath();
+      pCtx.moveTo(pw / 2, baseY);
+      pCtx.lineTo(pw / 2, tipY);
+      pCtx.stroke();
+
+      pCtx.beginPath();
+      pCtx.moveTo(pw / 2, tipY);
+      pCtx.lineTo(pw / 2 - 7, tipY - dir * 9);
+      pCtx.lineTo(pw / 2 + 7, tipY - dir * 9);
+      pCtx.closePath();
+      pCtx.fill();
+    }
+    pCtx.restore();
+  }
+
+  function render() {
+    const f = getFocalLength();
+    const isInfinity = infinityCheck.checked;
+    const isCovered = coverLensCheck.checked;
+    const screenEnabled = screenCheck.checked;
+
+    distSlider.disabled = isInfinity;
+    screenSlider.disabled = !screenEnabled;
+
+    const u = isInfinity ? Infinity : parseFloat(distSlider.value);
+    const ds = parseFloat(screenSlider.value);
+    const ho = Math.max(0.5, Math.min(10, parseFloat(heightInput.value) || 5));
+
+    focalVal.textContent = `${f > 0 ? '+' : ''}${f.toFixed(1)} cm (${f > 0 ? 'Converging' : 'Diverging'})`;
+    distVal.textContent = isInfinity ? '∞ (Infinite)' : `${u.toFixed(1)} cm`;
+    screenVal.textContent = screenEnabled ? `${ds.toFixed(1)} cm` : 'Hidden';
+
+    let v = null;
+    let m = null;
+    let hi = null;
+    let atFocalPoint = false;
+
+    if (isInfinity) {
+      v = f;
+      m = 0;
+      hi = 0;
+    } else if (Math.abs(u - f) < 0.05 && f > 0) {
+      atFocalPoint = true;
+    } else {
+      v = (u * f) / (u - f);
+      m = -v / u;
+      hi = m * ho;
+    }
+
+    const isRealImage = !atFocalPoint && v !== null && v > 0;
+
+    // Update Characteristics Tab
+    if (isInfinity) {
+      charNature.textContent = f > 0 ? 'Real' : 'Virtual';
+      charNature.style.color = f > 0 ? '#059669' : '#7c3aed';
+      charOrientation.textContent = 'Point Focus';
+      charSize.textContent = 'Highly Diminished (Point)';
+      charPos.textContent = `At F (${f > 0 ? '+' : ''}${f.toFixed(1)} cm)`;
+    } else if (atFocalPoint) {
+      charNature.textContent = 'No Image Formed';
+      charNature.style.color = '#64748b';
+      charOrientation.textContent = '—';
+      charSize.textContent = 'Infinitely Large (Parallel Rays)';
+      charPos.textContent = 'v = ∞';
+    } else {
+      charNature.textContent = isRealImage ? 'Real' : 'Virtual';
+      charNature.style.color = isRealImage ? '#059669' : '#7c3aed';
+
+      const isUpright = m > 0;
+      charOrientation.textContent = isUpright ? 'Upright' : 'Inverted';
+
+      const absM = Math.abs(m);
+      let sizeDesc = 'Same Size';
+      if (absM > 1.03) sizeDesc = 'Magnified';
+      else if (absM < 0.97) sizeDesc = 'Diminished';
+      charSize.textContent = `${sizeDesc} (${absM.toFixed(2)}×)`;
+
+      charPos.textContent = `${v > 0 ? '+' : ''}${v.toFixed(1)} cm | ${Math.abs(hi).toFixed(1)} cm`;
+    }
+
+    if (isCovered) {
+      charNote.style.background = '#fef3c7';
+      charNote.style.color = '#92400e';
+      charNote.innerHTML = '<strong>Top Half Covered:</strong> Upper rays are blocked, but lower rays still form a <strong>complete image</strong> at <strong>50% brightness</strong>.';
+    } else {
+      charNote.style.background = '#f1f5f9';
+      charNote.style.color = '#334155';
+      charNote.innerHTML = '<strong>Full Lens Aperture:</strong> All rays passing through the lens focus or appear to diverge to form a bright, full-intensity image.';
+    }
+
+    // Canvas Setup
+    const W = canvas.width;
+    const H = canvas.height;
+    const cx = W / 2;
+    const cy = H / 2;
+    const lensHalfH = 175;
+    const screenX = cx + ds * PX_PER_CM;
+    const screenHalfH = 190;
+    const screenTopY = cy - screenHalfH;
+    const screenBotY = cy + screenHalfH;
+
+    ctx.clearRect(0, 0, W, H);
+
+    // Distance Grid (every 5 cm)
+    ctx.strokeStyle = '#f1f5f9';
+    ctx.lineWidth = 1;
+    for (let cm = -45; cm <= 45; cm += 5) {
+      const gx = cx + cm * PX_PER_CM;
+      ctx.beginPath();
+      ctx.moveTo(gx, 0);
+      ctx.lineTo(gx, H);
+      ctx.stroke();
+    }
+
+    // Principal Axis
+    ctx.strokeStyle = '#64748b';
+    ctx.lineWidth = 1.6;
+    ctx.beginPath();
+    ctx.moveTo(0, cy);
+    ctx.lineTo(W, cy);
+    ctx.stroke();
+
+    // Draw Thin Lens
+    ctx.save();
+    ctx.fillStyle = 'rgba(186, 230, 253, 0.45)';
+    ctx.strokeStyle = '#0284c7';
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    if (f > 0) {
+      ctx.moveTo(cx, cy - lensHalfH);
+      ctx.quadraticCurveTo(cx + 26, cy, cx, cy + lensHalfH);
+      ctx.quadraticCurveTo(cx - 26, cy, cx, cy - lensHalfH);
+    } else {
+      ctx.moveTo(cx - 16, cy - lensHalfH);
+      ctx.quadraticCurveTo(cx - 4, cy, cx - 16, cy + lensHalfH);
+      ctx.lineTo(cx + 16, cy + lensHalfH);
+      ctx.quadraticCurveTo(cx + 4, cy, cx + 16, cy - lensHalfH);
+      ctx.closePath();
+    }
+    ctx.fill();
+    ctx.stroke();
+    ctx.restore();
+
+    // Optical Center O
+    ctx.fillStyle = '#0f172a';
+    ctx.beginPath();
+    ctx.arc(cx, cy, 4, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.font = 'bold 13px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('O', cx - 12, cy + 16);
+
+    // Focal Points F and 2F
+    const fPx = Math.abs(f) * PX_PER_CM;
+    const markers = [
+      { x: cx - fPx, label: f > 0 ? 'F' : "F'" },
+      { x: cx + fPx, label: f > 0 ? "F'" : 'F' },
+      { x: cx - 2 * fPx, label: '2F' },
+      { x: cx + 2 * fPx, label: "2F'" }
+    ];
+    markers.forEach(pt => {
+      if (pt.x > 15 && pt.x < W - 15) {
+        ctx.fillStyle = '#0284c7';
+        ctx.beginPath();
+        ctx.arc(pt.x, cy, 4, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.font = 'bold 12px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(pt.label, pt.x, cy + 18);
+      }
+    });
+
+    // Opaque Cover on Top Half of Lens
+    if (isCovered) {
+      ctx.save();
+      ctx.fillStyle = '#1e293b';
+      ctx.strokeStyle = '#0f172a';
+      ctx.lineWidth = 2;
+      ctx.fillRect(cx - 22, cy - lensHalfH - 8, 44, lensHalfH + 8);
+      ctx.strokeRect(cx - 22, cy - lensHalfH - 8, 44, lensHalfH + 8);
+
+      ctx.fillStyle = '#ef4444';
+      ctx.font = 'bold 12px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('OPAQUE COVER', cx, cy - lensHalfH - 14);
+      ctx.restore();
+    }
+
+    // Draw Movable Projection Screen (if enabled)
+    if (screenEnabled) {
+      const errorCm = isRealImage ? Math.abs(ds - v) : 999;
+      const isSharpOnScreen = isRealImage && errorCm <= 0.6;
+
+      ctx.save();
+      // Screen glow if sharp real image lands on it
+      if (isSharpOnScreen) {
+        ctx.shadowColor = '#22c55e';
+        ctx.shadowBlur = 14;
+      }
+
+      // Screen bar
+      ctx.fillStyle = isSharpOnScreen ? '#16a34a' : '#0f172a';
+      ctx.fillRect(screenX - 4, screenTopY, 8, screenHalfH * 2);
+
+      // Stand base
+      ctx.fillStyle = '#475569';
+      ctx.fillRect(screenX - 18, screenBotY, 36, 8);
+
+      // Top label & drag handle indicator
+      ctx.shadowBlur = 0;
+      ctx.fillStyle = isSharpOnScreen ? '#15803d' : '#0f172a';
+      ctx.font = 'bold 12px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(isSharpOnScreen ? 'SCREEN (IN FOCUS!)' : 'SCREEN (Drag)', screenX, screenTopY - 10);
+      ctx.fillStyle = '#64748b';
+      ctx.font = '11px monospace';
+      ctx.fillText(`ds = ${ds.toFixed(1)} cm`, screenX, screenBotY + 21);
+      ctx.restore();
+    }
+
+    const rayHitsY = [];
+
+    // Case 1: Object at Infinity
+    if (isInfinity) {
+      const rayOffsets = [-120, -75, -30, 30, 75, 120];
+      rayOffsets.forEach(dy => {
+        const hitY = cy + dy;
+        const isBlocked = isCovered && dy < 0;
+        drawArrowSegment(20, hitY, cx, hitY, '#dc2626', false, 1.0, true);
+
+        if (isBlocked) {
+          ctx.save();
+          ctx.strokeStyle = '#991b1b';
+          ctx.lineWidth = 2.5;
+          ctx.beginPath();
+          ctx.moveTo(cx - 5, hitY - 5);
+          ctx.lineTo(cx + 5, hitY + 5);
+          ctx.moveTo(cx + 5, hitY - 5);
+          ctx.lineTo(cx - 5, hitY + 5);
+          ctx.stroke();
+          ctx.restore();
+        } else {
+          const focalX = cx + f * PX_PER_CM;
+          const exitSlope = (cy - hitY) / (focalX - cx);
+          const yAtScreen = hitY + exitSlope * (screenX - cx);
+          const hitsScreen = screenEnabled && (yAtScreen >= screenTopY && yAtScreen <= screenBotY);
+
+          if (hitsScreen) {
+            drawArrowSegment(cx, hitY, screenX, yAtScreen, '#dc2626', false, 1.0, true);
+            drawArrowSegment(screenX, yAtScreen, W, hitY + exitSlope * (W - cx), '#dc2626', true, 0.22, false);
+            rayHitsY.push(yAtScreen);
+          } else {
+            drawArrowSegment(cx, hitY, W, hitY + exitSlope * (W - cx), '#dc2626', false, 1.0, true);
+          }
+
+          if (f < 0) {
+            drawArrowSegment(cx, hitY, focalX, cy, '#dc2626', true, 0.45, false);
+          }
+        }
+      });
+
+      const imgX = cx + f * PX_PER_CM;
+      if (imgX > 10 && imgX < W - 10) {
+        ctx.save();
+        ctx.globalAlpha = isCovered ? 0.45 : 1.0;
+        ctx.fillStyle = '#d97706';
+        ctx.beginPath();
+        ctx.arc(imgX, cy, 7, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.font = 'bold 13px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(isCovered ? 'Dim Point Image' : 'Point Image', imgX, cy - 14);
+        ctx.restore();
+      }
+
+      drawScreenPreview(screenEnabled, isRealImage, true, v, ds, 0, isCovered, rayHitsY, cy);
+      return;
+    }
+
+    // Case 2: Finite Object at Distance u
+    const objX = cx - u * PX_PER_CM;
+    const objY = cy - ho * PX_PER_CM;
+
+    drawVerticalArrow(objX, cy, objY, '#1d4ed8', 'Object', false, 1.0);
+
+    // Ray 1: Parallel -> Focus
+    const focalRightX = cx + f * PX_PER_CM;
+    const slope1 = (cy - objY) / (focalRightX - cx);
+    const hit1 = traceRayFromTip(objX, objY, objY, cx, cy, lensHalfH, isCovered, '#dc2626', slope1, screenEnabled, screenX, screenTopY, screenBotY);
+    if (hit1 !== null) rayHitsY.push(hit1);
+
+    // Ray 2: Through Optical Center O
+    const slope2 = (cy - objY) / (cx - objX);
+    const hit2 = traceRayFromTip(objX, objY, cy, cx, cy, lensHalfH, isCovered, '#059669', slope2, screenEnabled, screenX, screenTopY, screenBotY);
+    if (hit2 !== null) rayHitsY.push(hit2);
+
+    // Ray 3: Through Front Focus -> Parallel
+    const focalLeftX = cx - f * PX_PER_CM;
+    if (Math.abs(focalLeftX - objX) > 2) {
+      const slopeToF = (cy - objY) / (focalLeftX - objX);
+      const hitY3 = objY + slopeToF * (cx - objX);
+      const hit3 = traceRayFromTip(objX, objY, hitY3, cx, cy, lensHalfH, isCovered, '#7c3aed', 0, screenEnabled, screenX, screenTopY, screenBotY);
+      if (hit3 !== null) rayHitsY.push(hit3);
+    }
+
+    // Draw Formed Image Marker
+    if (!atFocalPoint && v !== null) {
+      const imgX = cx + v * PX_PER_CM;
+      const imgY = cy - hi * PX_PER_CM;
+      const isVirtual = v < 0;
+      const imgAlpha = isCovered ? 0.42 : 1.0;
+      const imgLabel = isCovered
+        ? (isVirtual ? 'Dim Virtual Image' : 'Dim Real Image')
+        : (isVirtual ? 'Virtual Image' : 'Real Image');
+
+      if (imgX > -200 && imgX < W + 200) {
+        drawVerticalArrow(imgX, cy, imgY, '#d97706', imgLabel, isVirtual, imgAlpha);
+      }
+    }
+
+    // Draw Light Spots / Blur Band on the Screen Surface in the Main Diagram
+    if (screenEnabled && rayHitsY.length > 0) {
+      const minHit = Math.min(...rayHitsY);
+      const maxHit = Math.max(...rayHitsY);
+      ctx.save();
+      ctx.globalAlpha = isCovered ? 0.45 : 0.9;
+      ctx.strokeStyle = '#f59e0b';
+      ctx.lineWidth = 5;
+      ctx.beginPath();
+      ctx.moveTo(screenX - 4, minHit);
+      ctx.lineTo(screenX - 4, maxHit);
+      ctx.stroke();
+
+      rayHitsY.forEach(hy => {
+        ctx.fillStyle = '#fef08a';
+        ctx.beginPath();
+        ctx.arc(screenX - 4, hy, 4, 0, Math.PI * 2);
+        ctx.fill();
+      });
+      ctx.restore();
+    }
+
+    drawScreenPreview(screenEnabled, isRealImage, false, v, ds, hi || 0, isCovered, rayHitsY, cy);
+  }
+
+  // Interactive Dragging for the Projection Screen directly on the Canvas
+  canvas.addEventListener('mousedown', (e) => {
+    if (!screenCheck.checked) return;
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const mouseX = (e.clientX - rect.left) * scaleX;
+    const cx = canvas.width / 2;
+    const screenX = cx + parseFloat(screenSlider.value) * PX_PER_CM;
+
+    if (Math.abs(mouseX - screenX) <= 18) {
+      isDraggingScreen = true;
+      canvas.style.cursor = 'ew-resize';
+    }
+  });
+
+  canvas.addEventListener('mousemove', (e) => {
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const mouseX = (e.clientX - rect.left) * scaleX;
+    const cx = canvas.width / 2;
+
+    if (isDraggingScreen) {
+      let newDs = (mouseX - cx) / PX_PER_CM;
+      newDs = Math.max(2, Math.min(42, Math.round(newDs * 2) / 2));
+      screenSlider.value = newDs;
+      render();
+    } else if (screenCheck.checked) {
+      const screenX = cx + parseFloat(screenSlider.value) * PX_PER_CM;
+      canvas.style.cursor = Math.abs(mouseX - screenX) <= 18 ? 'ew-resize' : 'default';
+    } else {
+      canvas.style.cursor = 'default';
+    }
+  });
+
+  window.addEventListener('mouseup', () => {
+    if (isDraggingScreen) {
+      isDraggingScreen = false;
+      canvas.style.cursor = 'default';
+    }
+  });
+
+  [focalSlider, distSlider, screenSlider, heightInput, infinityCheck, coverLensCheck, screenCheck].forEach(el => {
+    el.addEventListener('input', render);
+    el.addEventListener('change', render);
+  });
+
+  render();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,612 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Light</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;700&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* Layout: one reading column. Sticky header holds the paper tabs and running scores; each question is a card with its own diagram and feedback. Ray-red appears only inside diagrams. */
+:root{
+  --bg:#f3f6f9; --surface:#ffffff; --surface-2:#e9eff5; --fg:#13202c; --muted:#53677a; --line:#d1dce6;
+  --accent:#2446c7; --accent-ink:#ffffff; --accent-soft:#e2e8fb;
+  --ray:#d63a14; --blue:#2a62e8; --glass:#cfe3f4; --water:#bfe0ee;
+  --good:#16794a; --good-bg:#e0f3e8; --bad:#b4261f; --bad-bg:#fbe5e3;
+  --f-head:'Space Grotesk',system-ui,sans-serif; --f-body:Inter,system-ui,-apple-system,'Segoe UI',sans-serif; --f-mono:'IBM Plex Mono',ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0e151d; --surface:#151f2a; --surface-2:#1c2938; --fg:#e5ecf3; --muted:#93a4b5; --line:#2a3a4b;
+    --accent:#8aa8ff; --accent-ink:#0e151d; --accent-soft:#1f2c52;
+    --ray:#ff7a52; --blue:#7aa2ff; --glass:#223a52; --water:#1d4457;
+    --good:#58d39a; --good-bg:#12301f; --bad:#ff8a80; --bad-bg:#3a1a18; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0e151d; --surface:#151f2a; --surface-2:#1c2938; --fg:#e5ecf3; --muted:#93a4b5; --line:#2a3a4b;
+  --accent:#8aa8ff; --accent-ink:#0e151d; --accent-soft:#1f2c52;
+  --ray:#ff7a52; --blue:#7aa2ff; --glass:#223a52; --water:#1d4457;
+  --good:#58d39a; --good-bg:#12301f; --bad:#ff8a80; --bad-bg:#3a1a18; color-scheme:dark;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{background:var(--bg);color:var(--fg);font:15px/1.55 var(--f-body);
+  padding-block:0 64px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--bg);z-index:10}
+.app{max-width:820px;margin:0 auto}
+h1,h2,h3{font-family:var(--f-head);margin:0;text-wrap:balance}
+p{margin:0}
+sup,sub{line-height:0}
+
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);padding-top:14px;border-bottom:1px solid var(--line)}
+.bar{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px 20px;padding-bottom:12px}
+.eyebrow{display:block;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:600}
+h1{font-size:30px;line-height:1.1;font-weight:700}
+.stats{display:flex;gap:10px}
+.stat{display:flex;flex-direction:column;gap:2px;min-width:104px;padding:7px 12px;border:1px solid var(--line);border-radius:8px;background:var(--surface)}
+.stat span{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.stat b{font:500 17px var(--f-mono);font-variant-numeric:tabular-nums}
+.tabs{display:grid;grid-template-columns:repeat(3,1fr)}
+.tab{appearance:none;background:none;border:0;border-bottom:3px solid transparent;color:var(--muted);font:600 14px var(--f-body);padding:10px 8px;cursor:pointer;text-align:center}
+.tab small{display:block;font-weight:400;font-size:12px}
+.tab[aria-selected="true"]{color:var(--fg);border-bottom-color:var(--accent)}
+.tab:focus-visible,.btn:focus-visible,.chip:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+main{display:flex;flex-direction:column;gap:16px;padding-top:18px}
+section{display:flex;flex-direction:column;gap:16px;min-width:0}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:18px;display:flex;flex-direction:column;gap:14px;min-width:0}
+.intro h2{font-size:20px}
+.intro p{color:var(--muted)}
+.row{display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px}
+.row.sp{justify-content:space-between}
+.switch{display:inline-flex;align-items:center;gap:8px;cursor:pointer;font-weight:500}
+.switch input{width:18px;height:18px;accent-color:var(--accent)}
+.btn{appearance:none;border:1px solid var(--accent);background:var(--accent);color:var(--accent-ink);font:600 14px var(--f-body);padding:9px 16px;border-radius:8px;cursor:pointer}
+.btn.ghost{background:transparent;color:var(--accent)}
+.btn:disabled{opacity:.45;cursor:default}
+
+.qhead{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px}
+.qnum{font:700 13px var(--f-mono);background:var(--fg);color:var(--bg);border-radius:6px;padding:2px 9px;font-variant-numeric:tabular-nums}
+.tag{font-size:12px;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:1px 10px}
+.marks{margin-left:auto;font:500 13px var(--f-mono);color:var(--accent)}
+.stem{font-size:15.5px;max-width:68ch}
+.opts{display:flex;flex-direction:column;gap:8px}
+.opt{position:relative;display:grid;grid-template-columns:26px 1fr;gap:10px;align-items:start;padding:10px 12px;border:1px solid var(--line);border-radius:8px;cursor:pointer;background:var(--surface)}
+.opt input{position:absolute;opacity:0;pointer-events:none}
+.opt:focus-within{outline:2px solid var(--accent);outline-offset:1px}
+.ltr{font:500 12px var(--f-mono);display:inline-grid;place-items:center;width:24px;height:24px;border:1px solid var(--line);border-radius:50%;color:var(--muted)}
+.opt:hover{border-color:var(--accent)}
+.opt.sel{border-color:var(--accent);background:var(--accent-soft)}
+.opt.sel .ltr{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.opt.right{border-color:var(--good);background:var(--good-bg);cursor:default}
+.opt.right .ltr{background:var(--good);color:var(--bg);border-color:var(--good)}
+.opt.wrong{border-color:var(--bad);background:var(--bad-bg);cursor:default}
+.opt.wrong .ltr{background:var(--bad);color:var(--bg);border-color:var(--bad)}
+.opt input:disabled ~ .otxt{opacity:1}
+.fb{background:var(--surface-2);border-radius:8px;padding:12px 14px;display:flex;flex-direction:column;gap:4px}
+.fb b.ok{color:var(--good)} .fb b.no{color:var(--bad)} .fb b.na{color:var(--muted)}
+
+.part{display:flex;flex-direction:column;gap:8px;padding-top:14px;border-top:1px solid var(--line)}
+.prow{display:grid;grid-template-columns:auto 1fr auto;gap:8px 10px;align-items:start}
+.plab{font:500 14px var(--f-mono);color:var(--muted)}
+.ptxt{min-width:0}
+.pm{font:500 13px var(--f-mono);color:var(--accent);white-space:nowrap}
+textarea{width:100%;min-height:68px;resize:vertical;font:14.5px/1.5 var(--f-body);color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px 12px}
+.ms{background:var(--surface-2);border-radius:8px;padding:12px 14px;display:flex;flex-direction:column;gap:10px}
+.mslabel{font-size:11px;letter-spacing:.1em;text-transform:uppercase;font-weight:600;color:var(--accent)}
+.msa{min-width:0}
+.msa p+p{margin-top:4px}
+.award{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;font-size:13px;color:var(--muted)}
+.chip{appearance:none;min-width:32px;height:30px;border:1px solid var(--line);background:var(--surface);color:var(--fg);border-radius:6px;font:500 13px var(--f-mono);cursor:pointer}
+.chip.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.cardfoot{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;padding-top:14px;border-top:1px solid var(--line)}
+.got{font:500 14px var(--f-mono);font-variant-numeric:tabular-nums}
+
+.res{display:flex;flex-direction:column;gap:12px}
+.score{font:700 40px/1 var(--f-head);font-variant-numeric:tabular-nums}
+.score small{font-size:18px;color:var(--muted);font-weight:500}
+.topics{display:flex;flex-direction:column;gap:8px}
+.trow{display:grid;grid-template-columns:minmax(120px,190px) 1fr 44px;gap:10px;align-items:center;font-size:13.5px}
+.track{height:8px;border-radius:4px;background:var(--surface-2);overflow:hidden}
+.fill{height:100%;background:var(--accent)}
+.trow b{font:500 13px var(--f-mono);text-align:right;font-variant-numeric:tabular-nums}
+.dock{position:sticky;bottom:0;z-index:4;background:var(--bg);border-top:1px solid var(--line);padding:10px 0 calc(10px + env(safe-area-inset-bottom,0px));display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px}
+.dock span{font-size:14px;color:var(--muted)}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.tile{display:flex;flex-direction:column;gap:4px;padding:14px 16px;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+.tile span{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.tile b{font:700 30px/1.1 var(--f-head);font-variant-numeric:tabular-nums}
+.tile b small{font-size:15px;color:var(--muted);font-weight:500}
+.tile em{font-style:normal;font-size:13px;color:var(--muted)}
+.rcard h3{font-size:17px}
+.rcard .trow{grid-template-columns:minmax(120px,230px) 1fr 64px}
+.empty{display:flex;flex-direction:column;gap:12px;align-items:flex-start}
+
+.fig{overflow-x:auto;border:1px solid var(--line);border-radius:8px;background:var(--surface);padding:6px}
+.fig svg{display:block;width:100%;height:auto}
+.fig figcaption{font-size:12px;color:var(--muted);padding:4px 6px 2px}
+.ln{stroke:var(--fg);fill:none;stroke-width:1.6}
+.ax{stroke:var(--muted);fill:none;stroke-width:1}
+.dash{stroke-dasharray:5 4}
+.rayl{stroke:var(--ray);fill:none;stroke-width:2}
+.bluel{stroke:var(--blue);fill:none;stroke-width:2}
+.whl{stroke:var(--fg);fill:none;stroke-width:2}
+.glass{fill:var(--glass);stroke:var(--fg);stroke-width:1.5}
+.water{fill:var(--water)}
+.mir{stroke:var(--fg);stroke-width:3}
+.hl{stroke:var(--accent);stroke-width:6;stroke-linecap:butt}
+.tx{fill:var(--muted);font:12px var(--f-body)}
+.txb{fill:var(--fg);font:600 12px var(--f-body)}
+.ahead{fill:var(--ray)}
+.solid{fill:var(--fg)}
+table.data{border-collapse:collapse;font-variant-numeric:tabular-nums;font-size:14px}
+table.data th,table.data td{border:1px solid var(--line);padding:5px 14px;text-align:center}
+table.data th{background:var(--surface-2);font-weight:600}
+.scroll{overflow-x:auto}
+.note{font-size:13px;color:var(--muted)}
+@media (max-width:520px){
+  h1{font-size:26px}
+  .tab{padding:10px 4px;font-size:13px}
+  .tab small{font-size:11px}
+  .rcard .trow{grid-template-columns:1fr 64px}
+  .stat{min-width:0;flex:1}
+  .stats{flex:1 1 100%}
+  .trow{grid-template-columns:1fr 44px}
+  .trow .track{grid-column:1/-1;order:3}
+  .card{padding:14px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+
+<div class="app">
+  <header class="top">
+    <div class="bar">
+      <div>
+        <span class="eyebrow">Pure Physics · Unit 14</span>
+        <h1>Light</h1>
+      </div>
+    </div>
+    <nav class="tabs" role="tablist" aria-label="Sections">
+      <button class="tab" role="tab" id="tab-p1" data-view="multiple-choice" aria-selected="true">Multiple Choice<small>15 questions</small></button>
+      <button class="tab" role="tab" id="tab-p2" data-view="structured" aria-selected="false">Structured Questions<small>8 questions</small></button>
+      <button class="tab" role="tab" id="tab-p3" data-view="results" aria-selected="false">Results<small>Your scores</small></button>
+    </nav>
+  </header>
+  <main id="main">
+    <section id="p1" role="tabpanel" aria-labelledby="tab-p1"></section>
+    <section id="p2" role="tabpanel" aria-labelledby="tab-p2" hidden></section>
+    <section id="p3" role="tabpanel" aria-labelledby="tab-p3" hidden></section>
+  </main>
+</div>
+
+<script>
+(function(){
+'use strict';
+var KEY='light-practice-v1';
+var state={mcq:{},submitted:false,instant:false,st:{}};
+try{
+  var raw=localStorage.getItem(KEY);
+  if(raw){var p=JSON.parse(raw);
+    if(p&&typeof p==='object'){state.mcq=p.mcq||{};state.submitted=!!p.submitted;state.instant=!!p.instant;state.st=p.st||{};}}
+}catch(e){}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(state));}catch(e){}}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+var $=function(s,r){return (r||document).querySelector(s);};
+
+/* ---------- diagram helpers ---------- */
+var uid=0, RAD=Math.PI/180;
+function fig(w,h,minw,body,cap){
+  uid++; var m='ah'+uid;
+  return '<figure class="fig" style="margin:0"><svg viewBox="0 0 '+w+' '+h+'" style="min-width:'+minw+'px" role="img" aria-label="'+(cap||'Diagram')+'">'+
+    '<defs><marker id="'+m+'" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" class="ahead"/></marker></defs>'+
+    body(m)+'</svg>'+(cap?'<figcaption>'+cap+'</figcaption>':'')+'</figure>';
+}
+function L(x1,y1,x2,y2,c,m){return '<line x1="'+x1.toFixed(1)+'" y1="'+y1.toFixed(1)+'" x2="'+x2.toFixed(1)+'" y2="'+y2.toFixed(1)+'" class="'+c+'"'+(m?' marker-end="url(#'+m+')"':'')+'/>';}
+function T(x,y,s,c,a){return '<text x="'+x.toFixed(1)+'" y="'+y.toFixed(1)+'" class="'+(c||'tx')+'"'+(a?' text-anchor="'+a+'"':'')+'>'+s+'</text>';}
+function hatch(x1,x2,y,n,dir){var s='';for(var i=0;i<=n;i++){var x=x1+(x2-x1)*i/n;s+=L(x,y,x-8,y+10,'ax');}return s;}
+function hatchV(x,y1,y2,n){var s='';for(var i=0;i<=n;i++){var y=y1+(y2-y1)*i/n;s+=L(x,y,x+10,y+8,'ax');}return s;}
+
+function figMirrorAngle(){
+  return fig(360,170,300,function(m){
+    var hx=180,hy=125,Ln=140,a=35*RAD,sx=hx-Ln*Math.cos(a),sy=hy-Ln*Math.sin(a),ex=hx+Ln*Math.cos(a);
+    var ax=hx-40*Math.cos(a),ay=hy-40*Math.sin(a);
+    return L(30,hy,330,hy,'mir')+hatch(40,330,hy+2,29)+
+      L(hx,28,hx,hy,'ax dash')+
+      L(sx,sy,hx,hy,'rayl',m)+L(hx,hy,ex,sy,'rayl',m)+
+      '<path d="M'+ax.toFixed(1)+' '+ay.toFixed(1)+' A40 40 0 0 0 '+(hx-40)+' '+hy+'" class="ax"/>'+
+      T(hx-72,hy-9,'35°','txb')+T(hx+6,40,'normal')+T(36,158,'mirror')+T(sx-4,sy-8,'incident ray');
+  },'Ray meets the mirror surface at 35°. Not drawn to scale.');
+}
+
+/* refraction at a flat boundary: air above, medium below */
+function figRefract(opt){
+  var W=480,H=270,hx=250,hy=110,i=opt.i*RAD,Lg=130;
+  return fig(W,H,380,function(m){
+    var s='<rect x="90" y="'+hy+'" width="320" height="130" class="glass"/>';
+    s+=T(100,hy-10,'air')+T(100,hy+24,opt.medium);
+    s+=L(hx,30,hx,hy+120,'ax dash')+T(hx+6,40,'normal');
+    var sx=hx-Lg*Math.sin(i),sy=hy-Lg*Math.cos(i);
+    s+=L(sx,sy,hx,hy,opt.incCls,m);
+    var aInc=36;
+    s+='<path d="M'+(hx-aInc*Math.sin(i)).toFixed(1)+' '+(hy-aInc*Math.cos(i)).toFixed(1)+' A'+aInc+' '+aInc+' 0 0 1 '+hx+' '+(hy-aInc)+'" class="ax"/>';
+    s+=T(hx-62,hy-44,opt.iLabel,'txb');
+    opt.rays.forEach(function(r){
+      var a=r.deg*RAD,ex=hx+r.len*Math.sin(a),ey=hy+r.len*Math.cos(a);
+      s+=L(hx,hy,ex,ey,r.cls,m);
+      s+=T(hx+r.tx,hy+r.ty,r.label,'txb');
+    });
+    return s;
+  },opt.cap);
+}
+
+function figPool(){
+  return fig(520,250,440,function(m){
+    var sy=50,by=200,lx=170,s='<rect x="20" y="'+sy+'" width="480" height="'+(by-sy)+'" class="water"/>';
+    s+=L(20,sy,500,sy,'ln')+L(20,sy,20,by,'ln')+L(20,by,500,by,'ln');
+    s+=T(30,sy-8,'air')+T(30,sy+18,'water');
+    s+=L(44,sy,44,by,'ax')+T(52,125,'1.5 m');
+    s+=L(lx,by,lx,sy,'ax dash');
+    var pX=lx+150*Math.tan(40*RAD),qX=lx+150*Math.tan(55*RAD);
+    s+=L(lx,by,pX,sy,'rayl',m)+L(lx,by,qX,sy,'rayl',m);
+    s+='<circle cx="'+lx+'" cy="'+by+'" r="6" class="solid"/>';
+    s+=T(lx-28,by+22,'lamp');
+    s+=T(pX,sy-8,'P','txb','middle')+T(qX,sy-8,'Q','txb','middle');
+    s+=T(lx+8,130,'40°','txb')+T(lx+88,118,'55°','txb');
+    return s;
+  },'Lamp 1.5 m below the surface. Ray P is 40° and ray Q is 55° from the vertical. Not drawn to scale.');
+}
+
+function figPrism(){
+  return fig(440,290,360,function(m){
+    var s='<polygon points="100,80 100,220 240,220" class="glass"/>';
+    s+=L(20,150,100,150,'rayl',m)+L(100,150,170,150,'rayl',m)+L(170,150,170,220,'rayl')+L(170,220,170,268,'rayl',m);
+    s+='<path d="M100 206 L114 206 L114 220" class="ln"/>';
+    s+=T(88,76,'A','txb','end')+T(88,236,'B','txb','end')+T(246,236,'C','txb')+T(88,154,'D','txb','end')+T(176,146,'E','txb')+T(180,238,'F','txb');
+    s+=T(108,106,'45°')+T(204,213,'45°');
+    s+=T(20,138,'ray');
+    return s;
+  },'Right-angled isosceles prism ABC. The ray enters at D, meets AC at E and leaves through BC at F.');
+}
+
+function figMirrorModel(){
+  return fig(420,290,380,function(m){
+    var fl=250,mx=190,px=96,ix=284;
+    var s=L(20,fl,400,fl,'ln')+hatch(30,400,fl+2,34);
+    s+=L(mx,40,mx,fl,'ax')+L(mx,75,mx,165,'hl');
+    function man(x,c){return '<circle cx="'+(x-6)+'" cy="78" r="8" class="'+c+'"/>'+L(x-6,86,x-6,175,c)+L(x-6,175,x-14,fl,c)+L(x-6,175,x+2,fl,c)+L(x-6,110,x+4,140,c);}
+    s+=man(px,'ln')+man(ix,'ln dash');
+    s+=L(px,70,mx,75,'rayl',m)+L(mx,75,px,80,'rayl',m);
+    s+=L(px,fl,mx,165,'rayl',m)+L(mx,165,px,80,'rayl',m);
+    s+=T(px-2,64,'eye level 1.70 m','tx','middle');
+    s+=T(mx+10,125,'0.90 m','txb')+T(mx+10,212,'0.85 m','txb');
+    s+=T(mx+10,70,'1.75 m');
+    s+=T(ix,fl+24,'image','tx','middle')+T(px,fl+24,'man','tx','middle')+T(mx,fl+24,'mirror','tx','middle');
+    return s;
+  },'Model answer: the mirror needs to run from 0.85 m to 1.75 m above the floor.');
+}
+
+/* lens ray diagram: u object distance, f focal length, h object height (cm) */
+function figLens(o){
+  var f=o.f,u=o.u,h=o.h,v=1/(1/f-1/u),real=v>0,hi=-h*v/u;
+  var sx=o.sx,sy=o.sy,ox=20-o.xmin*sx,oy=o.H/2,W=20+(o.xmax-o.xmin)*sx+20;
+  function X(x){return ox+x*sx;}function Y(y){return oy-y*sy;}
+  return fig(W,o.H,Math.min(W,560),function(m){
+    var s=L(X(o.xmin),oy,X(o.xmax),oy,'ax');
+    var lh=o.H/2-20;
+    s+='<path d="M'+X(0)+' '+(oy-lh)+' L'+X(0)+' '+(oy+lh)+'" class="ln"/>'+
+       '<path d="M'+(X(0)-6)+' '+(oy-lh+9)+' L'+X(0)+' '+(oy-lh)+' L'+(X(0)+6)+' '+(oy-lh+9)+'" class="ln"/>'+
+       '<path d="M'+(X(0)-6)+' '+(oy+lh-9)+' L'+X(0)+' '+(oy+lh)+' L'+(X(0)+6)+' '+(oy+lh-9)+'" class="ln"/>';
+    [-2*f,-f,f,2*f].forEach(function(p){
+      if(p<o.xmin+1||p>o.xmax-1)return;
+      s+=L(X(p),oy-5,X(p),oy+5,'ln')+T(X(p),oy+20,(Math.abs(p)===f?'F':'2F'),'txb','middle');
+    });
+    s+=L(X(-u),oy,X(-u),Y(h),'ln',m);
+    s+=T(X(-u),Y(h)-8,'object','tx','middle');
+    var xe=o.xmax-1;
+    var yA=h-(h/f)*xe, yB=-(h/u)*xe;
+    s+=L(X(-u),Y(h),X(0),Y(h),'rayl')+L(X(0),Y(h),X(xe),Y(yA),'rayl',m);
+    s+=L(X(-u),Y(h),X(0),oy,'rayl')+L(X(0),oy,X(xe),Y(yB),'rayl',m);
+    if(real){
+      s+=L(X(v),oy,X(v),Y(hi),'ln',m);
+      s+=T(X(v)+8,Y(hi)+(hi<0?14:-6),'image');
+    }else{
+      s+=L(X(0),Y(h),X(v),Y(hi),'rayl dash')+L(X(0),oy,X(v),Y(hi),'rayl dash');
+      s+=L(X(v),oy,X(v),Y(hi),'ln dash',m);
+      s+=T(X(v)-6,Y(hi)-8,'image','tx','end');
+    }
+    var d1=oy+o.H/2-22;
+    s+=L(X(-u),d1,X(0),d1,'ax')+T((X(-u)+X(0))/2,d1-5,'u = '+u+' cm','tx','middle');
+    if(real){s+=L(X(0),d1,X(v),d1,'ax')+T((X(0)+X(v))/2,d1-5,'v = '+Math.round(v)+' cm','tx','middle');}
+    else{var d2=d1-18;s+=L(X(v),d2,X(0),d2,'ax')+T((X(v)+X(0))/2,d2-5,'v = '+Math.round(-v)+' cm','tx','middle');}
+    return s;
+  },o.cap);
+}
+
+/* ---------- Paper 1 content ---------- */
+var MCQ=[
+{id:'m1',topic:'Mirrors',q:'Which statement about the image formed by a plane mirror is correct?',
+ o:['It is real and can be caught on a screen.','It is laterally inverted and the same size as the object.','It is smaller than the object when the object is far from the mirror.','It is formed behind the mirror at half the object distance.'],a:1,
+ why:'A plane mirror forms a virtual image that is upright, laterally inverted and the same size as the object. The image is as far behind the mirror as the object is in front, so C and D are wrong.'},
+{id:'m2',topic:'Mirrors',q:'A ray of light meets a plane mirror so that the angle between the ray and the surface of the mirror is 35°. What is the angle between the incident ray and the reflected ray?',
+ fig:figMirrorAngle,o:['35°','55°','70°','110°'],a:3,
+ why:'The angle of incidence is measured from the normal: i = 90° − 35° = 55°. The angle of reflection is also 55°, so the angle between the two rays is 55° + 55° = 110°.'},
+{id:'m3',topic:'Mirrors',q:'A girl stands 1.5 m in front of a plane mirror. She walks 0.5 m towards the mirror. What is the distance between the girl and her image now?',
+ o:['1.0 m','2.0 m','3.0 m','4.0 m'],a:1,
+ why:'She is now 1.0 m from the mirror. Her image is 1.0 m behind the mirror, so the distance between them is 1.0 m + 1.0 m = 2.0 m.'},
+{id:'m4',topic:'Refraction',q:'Light travels from air into glass. Which quantities of the light change?',
+ o:['speed only','speed and wavelength','frequency and wavelength','speed and frequency'],a:1,
+ why:'The frequency is set by the source and never changes at a boundary. The speed drops in glass, and since v = fλ with f fixed, the wavelength drops too.'},
+{id:'m5',topic:'Refraction',q:'The refractive index of glass is 1.5. The speed of light in a vacuum is 3.0 × 10<sup>8</sup> m/s. What is the speed of light in the glass?',
+ o:['1.5 × 10<sup>8</sup> m/s','2.0 × 10<sup>8</sup> m/s','3.0 × 10<sup>8</sup> m/s','4.5 × 10<sup>8</sup> m/s'],a:1,
+ why:'n = c / v, so v = c / n = 3.0 × 10<sup>8</sup> ÷ 1.5 = 2.0 × 10<sup>8</sup> m/s.'},
+{id:'m6',topic:'Refraction',q:'A ray of light in air strikes a glass block of refractive index 1.5 with an angle of incidence of 45°. What is the angle of refraction?',
+ o:['19.5°','28.1°','30.0°','45.0°'],a:1,
+ why:'sin r = sin 45° ÷ 1.5 = 0.707 ÷ 1.5 = 0.471, so r = 28.1°. Dividing the angle itself by 1.5 (giving 30°) is a common slip.'},
+{id:'m7',topic:'Total internal reflection',q:'The refractive index of a plastic is 1.6. What is the critical angle for light travelling from the plastic into air?',
+ o:['32.0°','38.7°','51.3°','58.0°'],a:1,
+ why:'sin c = 1 / n = 1 / 1.6 = 0.625, so c = 38.7°.'},
+{id:'m8',topic:'Total internal reflection',q:'Which conditions must both be met for total internal reflection to occur?',
+ o:['Light goes from a less dense to a denser medium, and the angle of incidence is greater than the critical angle.','Light goes from a denser to a less dense medium, and the angle of incidence is greater than the critical angle.','Light goes from a denser to a less dense medium, and the angle of incidence is less than the critical angle.','Light goes from a less dense to a denser medium, and the angle of incidence is less than the critical angle.'],a:1,
+ why:'The ray must be travelling in the optically denser medium towards a less dense one, and its angle of incidence must exceed the critical angle.'},
+{id:'m9',topic:'Lenses',q:'An object is placed 25 cm from a converging lens of focal length 10 cm. Which description fits the image?',
+ o:['real, inverted and diminished','real, inverted and magnified','virtual, upright and magnified','virtual, upright and diminished'],a:0,
+ why:'The object distance 25 cm is greater than 2f (20 cm). For u > 2f the image is real, inverted and diminished, formed between f and 2f. This is how a camera works.'},
+{id:'m10',topic:'Lenses',q:'A converging lens of focal length 6 cm is used as a magnifying glass. Which object distance could be used?',
+ o:['3 cm','6 cm','9 cm','12 cm'],a:0,
+ why:'A magnifying glass forms a virtual, upright, magnified image, which needs the object inside the focal length. Only 3 cm is less than 6 cm. At exactly 6 cm the image forms at infinity.'},
+{id:'m11',topic:'Lenses',q:'A converging lens of focal length 12 cm forms a real image that is the same size as the object. How far is the object from the lens?',
+ o:['6 cm','12 cm','24 cm','36 cm'],a:2,
+ why:'A real image the same size as the object forms when the object is at 2f. Here 2f = 24 cm, and the image is also 24 cm from the lens on the other side.'},
+{id:'m12',topic:'Lenses',q:'A converging lens of focal length 15 cm is used to focus the Sun’s rays onto a piece of paper. How far should the paper be from the lens?',
+ o:['7.5 cm','15 cm','30 cm','a very large distance'],a:1,
+ why:'The Sun is so far away that its rays arrive parallel to the principal axis. Parallel rays meet at the principal focus, which is one focal length (15 cm) from the lens.'},
+{id:'m13',topic:'Lenses',q:'A converging lens forms a sharp image of a lit bulb on a screen. The lower half of the lens is then covered with black card. What happens to the image?',
+ o:['Only the top half of the image is seen.','Only the bottom half of the image is seen.','The whole image is seen but it is dimmer.','The whole image is seen but it is smaller.'],a:2,
+ why:'Every point of the object sends rays over the whole lens. The uncovered half still brings those rays to the same image point, so the image is complete, but fewer rays arrive and it is dimmer.'},
+{id:'m14',topic:'Total internal reflection',q:'A periscope uses two glass prisms with angles 45°, 45° and 90°. Each prism turns the light through 90° by total internal reflection at the long face. Which refractive index could the glass have?',
+ o:['1.1','1.2','1.3','1.5'],a:3,
+ why:'The angle of incidence at the long face is 45°, so the critical angle must be less than 45°. That needs n > 1 / sin 45° = 1.41. Only 1.5 qualifies.'},
+{id:'m15',topic:'Mirrors',q:'A sheet of rough paper can be seen from any direction in a room. Why?',
+ o:['Light refracts into the paper and comes out again.','Each ray obeys the law of reflection, but the normals point in many different directions.','The law of reflection does not apply to rough surfaces.','The paper absorbs light and then emits it in all directions.'],a:1,
+ why:'On a rough surface the law of reflection still holds for every ray. The surface is made of tiny faces tilted every which way, so the normals differ and the reflected rays scatter. This is diffuse reflection.'}
+];
+
+/* ---------- Paper 2 content ---------- */
+var SQ=[
+{id:'s1',topic:'Plane mirrors',total:8,
+ intro:'A man of height 1.80 m stands 1.0 m in front of a vertical plane mirror. His eyes are 1.70 m above the floor.',
+ parts:[
+ {l:'a',m:2,q:'State two characteristics of the image of the man in the mirror.',a:'<p>Any two of: virtual; upright; laterally inverted; same size as the man; as far behind the mirror as he is in front. [1 each]</p>'},
+ {l:'b',m:1,q:'State the distance between the man and his image.',a:'<p>2.0 m. The image is 1.0 m behind the mirror, so 1.0 + 1.0 = 2.0 m. [1]</p>'},
+ {l:'c',m:3,q:'The man wants to see his whole body in the mirror. Find the minimum length of the mirror and the height of its lower edge above the floor.',a:'<p>Top edge: halfway between eye level and the top of his head = (1.70 + 1.80) ÷ 2 = 1.75 m. [1]</p><p>Lower edge: halfway between eye level and his feet = 1.70 ÷ 2 = 0.85 m. [1]</p><p>Minimum length = 1.75 − 0.85 = 0.90 m, which is half his height. [1]</p>'},
+ {l:'d',m:2,q:'The man steps back to 2.0 m from the mirror. State and explain what happens to the minimum mirror length needed.',a:'<p>It stays at 0.90 m. [1]</p><p>The rays from his head and feet still reflect at points halfway between those points and his eye level (similar triangles), so the length needed does not depend on his distance. [1]</p>'}
+ ],model:figMirrorModel},
+{id:'s2',topic:'Refraction',total:8,
+ intro:'A ray of light in air strikes a rectangular glass block. The angle of incidence is 55° and the angle of refraction is 33°.',
+ fig:function(){return figRefract({i:55,medium:'glass',incCls:'rayl',iLabel:'55°',rays:[{deg:33,len:110,cls:'rayl',label:'33°',tx:34,ty:50}],cap:'Not drawn to scale.'});},
+ parts:[
+ {l:'a',m:1,q:'State what is meant by the refractive index of a material.',a:'<p>The ratio of the speed of light in a vacuum (or air) to the speed of light in the material. [1]</p>'},
+ {l:'b',m:2,q:'Calculate the refractive index of the glass.',a:'<p>n = sin i ÷ sin r [1]</p><p>n = sin 55° ÷ sin 33° = 0.819 ÷ 0.545 = 1.50 [1]</p>'},
+ {l:'c',m:2,q:'The speed of light in a vacuum is 3.0 × 10<sup>8</sup> m/s. Calculate the speed of light in the glass.',a:'<p>v = c ÷ n [1]</p><p>v = 3.0 × 10<sup>8</sup> ÷ 1.50 = 2.0 × 10<sup>8</sup> m/s [1]</p>'},
+ {l:'d',m:2,q:'Calculate the critical angle of the glass.',a:'<p>sin c = 1 ÷ n = 1 ÷ 1.50 [1]</p><p>c = 41.8° (41.7° is also accepted if the unrounded value of n is used) [1]</p>'},
+ {l:'e',m:1,q:'State what happens to the frequency of the light as it enters the glass.',a:'<p>It does not change, because the frequency is fixed by the source. [1]</p>'}
+ ]},
+{id:'s3',topic:'Total internal reflection',total:10,
+ intro:'A small lamp is 1.5 m below the surface of the water in a large swimming pool. The refractive index of water is 1.33. Two of the rays from the lamp, P and Q, are shown.',
+ fig:figPool,
+ parts:[
+ {l:'a',m:2,q:'Calculate the critical angle for light passing from water to air.',a:'<p>sin c = 1 ÷ n = 1 ÷ 1.33 [1]</p><p>c = 48.8° [1]</p>'},
+ {l:'b',m:2,q:'Ray P meets the surface at an angle of incidence of 40°. Describe and calculate what happens to it.',a:'<p>40° is less than the critical angle, so most of the light is refracted into the air, bending away from the normal. [1]</p><p>sin r = 1.33 × sin 40° = 0.855, so r = 59° (58.7°). [1]</p><p>(A weak reflected ray is also produced.)</p>'},
+ {l:'c',m:2,q:'Ray Q meets the surface at an angle of incidence of 55°. State and explain what happens to it.',a:'<p>55° is greater than the critical angle (48.8°) and the light is moving from a denser to a less dense medium. [1]</p><p>The ray undergoes total internal reflection and returns into the water at an angle of reflection of 55°. [1]</p>'},
+ {l:'d',m:2,q:'Viewed from above, light from the lamp leaves the water only inside a circular patch. Explain why.',a:'<p>Only rays that meet the surface at less than the critical angle can escape. [1]</p><p>These rays form a cone around the vertical through the lamp, so they reach the surface inside a circle. Rays outside it are totally internally reflected. [1]</p>'},
+ {l:'e',m:2,q:'Calculate the radius of the circular patch.',a:'<p>radius = depth × tan c [1]</p><p>radius = 1.5 × tan 48.8° = 1.7 m [1]</p>'}
+ ]},
+{id:'s4',topic:'Total internal reflection',total:8,
+ intro:'The diagram shows a ray of light passing through a glass prism with angles of 45°, 45° and 90°. The refractive index of the glass is 1.52.',
+ fig:figPrism,
+ parts:[
+ {l:'a',m:1,q:'Explain why the ray is not deviated at D.',a:'<p>It travels along the normal, so the angle of incidence is 0° and it does not bend. [1]</p>'},
+ {l:'b',m:2,q:'Calculate the critical angle of the glass.',a:'<p>sin c = 1 ÷ 1.52 [1]</p><p>c = 41.1° [1]</p>'},
+ {l:'c',m:2,q:'Explain why the ray is totally internally reflected at E.',a:'<p>The angle of incidence at E is 45°, which is greater than the critical angle of 41.1°. [1]</p><p>The light is also travelling from the denser glass towards the less dense air. [1]</p>'},
+ {l:'d',m:1,q:'State the angle through which the prism turns the ray.',a:'<p>90°. The ray leaves through BC along the normal, so it is not bent again. [1]</p>'},
+ {l:'e',m:2,q:'The prism is replaced by one with a refractive index of 1.38. State and explain what happens at E.',a:'<p>The critical angle becomes sin<sup>−1</sup>(1 ÷ 1.38) = 46.4°. [1]</p><p>The angle of incidence (45°) is now less than the critical angle, so there is no total internal reflection. Most of the light is refracted out through AC. [1]</p>'}
+ ]},
+{id:'s5',topic:'Converging lenses',total:10,
+ intro:'A converging lens has a focal length of 20 cm. An object 3.0 cm tall is placed 30 cm in front of the lens. A sharp image is formed on a screen 60 cm from the lens.',
+ parts:[
+ {l:'a',m:1,q:'State what is meant by the focal length of a lens.',a:'<p>The distance between the optical centre of the lens and the principal focus. [1]</p>'},
+ {l:'b',m:3,q:'State three characteristics of the image.',a:'<p>Real [1]; inverted [1]; magnified [1].</p><p>The object is between f and 2f, so the image forms beyond 2f.</p>'},
+ {l:'c',m:1,q:'Calculate the magnification of the image.',a:'<p>magnification = image distance ÷ object distance = 60 ÷ 30 = 2.0 [1]</p>'},
+ {l:'d',m:1,q:'Calculate the height of the image.',a:'<p>2.0 × 3.0 cm = 6.0 cm [1]</p>'},
+ {l:'e',m:2,q:'The object is moved to 15 cm from the lens. State two changes in the nature of the image.',a:'<p>The object is now inside the focal length. The image changes from real to virtual [1] and from inverted to upright [1]. It stays magnified.</p>'},
+ {l:'f',m:2,q:'With the object back at 30 cm, the lower half of the lens is covered with black card. State and explain what happens to the image.',a:'<p>The whole image is still formed, but it is dimmer. [1]</p><p>Light from each point on the object still passes through the uncovered half of the lens and meets at the same image point, but less light arrives. [1]</p>'}
+ ],model:function(){return figLens({f:20,u:30,h:3,sx:6,sy:12,xmin:-45,xmax:72,H:300,cap:'Model answer for part (b). The vertical scale is stretched so the object and image are easy to see.'});}},
+{id:'s6',topic:'Converging lenses',total:8,
+ intro:'A converging lens of focal length 10 cm is used as a magnifying glass. An object 2.0 cm tall is placed 6.0 cm from the lens.',
+ parts:[
+ {l:'a',m:1,q:'State the condition on the object distance for the lens to work as a magnifying glass.',a:'<p>The object must be closer to the lens than the focal length (u &lt; f). [1]</p>'},
+ {l:'b',m:3,q:'State three characteristics of the image.',a:'<p>Virtual [1]; upright [1]; magnified [1].</p>'},
+ {l:'c',m:2,q:'Find the distance of the image from the lens, and state which side of the lens it is on.',a:'<p>From a ray diagram, or 1/v = 1/f − 1/u = 1/10 − 1/6 giving v = −15 cm. [1]</p><p>The image is 15 cm from the lens, on the same side as the object. [1]</p>'},
+ {l:'d',m:2,q:'Calculate the magnification and the height of the image.',a:'<p>magnification = 15 ÷ 6 = 2.5 [1]</p><p>height = 2.5 × 2.0 cm = 5.0 cm [1]</p>'}
+ ],model:function(){return figLens({f:10,u:6,h:2,sx:12,sy:12,xmin:-25,xmax:30,H:260,cap:'Model answer: the rays diverge after the lens, so they are traced back (dashed) to the virtual image.'});}},
+{id:'s7',topic:'Refraction and dispersion',total:8,
+ intro:'White light is shone onto the top face of a diamond at an angle of incidence of 49°. The light splits into colours. The blue ray is refracted at 18° and the red ray at 19°.',
+ fig:function(){return figRefract({i:49,medium:'diamond',incCls:'whl',iLabel:'49°',rays:[{deg:18,len:112,cls:'bluel',label:'blue 18°',tx:-62,ty:112},{deg:19,len:100,cls:'rayl',label:'red 19°',tx:36,ty:104}],cap:'Not drawn to scale. The angle between the blue and red rays is exaggerated.'});},
+ parts:[
+ {l:'a',m:2,q:'Explain why the white light spreads out into colours inside the diamond.',a:'<p>Different colours travel at different speeds in diamond, so the diamond has a different refractive index for each colour. [1]</p><p>Each colour is therefore refracted through a different angle. [1]</p>'},
+ {l:'b',m:2,q:'Calculate the refractive index of diamond for blue light.',a:'<p>n = sin i ÷ sin r = sin 49° ÷ sin 18° [1]</p><p>n = 0.755 ÷ 0.309 = 2.44 [1]</p>'},
+ {l:'c',m:1,q:'The speed of light in air is 3.0 × 10<sup>8</sup> m/s. Calculate the speed of blue light in the diamond.',a:'<p>v = 3.0 × 10<sup>8</sup> ÷ 2.44 = 1.2 × 10<sup>8</sup> m/s [1]</p>'},
+ {l:'d',m:1,q:'State which colour, red or blue, has the higher refractive index in diamond. Give a reason.',a:'<p>Blue. It is bent more towards the normal (smaller angle of refraction). [1]</p>'},
+ {l:'e',m:2,q:'The diamond is placed in water of refractive index 1.33. The white light strikes the top face at the same angle. State and explain what happens to the path of the blue ray inside the diamond.',a:'<p>The ray bends less towards the normal, so the angle of refraction is larger than 18° (about 24°). [1]</p><p>The refractive index of diamond relative to water (2.44 ÷ 1.33 = 1.84) is smaller than relative to air, so there is less bending. [1]</p>'}
+ ]},
+{id:'s8',topic:'Refraction practical',total:8,
+ intro:'A student shines a thin ray of light into a rectangular glass block and measures the angle of incidence <i>i</i> and the angle of refraction <i>r</i>, both from the normal. Her results are shown.',
+ fig:function(){return '<div class="scroll"><table class="data"><thead><tr><th><i>i</i> / °</th><th>20</th><th>30</th><th>40</th><th>50</th><th>60</th></tr></thead><tbody><tr><th><i>r</i> / °</th><td>13</td><td>19</td><td>25</td><td>30</td><td>35</td></tr></tbody></table></div>';},
+ parts:[
+ {l:'a',m:2,q:'Describe how a graph of her results can be used to find the refractive index of the glass.',a:'<p>Plot sin <i>i</i> on the vertical axis against sin <i>r</i> on the horizontal axis. [1]</p><p>The graph is a straight line through the origin, and its gradient is the refractive index. [1]</p>'},
+ {l:'b',m:1,q:'Use the results for <i>i</i> = 40° to calculate the refractive index of the glass.',a:'<p>n = sin 40° ÷ sin 25° = 0.643 ÷ 0.423 = 1.52 [1]</p>'},
+ {l:'c',m:2,q:'Use your answer to (b) to calculate the critical angle of the glass.',a:'<p>sin c = 1 ÷ 1.52 [1]</p><p>c = 41° (41.1°) [1]</p>'},
+ {l:'d',m:1,q:'State one way the student can improve the accuracy of her measurements.',a:'<p>Any one of: use a thinner ray or a sharp pencil to mark it; measure angles from the normal with a protractor to the nearest degree; repeat each reading and average; use more angles. [1]</p>'},
+ {l:'e',m:2,q:'The ray leaves the opposite face of the block. Describe the direction of the emerging ray compared with the incident ray, and explain.',a:'<p>The emerging ray is parallel to the incident ray (shifted sideways). [1]</p><p>The two faces are parallel, so the angle of incidence at the second face equals the angle of refraction at the first, and the ray bends back by the same amount. [1]</p>'}
+ ]}
+];
+
+/* ---------- state helpers ---------- */
+function fbOn(q){return state.submitted||(state.instant&&state.mcq[q.id]!==undefined);}
+function mcqScore(){var c=0,g=0;MCQ.forEach(function(q){if(fbOn(q)){g++;if(state.mcq[q.id]===q.a)c++;}});return {c:c,g:g};}
+function stGet(id){return state.st[id]||(state.st[id]={t:{},m:{},rev:false});}
+function stAwarded(q){var S=stGet(q.id),n=0,k=0;q.parts.forEach(function(p){if(typeof S.m[p.l]==='number'){n+=S.m[p.l];k++;}});return {n:n,k:k};}
+function updateStats(){renderResults();}
+function renderResults(){
+  var el=$('#p3');if(!el)return;
+  var s=mcqScore(),n=0,k=0;
+  SQ.forEach(function(q){var a=stAwarded(q);n+=a.n;k+=a.k;});
+  var started=s.g>0||k>0;
+  var h='<div class="card intro"><h2>Results</h2><p>Your scores from both sections. Multiple choice is scored once you submit it, or as you answer with instant feedback on. Structured questions count the marks you award yourself after viewing the mark scheme.</p></div>';
+  if(!started){
+    h+='<div class="card empty"><p>No scores yet. Submit the multiple-choice questions or mark a structured answer to see your results here.</p><div class="row"><button class="btn" type="button" data-act="goto" data-view="multiple-choice">Start multiple choice</button><button class="btn ghost" type="button" data-act="goto" data-view="structured">Start structured questions</button></div></div>';
+    el.innerHTML=h;return;
+  }
+  var total=s.c+n,pct=Math.round(total/83*100);
+  h+='<div class="tiles">'+
+    '<div class="tile"><span>Multiple choice</span><b>'+(s.g?s.c:'–')+'<small> / 15</small></b><em>'+(s.g?(s.g<15?s.g+' of 15 answered so far':(state.submitted?'Submitted':'All 15 checked')):'Not started')+'</em></div>'+
+    '<div class="tile"><span>Structured</span><b>'+(k?n:'–')+'<small> / 68</small></b><em>'+(k?SQ.filter(function(q){return stAwarded(q).k>0;}).length+' of 8 questions marked':'Not marked yet')+'</em></div>'+
+    '<div class="tile"><span>Overall</span><b>'+total+'<small> / 83</small></b><em>'+pct+'% of all marks</em></div></div>';
+  /* multiple choice by topic */
+  var topics={},order=[];
+  MCQ.forEach(function(q){if(!topics[q.topic]){topics[q.topic]={c:0,g:0,t:0};order.push(q.topic);}topics[q.topic].t++;if(fbOn(q)){topics[q.topic].g++;if(state.mcq[q.id]===q.a)topics[q.topic].c++;}});
+  h+='<div class="card rcard"><div class="row sp"><h3>Multiple choice by topic</h3><button class="btn ghost" type="button" data-act="reset-mcq">Try again</button></div><div class="topics">';
+  order.forEach(function(t){var x=topics[t];
+    h+='<div class="trow"><span>'+t+'</span><span class="track"><span class="fill" style="display:block;width:'+(x.g?Math.round(x.c/x.t*100):0)+'%"></span></span><b>'+(x.g?x.c+'/'+x.t:'–')+'</b></div>';});
+  h+='</div></div>';
+  /* structured by question */
+  h+='<div class="card rcard"><h3>Structured questions</h3><div class="topics">';
+  SQ.forEach(function(q,i){var a=stAwarded(q);
+    h+='<div class="trow"><span>Q'+(i+1)+' '+q.topic+'</span><span class="track"><span class="fill" style="display:block;width:'+Math.round(a.n/q.total*100)+'%"></span></span><b>'+(a.k?a.n+'/'+q.total:'–')+'</b></div>';});
+  h+='</div><p class="note">A dash means no marks have been awarded for that question yet. Open the question, show the mark scheme and tap the marks you earned for each part.</p><div class="row"><button class="btn ghost" type="button" data-act="goto" data-view="structured">Back to structured questions</button></div></div>';
+  el.innerHTML=h;
+}
+
+/* ---------- Paper 1 render ---------- */
+function mcqCard(q,i){
+  var ch=state.mcq[q.id],fb=fbOn(q);
+  var h='<div class="qhead"><span class="qnum">'+(i+1)+'</span><span class="tag">'+q.topic+'</span></div><p class="stem">'+q.q+'</p>'+(q.fig?q.fig():'');
+  h+='<div class="opts" role="radiogroup" aria-label="Question '+(i+1)+'">';
+  q.o.forEach(function(t,k){
+    var c='opt';if(ch===k)c+=' sel';if(fb){if(k===q.a)c+=' right';else if(ch===k)c+=' wrong';}
+    h+='<label class="'+c+'"><input type="radio" name="'+q.id+'" value="'+k+'"'+(ch===k?' checked':'')+(fb?' disabled':'')+'><span class="ltr">'+'ABCD'.charAt(k)+'</span><span class="otxt">'+t+'</span></label>';
+  });
+  h+='</div>';
+  if(fb){
+    var head=ch===undefined?'<b class="na">Not answered. The answer is '+'ABCD'.charAt(q.a)+'.</b>':(ch===q.a?'<b class="ok">Correct</b>':'<b class="no">Not quite. The answer is '+'ABCD'.charAt(q.a)+'.</b>');
+    h+='<div class="fb">'+head+'<span>'+q.why+'</span></div>';
+  }
+  return h;
+}
+function p1Intro(){
+  return '<div class="card intro"><h2>Multiple choice</h2><p>15 questions, 1 mark each. Choose the one best answer for each. Submit at the end to see your results, or switch on instant feedback to check each answer as you go.</p>'+
+   '<div class="row sp"><label class="switch"><input type="checkbox" id="instant"'+(state.instant?' checked':'')+'> Instant feedback</label><button class="btn ghost" data-act="reset-mcq" type="button">Clear answers</button></div></div>';
+}
+function dockHtml(){
+  var n=Object.keys(state.mcq).length;
+  if(state.submitted)return '<span>Submitted. Scores are in Results.</span><div class="row"><button class="btn ghost" data-act="goto" data-view="results" type="button">View results</button><button class="btn ghost" data-act="reset-mcq" type="button">Try again</button></div>';
+  return '<span>'+n+' of 15 answered</span><button class="btn" data-act="submit-mcq" type="button">Submit answers</button>';
+}
+function renderP1(){
+  var h=p1Intro();
+  MCQ.forEach(function(q,i){h+='<article class="card" id="c-'+q.id+'">'+mcqCard(q,i)+'</article>';});
+  h+='<div class="dock" id="dock">'+dockHtml()+'</div>';
+  $('#p1').innerHTML=h;
+}
+function refreshP1Meta(){
+  $('#dock').innerHTML=dockHtml();updateStats();
+}
+
+/* ---------- Paper 2 render ---------- */
+var clearArmed=false;
+function stCard(q,i){
+  var S=stGet(q.id),a=stAwarded(q);
+  var h='<div class="qhead"><span class="qnum">'+(i+1)+'</span><span class="tag">'+q.topic+'</span><span class="marks">'+q.total+' marks</span></div><p class="stem">'+q.intro+'</p>'+(q.fig?q.fig():'');
+  q.parts.forEach(function(p){
+    h+='<div class="part"><div class="prow"><span class="plab">('+p.l+')</span><div class="ptxt">'+p.q+'</div><span class="pm">['+p.m+']</span></div>';
+    h+='<textarea id="ta-'+q.id+'-'+p.l+'" data-q="'+q.id+'" data-p="'+p.l+'" aria-label="Your answer to question '+(i+1)+' part '+p.l+'" placeholder="Write your answer here">'+esc(S.t[p.l]||'')+'</textarea>';
+    if(S.rev){
+      h+='<div class="ms"><span class="mslabel">Mark scheme</span><div class="msa">'+p.a+'</div><div class="award" role="group" aria-label="Marks awarded for part '+p.l+'"><span>Marks you award:</span>';
+      for(var k=0;k<=p.m;k++){var on=S.m[p.l]===k;h+='<button type="button" class="chip'+(on?' on':'')+'" aria-pressed="'+on+'" data-act="chip" data-q="'+q.id+'" data-p="'+p.l+'" data-m="'+k+'">'+k+'</button>';}
+      h+='</div></div>';
+    }
+    h+='</div>';
+  });
+  if(S.rev&&q.model)h+=q.model();
+  h+='<div class="cardfoot"><button class="btn'+(S.rev?' ghost':'')+'" type="button" data-act="reveal" data-q="'+q.id+'">'+(S.rev?'Hide mark scheme':'Show mark scheme')+'</button>';
+  h+='<span class="got">'+(a.k?'Your marks: '+a.n+' / '+q.total+(a.k<q.parts.length?' (so far)':''):(S.rev?'Award marks above':'')) +'</span></div>';
+  return h;
+}
+function renderP2(){
+  var h='<div class="card intro"><h2>Structured questions</h2><p>8 questions, 68 marks. Write your working and answers in the boxes. Then show the mark scheme and award yourself marks for each part. Your answers are kept in this browser.</p>'+
+   '<div class="row sp"><span class="note">Calculations: show the formula, substitution and answer.</span><button class="btn ghost" type="button" data-act="clear-st" id="clearst">Clear all answers</button></div></div>';
+  SQ.forEach(function(q,i){h+='<article class="card" id="c-'+q.id+'">'+stCard(q,i)+'</article>';});
+  $('#p2').innerHTML=h;
+}
+
+/* ---------- events ---------- */
+var main=$('#main');
+main.addEventListener('change',function(e){
+  var t=e.target;
+  if(t.id==='instant'){state.instant=t.checked;save();rerenderAllMcq();return;}
+  if(t.type==='radio'&&t.name){
+    var q=MCQ.filter(function(x){return x.id===t.name;})[0];if(!q||fbOn(q))return;
+    state.mcq[q.id]=+t.value;save();
+    var i=MCQ.indexOf(q);
+    $('#c-'+q.id).innerHTML=mcqCard(q,i);
+    if(fbOn(q)){var el=$('#c-'+q.id+' .fb');}
+    refreshP1Meta();
+  }
+});
+function rerenderAllMcq(){MCQ.forEach(function(q,i){$('#c-'+q.id).innerHTML=mcqCard(q,i);});refreshP1Meta();}
+main.addEventListener('input',function(e){
+  var t=e.target;
+  if(t.tagName==='TEXTAREA'&&t.dataset.q){stGet(t.dataset.q).t[t.dataset.p]=t.value;save();}
+});
+main.addEventListener('click',function(e){
+  var b=e.target.closest('[data-act]');if(!b)return;
+  var act=b.dataset.act;
+  if(act==='submit-mcq'){state.submitted=true;save();rerenderAllMcq();location.hash='results';window.scrollTo(0,0);}
+  else if(act==='goto'){location.hash=b.dataset.view;window.scrollTo(0,0);}
+  else if(act==='reset-mcq'){state.mcq={};state.submitted=false;save();renderP1();updateStats();window.scrollTo(0,0);}
+  else if(act==='reveal'){
+    var S=stGet(b.dataset.q);S.rev=!S.rev;save();
+    var q=SQ.filter(function(x){return x.id===b.dataset.q;})[0];
+    $('#c-'+q.id).innerHTML=stCard(q,SQ.indexOf(q));updateStats();
+  }
+  else if(act==='chip'){
+    var S2=stGet(b.dataset.q);S2.m[b.dataset.p]=+b.dataset.m;save();
+    var q2=SQ.filter(function(x){return x.id===b.dataset.q;})[0];
+    $('#c-'+q2.id).innerHTML=stCard(q2,SQ.indexOf(q2));updateStats();
+  }
+  else if(act==='clear-st'){
+    if(!clearArmed){clearArmed=true;b.textContent='Click again to clear everything';setTimeout(function(){clearArmed=false;var c=$('#clearst');if(c)c.textContent='Clear all answers';},4000);}
+    else{clearArmed=false;state.st={};save();renderP2();updateStats();}
+  }
+});
+
+/* ---------- routing ---------- */
+var VIEWS={'multiple-choice':'p1','structured':'p2','results':'p3'};
+function route(){
+  var h=(location.hash||'').replace('#','');if(!VIEWS[h])h='multiple-choice';
+  Object.keys(VIEWS).forEach(function(k){
+    var on=k===h;$('#'+VIEWS[k]).hidden=!on;
+    var tab=$('.tab[data-view="'+k+'"]');tab.setAttribute('aria-selected',on?'true':'false');
+  });
+}
+document.querySelector('.tabs').addEventListener('click',function(e){
+  var t=e.target.closest('.tab');if(!t)return;
+  var cur=(location.hash||'').replace('#','')||'multiple-choice';
+  if(cur!==t.dataset.view){location.hash=t.dataset.view;}
+  window.scrollTo(0,0);
+});
+window.addEventListener('hashchange',route);
+
+renderP1();renderP2();route();updateStats();
+})();
+</script>
+
+</body></html>

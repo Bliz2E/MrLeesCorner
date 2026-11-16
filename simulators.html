@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Math & Physics Simulators | Mr Lee's Corner</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: Georgia, "Times New Roman", serif;
+    color: #fff3dc;
+    background: #2a1a0a url("background.jpeg") center / cover no-repeat fixed;
+    min-height: 100vh; display: flex; align-items: center; justify-content: center;
+    padding: 1.5rem;
+  }
+  body::before { content: ""; position: fixed; inset: 0; background: rgba(15,8,2,.7); }
+  .panel {
+    position: relative; max-width: 36rem; width: 100%;
+    padding: 2.5rem 2rem; border-radius: 16px;
+    background: rgba(26,16,6,.7); border: 1px solid rgba(242,180,90,.35);
+    backdrop-filter: blur(8px); text-align: center;
+  }
+  .tag { font-family: system-ui, sans-serif; font-size: .75rem; letter-spacing: .2em; text-transform: uppercase; color: #f2b45a; }
+  h1 { margin-top: .6rem; font-size: clamp(2rem, 5vw, 2.8rem); font-weight: normal; }
+  p { margin-top: 1rem; color: rgba(255,243,220,.8); }
+  a.back { display: inline-block; margin-top: 1.8rem; color: #f2b45a; text-decoration: none; font-family: system-ui, sans-serif; border-bottom: 1px solid rgba(242,180,90,.5); }
+  a.back:hover { border-color: #f2b45a; }
+  .topics { margin-top: 1.6rem; text-align: left; }
+  .topics details { margin-top: .7rem; border: 1px solid rgba(242,180,90,.35); border-radius: 10px; background: rgba(15,8,2,.35); }
+  .topics summary { cursor: pointer; list-style: none; padding: .8rem 1rem; font-size: 1.15rem; display: flex; justify-content: space-between; align-items: center; }
+  .topics summary::-webkit-details-marker { display: none; }
+  .topics summary::after { content: "+"; color: #f2b45a; font-family: system-ui, sans-serif; font-size: 1.3rem; }
+  .topics details[open] summary::after { content: "\2212"; }
+  .topics summary:hover { color: #f2b45a; }
+  .topics ul { list-style: none; padding: 0 1rem .8rem; }
+  .topics li a { display: block; padding: .45rem 0; color: rgba(255,243,220,.85); text-decoration: none; font-family: system-ui, sans-serif; font-size: .95rem; border-top: 1px solid rgba(242,180,90,.15); }
+  .topics li a:hover { color: #f2b45a; }
+</style>
+</head>
+<body>
+  <main class="panel">
+    <span class="tag">Math & Physics</span>
+    <h1>Simulators</h1>
+    <div class="topics">
+      <details>
+        <summary>E Math</summary>
+        <ul>
+          <li><a href="./Simulators/EMath/venn-diagram-simulator-v5.html">Sets & Venn Diagram Interactive Simulator</a></li>
+          <li><a href="./Simulators/EMath/venn_diagram_shading_studio.html">Custom Sets and Venn Diagrams shading</a></li>
+        </ul>
+      </details>
+      <details>
+        <summary>A Math</summary>
+        <ul>
+          <li><a href="./Simulators/AMath/R-Formula Lab.html">R-Formula Simulator</a></li>
+        </ul>
+      </details>
+      <details>
+        <summary>Pure Physics</summary>
+        <ul>
+          <li><a href="./Simulators/PurePhysics/lens_ray_simulator-v2.html">Lenses Diagram Simulator</a></li>
+          <li><a href="./Simulators/PurePhysics/wave_particle_simulator_longitudinal-v4.html">Longitudinal Wave Simulator</a></li>
+        </ul>
+      </details>
+      <details>
+        <summary>H2 Math</summary>
+        <ul>
+          <li><a href="h2-math-1.html">Coming soon</a></li>
+        </ul>
+      </details>
+    </div>
+    <a class="back" href="index.html">&larr; Back to Mr Lee's Corner</a>
+  </main>
+</body>
+</html>
