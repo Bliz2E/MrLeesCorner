@@ -1,0 +1,820 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tank Rate Problem Solver (Quadratic & Stacked Fractions)</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --tap-a-color: #3b82f6;
+            --tap-b-color: #06b6d4;
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --border-color: #cbd5e1;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            max-width: 980px;
+            width: 100%;
+            background: var(--card-bg);
+            padding: 25px 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        }
+
+        h1 {
+            margin-top: 0;
+            font-size: 1.5rem;
+            color: var(--primary-dark);
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 10px;
+        }
+
+        .problem-statement {
+            background: #eff6ff;
+            border-left: 4px solid var(--primary);
+            padding: 12px 16px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        /* Input Section */
+        .controls {
+            display: grid;
+            grid-template-columns: 1.2fr 1fr 0.9fr auto;
+            gap: 15px;
+            align-items: start;
+            background: #f1f5f9;
+            padding: 18px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-bottom: 5px;
+        }
+
+        input, select {
+            padding: 10px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 1rem;
+            font-family: 'Consolas', monospace;
+            background-color: #ffffff;
+            color: var(--text-main);
+        }
+
+        select {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            cursor: pointer;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+        }
+
+        .reminder {
+            font-size: 0.78rem;
+            color: #d97706;
+            font-weight: 600;
+            margin-top: 4px;
+        }
+
+        button {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 11px 22px;
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-top: 23px;
+            transition: background 0.2s;
+            white-space: nowrap;
+        }
+
+        button:hover {
+            background: var(--primary-dark);
+        }
+
+        .error-msg {
+            color: #dc2626;
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            padding: 10px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            display: none;
+            font-size: 0.9rem;
+        }
+
+        /* Main Workspace: Diagram + Working Steps */
+        .workspace {
+            display: grid;
+            grid-template-columns: 0.9fr 1.35fr;
+            gap: 25px;
+            align-items: start;
+        }
+
+        @media (max-width: 820px) {
+            .controls { grid-template-columns: 1fr; }
+            button { margin-top: 0; }
+            .workspace { grid-template-columns: 1fr; }
+        }
+
+        /* Diagram Container */
+        .diagram-box {
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 15px;
+            background: #ffffff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: sticky;
+            top: 20px;
+        }
+
+        .diagram-title {
+            font-weight: 600;
+            color: var(--text-muted);
+            margin-bottom: 10px;
+            font-size: 0.9rem;
+        }
+
+        svg {
+            width: 100%;
+            max-width: 330px;
+            height: auto;
+        }
+
+        .legend {
+            display: flex;
+            gap: 15px;
+            font-size: 0.85rem;
+            margin-top: 10px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 3px;
+        }
+
+        /* Working Steps Container */
+        .steps-box {
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 15px;
+            background: #fafafa;
+            min-height: 400px;
+        }
+
+        .steps-header {
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: var(--text-main);
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .speed-badge {
+            font-size: 0.8rem;
+            background: #e0e7ff;
+            color: #1e40af;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-weight: 600;
+        }
+
+        .step {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-left: 4px solid #cbd5e1;
+            padding: 12px 15px;
+            border-radius: 6px;
+            margin-bottom: 12px;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all 0.45s ease;
+        }
+
+        .step.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .step.active {
+            border-left-color: var(--primary);
+            box-shadow: 0 2px 8px rgba(37, 99, 235, 0.12);
+        }
+
+        .step.final {
+            border-left-color: #16a34a;
+            background: #f0fdf4;
+        }
+
+        .step-title {
+            font-weight: 700;
+            font-size: 0.88rem;
+            color: var(--primary-dark);
+            margin-bottom: 8px;
+        }
+
+        .step.final .step-title {
+            color: #15803d;
+        }
+
+        .math {
+            font-family: 'Cambria Math', 'Times New Roman', 'Consolas', serif;
+            font-size: 1.02rem;
+            color: #0f172a;
+            line-height: 1.8;
+        }
+
+        /* Stacked Vertical Fraction Styling (Never Inline) */
+        .math-line {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin: 6px 0;
+        }
+
+        .frac {
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+            vertical-align: middle;
+            margin: 2px 4px;
+            text-align: center;
+        }
+
+        .frac-num {
+            border-bottom: 1.5px solid #0f172a;
+            padding: 0 6px 2px 6px;
+            line-height: 1.25;
+        }
+
+        .frac-den {
+            padding: 2px 6px 0 6px;
+            line-height: 1.25;
+        }
+
+        .sqrt-wrap {
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .sqrt-rad {
+            border-top: 1.5px solid #0f172a;
+            padding: 1px 3px 0 2px;
+        }
+
+        .highlight-eq {
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            padding: 6px 10px;
+            border-radius: 5px;
+            display: inline-block;
+            margin: 4px 0;
+            font-weight: 600;
+            color: #1e3a8a;
+        }
+
+        .note-text {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            font-size: 0.85rem;
+            color: #475569;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Tank Filling Rate Problem Solver</h1>
+    
+    <div class="problem-statement">
+        <strong>Problem:</strong> Tap A fills a tank in <strong>x</strong> minutes. Tap B fills a tank in <strong>y</strong> minutes. 
+        When both taps are switched on, the whole tank can be filled in <strong>z</strong> minutes.<br>
+        <em>Find the time taken for both Tap A and Tap B individually to fill the tank.</em>
+    </div>
+
+    <!-- User Inputs -->
+    <div class="controls">
+        <div class="input-group">
+            <label for="exprY">Expression for y:</label>
+            <input type="text" id="exprY" value="x + 6" placeholder="e.g., x + 6 or 2x - 3">
+            <span class="reminder">⚠️ Reminder: y must be expressed in terms of x</span>
+        </div>
+
+        <div class="input-group">
+            <label for="valZ">Value of z (minutes):</label>
+            <input type="number" id="valZ" value="4" step="any" min="0.1" placeholder="e.g., 4">
+            <span class="reminder" style="color: #64748b;">Combined filling time</span>
+        </div>
+
+        <div class="input-group">
+            <label for="playSpeed">Play Speed:</label>
+            <select id="playSpeed">
+                <option value="0.1">0.1x (Very Slow)</option>
+                <option value="0.25">0.25x (Slow)</option>
+                <option value="0.5">0.5x (Half Speed)</option>
+                <option value="1" selected>1x (Normal)</option>
+            </select>
+            <span class="reminder" style="color: #64748b;">Animation & step pace</span>
+        </div>
+
+        <button id="solveBtn" onclick="startSimulation()">Solve & Animate</button>
+    </div>
+
+    <div id="errorBox" class="error-msg"></div>
+
+    <!-- Diagram & Working Steps -->
+    <div class="workspace">
+        <!-- Diagram Below Inputs -->
+        <div class="diagram-box">
+            <div class="diagram-title">Live Tank Simulation</div>
+            <svg viewBox="0 0 320 300" id="tankSvg">
+                <!-- Tap A (Left & Above Tank) -->
+                <g id="tapA">
+                    <path d="M 10 35 L 75 35 L 75 55 L 60 55 L 60 47 L 10 47 Z" fill="#475569"/>
+                    <rect x="35" y="22" width="24" height="6" rx="2" fill="#3b82f6"/>
+                    <rect x="44" y="28" width="6" height="7" fill="#334155"/>
+                    <text x="12" y="20" font-size="13" font-weight="bold" fill="#1e293b">Tap A (x min)</text>
+                </g>
+
+                <!-- Tap B (Right & Above Tank) -->
+                <g id="tapB">
+                    <path d="M 310 35 L 245 35 L 245 55 L 260 55 L 260 47 L 310 47 Z" fill="#475569"/>
+                    <rect x="261" y="22" width="24" height="6" rx="2" fill="#06b6d4"/>
+                    <rect x="270" y="28" width="6" height="7" fill="#334155"/>
+                    <text x="220" y="20" font-size="13" font-weight="bold" fill="#1e293b">Tap B (y min)</text>
+                </g>
+
+                <!-- Water Streams (Animated) -->
+                <rect id="streamA" x="63" y="55" width="9" height="0" fill="#3b82f6" opacity="0.8"/>
+                <rect id="streamB" x="248" y="55" width="9" height="0" fill="#06b6d4" opacity="0.8"/>
+
+                <!-- Water Fill Inside Tank -->
+                <rect id="waterA" x="54" y="266" width="212" height="0" fill="#3b82f6" opacity="0.85"/>
+                <rect id="waterB" x="54" y="266" width="212" height="0" fill="#06b6d4" opacity="0.85"/>
+
+                <!-- Tank Walls (Open Top) -->
+                <path d="M 50 85 L 50 270 L 270 270 L 270 85" fill="none" stroke="#1e293b" stroke-width="6" stroke-linejoin="round"/>
+
+                <!-- Percentage & Timer Overlay -->
+                <text id="tankPercent" x="160" y="185" text-anchor="middle" font-size="22" font-weight="bold" fill="#0f172a">0%</text>
+                <text id="tankTimer" x="160" y="208" text-anchor="middle" font-size="13" font-weight="600" fill="#334155">Time: 0.0 min</text>
+            </svg>
+
+            <div class="legend">
+                <div class="legend-item"><div class="dot" style="background:#3b82f6;"></div><span id="legendA">Tap A share</span></div>
+                <div class="legend-item"><div class="dot" style="background:#06b6d4;"></div><span id="legendB">Tap B share</span></div>
+            </div>
+        </div>
+
+        <div class="steps-box">
+            <div class="steps-header">
+                <span>Step-by-Step Working</span>
+                <span class="speed-badge" id="speedIndicator">Speed: 1x</span>
+            </div>
+            <div id="stepsContainer">
+                <div style="color: #64748b; font-size: 0.9rem;">Enter values and click "Solve & Animate" to view steps.</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let animationFrameId = null;
+    let stepTimers = [];
+
+    // Helper to render stacked vertical HTML fractions (never inline a/b)
+    function frac(numerator, denominator) {
+        return `<span class="frac"><span class="frac-num">${numerator}</span><span class="frac-den">${denominator}</span></span>`;
+    }
+
+    // Helper to render square root with overbar
+    function sqrtHtml(inner) {
+        return `<span class="sqrt-wrap">√<span class="sqrt-rad">${inner}</span></span>`;
+    }
+
+    // Parse linear expression y = m*x + k (supports e.g. "x + 6", "2x - 3", "6 + x", "1.5x", "0.5x + 4")
+    function parseLinearY(exprStr) {
+        let cleaned = exprStr.toLowerCase().replace(/\s+/g, '');
+        if (!cleaned.includes('x')) {
+            throw new Error("The expression for y must contain the variable 'x'.");
+        }
+        if (/[^0-9x+\-*/().^]/.test(cleaned)) {
+            throw new Error("Invalid characters in expression. Use numbers, 'x', and +, -, *, /.");
+        }
+        // Prepare JS expression for numerical evaluation
+        let jsExpr = cleaned
+            .replace(/(\d)(x|\()/g, '$1*$2')
+            .replace(/(x|\))(\d|x|\()/g, '$1*$2')
+            .replace(/\^/g, '**');
+
+        let fn;
+        try {
+            fn = new Function('x', `return ${jsExpr};`);
+        } catch (e) {
+            throw new Error("Invalid algebraic syntax in expression for y.");
+        }
+
+        // Verify linearity by checking second differences so we can build exact quadratic coefficients ax² + bx + c = 0
+        const y0 = fn(0);
+        const y1 = fn(1);
+        const y2 = fn(2);
+
+        if (!isFinite(y0) || !isFinite(y1) || !isFinite(y2)) {
+            throw new Error("Could not evaluate expression for y.");
+        }
+
+        const diff1 = y1 - y0;
+        const diff2 = y2 - y1;
+        if (Math.abs(diff1 - diff2) > 1e-7) {
+            throw new Error("Please enter a linear expression for y in terms of x (e.g., x + 6 or 2x - 3) so it forms a standard quadratic equation.");
+        }
+
+        return {
+            m: diff1, // coefficient of x
+            k: y0,    // constant term
+            fn: fn
+        };
+    }
+
+    function formatNum(num) {
+        if (Math.abs(num) < 1e-9) return "0";
+        return Number.isInteger(num) ? num.toString() : parseFloat(num.toFixed(4)).toString();
+    }
+
+    function formatShort(num) {
+        if (Math.abs(num) < 1e-9) return "0";
+        return Number.isInteger(num) ? num.toString() : parseFloat(num.toFixed(2)).toString();
+    }
+
+    // Format quadratic equation ax² + bx + c = 0 cleanly
+    function formatQuadratic(a, b, c) {
+        let parts = [];
+        // ax² term
+        if (a === 1) parts.push("x²");
+        else if (a === -1) parts.push("-x²");
+        else parts.push(`${formatNum(a)}x²`);
+
+        // bx term
+        if (b !== 0) {
+            const signB = b > 0 ? " + " : " - ";
+            const absB = Math.abs(b);
+            parts.push(`${signB}${absB === 1 ? "" : formatNum(absB)}x`);
+        }
+
+        // c term
+        if (c !== 0) {
+            const signC = c > 0 ? " + " : " - ";
+            parts.push(`${signC}${formatNum(Math.abs(c))}`);
+        }
+
+        return parts.join("") + " = 0";
+    }
+
+    // Format linear expression m*x + k cleanly
+    function formatLinear(m, k) {
+        let str = "";
+        if (m === 1) str += "x";
+        else if (m === -1) str += "-x";
+        else str += `${formatNum(m)}x`;
+
+        if (k > 0) str += ` + ${formatNum(k)}`;
+        else if (k < 0) str += ` - ${formatNum(Math.abs(k))}`;
+        return str;
+    }
+
+    function clearPreviousRun() {
+        if (animationFrameId) cancelAnimationFrame(animationFrameId);
+        stepTimers.forEach(t => clearTimeout(t));
+        stepTimers = [];
+        document.getElementById('errorBox').style.display = 'none';
+    }
+
+    function startSimulation() {
+        clearPreviousRun();
+
+        const rawY = document.getElementById('exprY').value.trim();
+        const z = parseFloat(document.getElementById('valZ').value);
+        const speed = parseFloat(document.getElementById('playSpeed').value) || 1;
+        const errorBox = document.getElementById('errorBox');
+
+        document.getElementById('speedIndicator').textContent = `Speed: ${speed}x`;
+
+        try {
+            if (!rawY) throw new Error("Please enter an expression for y.");
+            if (isNaN(z) || z <= 0) throw new Error("Please enter a valid positive number for z.");
+
+            const { m, k, fn } = parseLinearY(rawY);
+            if (m <= 0 && k <= z) {
+                throw new Error("Tap B must have a positive filling time greater than z.");
+            }
+
+            // Derivation of quadratic equation:
+            // 1/x + 1/(mx + k) = 1/z
+            // [(mx + k) + x] / [x(mx + k)] = 1/z
+            // z((m + 1)x + k) = mx² + kx
+            // mx² + (k - z(m + 1))x - zk = 0
+            let a = m;
+            let b = k - z * (m + 1);
+            let c = -z * k;
+
+            // Normalize if a < 0 so leading coefficient is positive
+            if (a < 0) {
+                a = -a;
+                b = -b;
+                c = -c;
+            }
+
+            const discriminant = (b * b) - (4 * a * c);
+            if (discriminant < 0) {
+                throw new Error("No real solution exists (discriminant b² - 4ac < 0). Check your inputs.");
+            }
+
+            const sqrtDisc = Math.sqrt(discriminant);
+            const root1 = (-b + sqrtDisc) / (2 * a);
+            const root2 = (-b - sqrtDisc) / (2 * a);
+
+            // Pick valid root where both x > z and y(x) > z
+            let xSol = null;
+            let rejectedRoot = null;
+
+            if (root1 > z && fn(root1) > z) {
+                xSol = root1;
+                rejectedRoot = root2;
+            } else if (root2 > z && fn(root2) > z) {
+                xSol = root2;
+                rejectedRoot = root1;
+            } else {
+                throw new Error("No physically valid positive solution found where both taps take longer than z individually.");
+            }
+
+            const ySol = fn(xSol);
+            const shareA = z / xSol;
+            const shareB = z / ySol;
+
+            buildSteps({
+                rawY, m, k, z,
+                a, b, c, discriminant, sqrtDisc,
+                root1, root2, xSol, rejectedRoot, ySol,
+                shareA, shareB
+            });
+
+            animateTankAndSteps(z, xSol, ySol, shareA, shareB, speed);
+
+        } catch (err) {
+            errorBox.textContent = err.message;
+            errorBox.style.display = 'block';
+        }
+    }
+
+    function buildSteps(data) {
+        const container = document.getElementById('stepsContainer');
+        const {
+            m, k, z, a, b, c, discriminant, sqrtDisc,
+            xSol, rejectedRoot, ySol, shareA, shareB
+        } = data;
+
+        const linY = formatLinear(m, k);
+        const zStr = formatNum(z);
+        const aStr = formatNum(a);
+        const bStr = formatNum(b);
+        const cStr = formatNum(c);
+        const bParen = b < 0 ? `(${bStr})` : bStr;
+        const cParen = c < 0 ? `(${cStr})` : cStr;
+        const negB = formatNum(-b);
+        const discStr = formatNum(discriminant);
+        const sqrtDiscStr = formatShort(sqrtDisc);
+        const twoA = formatNum(2 * a);
+        const quadEqStr = formatQuadratic(a, b, c);
+
+        const xStr = formatShort(xSol);
+        const rejStr = formatShort(rejectedRoot);
+        const yStr = formatShort(ySol);
+
+        const sumCoeff = formatNum(m + 1);
+        const lhsExpanded = `${formatNum(z * (m + 1))}x ${z * k >= 0 ? '+ ' + formatNum(z * k) : '- ' + formatNum(Math.abs(z * k))}`;
+        const rhsExpanded = `${a === 1 ? '' : aStr}x² ${k >= 0 ? '+ ' + formatNum(k) + 'x' : '- ' + formatNum(Math.abs(k)) + 'x'}`;
+
+        const stepsData = [
+            {
+                title: "Step 1: Set up the combined rate equation",
+                math: `
+                    <div class="math-line">
+                        <span>In 1 minute: Tap A fills</span> ${frac("1", "x")}
+                        <span>of the tank, and Tap B fills</span> ${frac("1", linY)}
+                        <span>of the tank.</span>
+                    </div>
+                    <div class="math-line">
+                        <span>Together, both taps fill</span> ${frac("1", zStr)}
+                        <span>of the tank in 1 minute:</span>
+                    </div>
+                    <div class="math-line" style="margin-top:8px;">
+                        ${frac("1", "x")} <span>+</span> ${frac("1", linY)} <span>=</span> ${frac("1", zStr)}
+                    </div>
+                `
+            },
+            {
+                title: "Step 2: Form the quadratic equation",
+                math: `
+                    <div class="math-line">
+                        <span>Combine the fractions on the left-hand side:</span>
+                    </div>
+                    <div class="math-line">
+                        ${frac(`(${linY}) + x`, `x(${linY})`)} <span>=</span> ${frac("1", zStr)}
+                    </div>
+                    <div class="math-line">
+                        ${frac(`${sumCoeff}x ${k >= 0 ? '+ ' + formatNum(k) : '- ' + formatNum(Math.abs(k))}`, rhsExpanded)} <span>=</span> ${frac("1", zStr)}
+                    </div>
+                    <div class="math-line">
+                        <span>Cross-multiply and expand:</span>
+                    </div>
+                    <div class="math-line">
+                        <span>${zStr}(${sumCoeff}x ${k >= 0 ? '+ ' + formatNum(k) : '- ' + formatNum(Math.abs(k))}) = ${rhsExpanded}</span>
+                    </div>
+                    <div class="math-line">
+                        <span>${lhsExpanded} = ${rhsExpanded}</span>
+                    </div>
+                    <div class="math-line">
+                        <span>Rearrange into standard quadratic form (ax² + bx + c = 0):</span>
+                    </div>
+                    <div class="highlight-eq">${quadEqStr}</div>
+                    <div class="note-text">Coefficients: <strong>a = ${aStr}</strong>, <strong>b = ${bStr}</strong>, <strong>c = ${cStr}</strong></div>
+                `
+            },
+            {
+                title: "Step 3: Solve using the quadratic formula",
+                math: `
+                    <div class="math-line">
+                        <span>x =</span> ${frac(`-b ± ${sqrtHtml("b² - 4ac")}`, "2a")}
+                    </div>
+                    <div class="math-line">
+                        <span>x =</span> ${frac(`-${bParen} ± ${sqrtHtml(`${bParen}² - 4(${aStr})${cParen}`)}`, `2(${aStr})`)}
+                    </div>
+                    <div class="math-line">
+                        <span>x =</span> ${frac(`${negB} ± ${sqrtHtml(discStr)}`, twoA)}
+                        <span>=</span> ${frac(`${negB} ± ${sqrtDiscStr}`, twoA)}
+                    </div>
+                    <div class="math-line" style="margin-top:8px;">
+                        <span>x =</span> ${frac(`${negB} + ${sqrtDiscStr}`, twoA)} <span>= <strong>${xStr}</strong></span>
+                        <span style="margin: 0 8px;">or</span>
+                        <span>x =</span> ${frac(`${negB} - ${sqrtDiscStr}`, twoA)} <span>= ${rejStr}</span>
+                    </div>
+                    <div class="note-text">Since time must be greater than z (${zStr} min), we reject x = ${rejStr}. Thus, <strong>x = ${xStr}</strong>.</div>
+                `
+            },
+            {
+                title: "Step 4: Substitute x to find y",
+                math: `
+                    <div class="math-line">
+                        <span>y = ${linY}</span>
+                    </div>
+                    <div class="math-line">
+                        <span>y = ${m === 1 ? "" : formatNum(m) + "("}${xStr}${m === 1 ? "" : ")"} ${k >= 0 ? '+ ' + formatNum(k) : '- ' + formatNum(Math.abs(k))}</span>
+                    </div>
+                    <div class="highlight-eq">y = ${yStr}</div>
+                `
+            },
+            {
+                title: "Final Answer",
+                math: `
+                    <div class="math-line">• Time taken by Tap A alone = <strong>${xStr} minutes</strong> (${Math.round(shareA * 100)}% of tank)</div>
+                    <div class="math-line">• Time taken by Tap B alone = <strong>${yStr} minutes</strong> (${Math.round(shareB * 100)}% of tank)</div>
+                `,
+                isFinal: true
+            }
+        ];
+
+        container.innerHTML = stepsData.map((s, idx) => `
+            <div class="step ${s.isFinal ? 'final' : ''}" id="step-${idx}">
+                <div class="step-title">${s.title}</div>
+                <div class="math">${s.math}</div>
+            </div>
+        `).join('');
+    }
+
+    function animateTankAndSteps(z, xSol, ySol, shareA, shareB, speed) {
+        const streamA = document.getElementById('streamA');
+        const streamB = document.getElementById('streamB');
+        const waterA = document.getElementById('waterA');
+        const waterB = document.getElementById('waterB');
+        const tankPercent = document.getElementById('tankPercent');
+        const tankTimer = document.getElementById('tankTimer');
+
+        document.getElementById('legendA').textContent = `Tap A (${Math.round(shareA * 100)}%)`;
+        document.getElementById('legendB').textContent = `Tap B (${Math.round(shareB * 100)}%)`;
+
+        // Base duration at 1x is 6000ms (1.2s per step across 5 steps); scaled inversely by play speed
+        const baseDuration = 6000;
+        const totalDuration = baseDuration / speed;
+        const stepInterval = totalDuration / 5;
+
+        const tankBottomY = 266;
+        const maxWaterHeight = 176;
+        let startTime = null;
+
+        // Reveal steps sequentially in sync with tank filling progress
+        for (let i = 0; i < 5; i++) {
+            const timer = setTimeout(() => {
+                document.querySelectorAll('.step').forEach(el => el.classList.remove('active'));
+                const stepEl = document.getElementById(`step-${i}`);
+                if (stepEl) {
+                    stepEl.classList.add('visible', 'active');
+                    stepEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                }
+            }, i * stepInterval);
+            stepTimers.push(timer);
+        }
+
+        function frame(timestamp) {
+            if (!startTime) startTime = timestamp;
+            const elapsed = timestamp - startTime;
+            const progress = Math.min(elapsed / totalDuration, 1);
+
+            const currentTotalHeight = progress * maxWaterHeight;
+            const heightA = currentTotalHeight * shareA;
+            const heightB = currentTotalHeight * shareB;
+
+            // Update Tap A water rectangle (bottom layer)
+            const yA = tankBottomY - heightA;
+            waterA.setAttribute('y', yA);
+            waterA.setAttribute('height', heightA);
+
+            // Update Tap B water rectangle (stacked on top of Tap A's water)
+            const yB = yA - heightB;
+            waterB.setAttribute('y', yB);
+            waterB.setAttribute('height', heightB);
+
+            // Update falling streams
+            if (progress < 1) {
+                const streamHeight = Math.max(0, yB - 55);
+                streamA.setAttribute('height', streamHeight);
+                streamB.setAttribute('height', streamHeight);
+            } else {
+                streamA.setAttribute('height', 0);
+                streamB.setAttribute('height', 0);
+            }
+
+            // Update text readout inside tank
+            const pct = Math.round(progress * 100);
+            const currentMin = (progress * z).toFixed(1);
+            tankPercent.textContent = `${pct}%`;
+            tankTimer.textContent = `Time: ${currentMin} / ${formatShort(z)} min`;
+
+            if (progress < 1) {
+                animationFrameId = requestAnimationFrame(frame);
+            }
+        }
+
+        waterA.setAttribute('height', 0);
+        waterB.setAttribute('height', 0);
+        animationFrameId = requestAnimationFrame(frame);
+    }
+
+    window.onload = startSimulation;
+</script>
+
+</body>
+</html>
