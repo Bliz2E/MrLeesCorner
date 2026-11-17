@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Quadratic Equation Solver</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+            --accent-red: #dc2626;
+            --accent-green: #16a34a;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        header h1 {
+            font-size: 1.8rem;
+            color: var(--text-main);
+        }
+
+        header p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            max-width: 1280px;
+            margin: 0 auto;
+        }
+
+        @media (max-width: 900px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .panel {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+            border: 1px solid var(--border-color);
+        }
+
+        .input-group {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            background: #f1f5f9;
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .input-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        input[type="number"] {
+            width: 75px;
+            padding: 8px 10px;
+            font-size: 1.1rem;
+            border: 2px solid #cbd5e1;
+            border-radius: 6px;
+            text-align: center;
+            font-weight: 600;
+            color: var(--primary);
+            transition: border-color 0.2s;
+        }
+
+        input[type="number"]:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .method-selector {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .method-btn {
+            flex: 1;
+            padding: 10px 16px;
+            border: 2px solid var(--border-color);
+            background: #fff;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: var(--text-muted);
+        }
+
+        .method-btn.active {
+            border-color: var(--primary);
+            background: #eff6ff;
+            color: var(--primary);
+        }
+
+        .steps-container h2 {
+            font-size: 1.2rem;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .step-card {
+            background: #f8fafc;
+            border-left: 4px solid var(--primary);
+            padding: 12px 16px;
+            margin-bottom: 12px;
+            border-radius: 0 6px 6px 0;
+        }
+
+        .step-title {
+            font-weight: 700;
+            font-size: 0.9rem;
+            color: var(--primary);
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            margin-bottom: 4px;
+        }
+
+        .step-math {
+            font-family: "Courier New", Courier, monospace;
+            font-size: 1.05rem;
+            font-weight: 600;
+            color: var(--text-main);
+            margin: 4px 0;
+        }
+
+        .step-desc {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        .frac {
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+            vertical-align: middle;
+            text-align: center;
+            margin: 0 4px;
+            line-height: 1.25;
+        }
+
+        .frac .num {
+            padding: 0 4px 2px;
+            border-bottom: 1.5px solid currentColor;
+        }
+
+        .frac .den {
+            padding: 2px 4px 0;
+        }
+
+        .alert-warning {
+            background: #fef2f2;
+            border-left: 4px solid var(--accent-red);
+            padding: 16px;
+            border-radius: 0 8px 8px 0;
+            margin-top: 16px;
+        }
+
+        .alert-warning h3 {
+            color: var(--accent-red);
+            font-size: 1rem;
+            margin-bottom: 6px;
+        }
+
+        .alert-warning p {
+            font-size: 0.9rem;
+            color: #7f1d1d;
+        }
+
+        .graph-panel {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .graph-header {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .graph-header h2 {
+            font-size: 1.2rem;
+        }
+
+        .legend {
+            display: flex;
+            gap: 14px;
+            font-size: 0.85rem;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        canvas {
+            width: 100%;
+            max-width: 550px;
+            height: auto;
+            aspect-ratio: 1 / 1;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background: #ffffff;
+        }
+
+        .graph-note {
+            margin-top: 14px;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            text-align: center;
+            background: #f1f5f9;
+            padding: 10px 14px;
+            border-radius: 6px;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>Quadratic Equation Solver & Visualizer</h1>
+    <p>Enter the coefficients for <strong>ax² + bx + c = 0</strong> to see step-by-step solutions and dynamic graphing.</p>
+</header>
+
+<div class="container">
+    <!-- Left Column: Inputs & Algebraic Steps -->
+    <div class="panel">
+        <div class="input-group">
+            <div class="input-wrapper">
+                <input type="number" id="coeffA" value="1" step="any" aria-label="Coefficient a">
+                <span>x² +</span>
+            </div>
+            <div class="input-wrapper">
+                <input type="number" id="coeffB" value="-3" step="any" aria-label="Coefficient b">
+                <span>x +</span>
+            </div>
+            <div class="input-wrapper">
+                <input type="number" id="coeffC" value="-4" step="any" aria-label="Constant c">
+                <span>= 0</span>
+            </div>
+        </div>
+
+        <div class="method-selector">
+            <button class="method-btn active" id="btnFormula" onclick="setMethod('formula')">Quadratic Formula</button>
+            <button class="method-btn" id="btnSquare" onclick="setMethod('square')">Completing the Square</button>
+        </div>
+
+        <div class="steps-container" id="stepsOutput">
+            <!-- Steps dynamically injected here -->
+        </div>
+    </div>
+
+    <!-- Right Column: Dynamic Graph -->
+    <div class="panel graph-panel">
+        <div class="graph-header">
+            <h2>Graph: y = ax² + bx + c</h2>
+            <div class="legend">
+                <div class="legend-item"><span class="dot" style="background: #2563eb;"></span>Parabola</div>
+                <div class="legend-item"><span class="dot" style="background: #dc2626;"></span>Roots (x-intercepts)</div>
+                <div class="legend-item"><span class="dot" style="background: #16a34a;"></span>Vertex</div>
+            </div>
+        </div>
+        <canvas id="graphCanvas" width="600" height="600"></canvas>
+        <div class="graph-note" id="graphNote">
+            The red dots on the horizontal x-axis indicate the x-intercepts, which correspond directly to the real roots found.
+        </div>
+    </div>
+</div>
+
+<script>
+    let currentMethod = 'formula';
+
+    const inputA = document.getElementById('coeffA');
+    const inputB = document.getElementById('coeffB');
+    const inputC = document.getElementById('coeffC');
+    const stepsOutput = document.getElementById('stepsOutput');
+    const graphNote = document.getElementById('graphNote');
+    const canvas = document.getElementById('graphCanvas');
+    const ctx = canvas.getContext('2d');
+
+    [inputA, inputB, inputC].forEach(input => {
+        input.addEventListener('input', updateAll);
+    });
+
+    function setMethod(method) {
+        currentMethod = method;
+        document.getElementById('btnFormula').classList.toggle('active', method === 'formula');
+        document.getElementById('btnSquare').classList.toggle('active', method === 'square');
+        updateAll();
+    }
+
+    function fmt(num) {
+        if (Math.abs(num) < 1e-10) return "0";
+        return Number.isInteger(num) ? num.toString() : num.toFixed(3).replace(/\.?0+$/, '');
+    }
+
+    function fmtSign(num) {
+        return num >= 0 ? `+ ${fmt(num)}` : `- ${fmt(Math.abs(num))}`;
+    }
+
+    // Stacked fraction (numerator over denominator, not inline)
+    function fr(n, d) {
+        return `<span class="frac"><span class="num">${n}</span><span class="den">${d}</span></span>`;
+    }
+
+    // Convert a number to a rational (p/q) if a small denominator fits
+    function toRational(x) {
+        if (Number.isInteger(x)) return null;
+        for (let q = 2; q <= 1000; q++) {
+            const p = Math.round(x * q);
+            if (Math.abs(x - p / q) < 1e-9) return [p, q];
+        }
+        return null;
+    }
+
+    // Format a number; non-integers that are rational show as stacked fractions
+    function fmtF(num) {
+        if (Math.abs(num) < 1e-10) return "0";
+        const r = toRational(num);
+        if (!r) return fmt(num);
+        const sign = r[0] < 0 ? "-" : "";
+        return `${sign}${fr(Math.abs(r[0]), r[1])}`;
+    }
+
+    // Signed version: "+ x" or "- x" with stacked fractions
+    function fmtSignF(num) {
+        return num >= 0 ? `+ ${fmtF(num)}` : `- ${fmtF(Math.abs(num))}`;
+    }
+
+    function updateAll() {
+        const a = parseFloat(inputA.value);
+        const b = parseFloat(inputB.value);
+        const c = parseFloat(inputC.value);
+
+        if (isNaN(a) || isNaN(b) || isNaN(c)) {
+            stepsOutput.innerHTML = `<div class="step-card"><div class="step-desc">Please enter valid numbers for all coefficients.</div></div>`;
+            return;
+        }
+
+        if (a === 0) {
+            handleLinearCase(b, c);
+            drawGraph(0, b, c, []);
+            return;
+        }
+
+        const discriminant = (b * b) - (4 * a * c);
+        let roots = [];
+
+        if (discriminant > 0) {
+            const r1 = (-b + Math.sqrt(discriminant)) / (2 * a);
+            const r2 = (-b - Math.sqrt(discriminant)) / (2 * a);
+            roots = [r1, r2].sort((x, y) => x - y);
+        } else if (discriminant === 0) {
+            roots = [-b / (2 * a)];
+        }
+
+        if (currentMethod === 'formula') {
+            renderQuadraticFormula(a, b, c, discriminant, roots);
+        } else {
+            renderCompletingSquare(a, b, c, discriminant, roots);
+        }
+
+        drawGraph(a, b, c, roots);
+        updateGraphNote(a, discriminant, roots);
+    }
+
+    function handleLinearCase(b, c) {
+        let html = `<h2>Not a Quadratic Equation (a = 0)</h2>`;
+        html += `<div class="alert-warning">
+                    <h3>Coefficient a cannot be 0</h3>
+                    <p>When <strong>a = 0</strong>, the x² term disappears, turning this into a linear equation: <strong>${fmt(b)}x ${fmtSign(c)} = 0</strong>.</p>
+                 </div>`;
+        if (b !== 0) {
+            const root = -c / b;
+            html += `<div class="step-card" style="margin-top:12px;">
+                        <div class="step-title">Linear Solution</div>
+                        <div class="step-math">x = ${fr(fmt(-c), fmt(b))} = ${fmtF(root)}</div>
+                     </div>`;
+            graphNote.innerHTML = `Since <strong>a = 0</strong>, the graph is a straight line crossing the x-axis at <strong>x = ${fmt(root)}</strong>.`;
+        } else {
+            graphNote.innerHTML = `Since <strong>a = 0</strong> and <strong>b = 0</strong>, this is a horizontal line y = ${fmt(c)}.`;
+        }
+        stepsOutput.innerHTML = html;
+    }
+
+    function renderQuadraticFormula(a, b, c, disc, roots) {
+        let html = `<h2>Step-by-Step: Quadratic Formula</h2>`;
+
+        html += `<div class="step-card">
+                    <div class="step-title">Step 1: Identify Coefficients & Formula</div>
+                    <div class="step-math">x = ${fr('-b ± √(b² - 4ac)', '2a')}</div>
+                    <div class="step-desc">Here, a = ${fmt(a)}, b = ${fmt(b)}, and c = ${fmt(c)}.</div>
+                 </div>`;
+
+        html += `<div class="step-card">
+                    <div class="step-title">Step 2: Calculate the Discriminant (Δ = b² - 4ac)</div>
+                    <div class="step-math">Δ = (${fmt(b)})² - 4(${fmt(a)})(${fmt(c)})</div>
+                    <div class="step-math">Δ = ${fmt(b * b)} - (${fmt(4 * a * c)}) = ${fmt(disc)}</div>
+                    <div class="step-desc">${disc > 0 ? 'Δ > 0: Two distinct real roots exist.' : disc === 0 ? 'Δ = 0: Exactly one real root (repeated) exists.' : 'Δ < 0: Negative discriminant means no real roots exist.'}</div>
+                 </div>`;
+
+        if (disc > 0) {
+            html += `<div class="step-card">
+                        <div class="step-title">Step 3: Substitute into Formula</div>
+                        <div class="step-math">x = ${fr(`-(${fmt(b)}) ± √${fmt(disc)}`, `2(${fmt(a)})`)}</div>
+                        <div class="step-math">x = ${fr(`${fmt(-b)} ± ${fmt(Math.sqrt(disc))}`, fmt(2 * a))}</div>
+                     </div>
+                     <div class="step-card" style="border-left-color: var(--accent-red);">
+                        <div class="step-title" style="color: var(--accent-red);">Step 4: Final Real Roots (x-intercepts)</div>
+                        <div class="step-math">x₁ = ${fmt(roots[0])} &nbsp;&nbsp;and&nbsp;&nbsp; x₂ = ${fmt(roots[1])}</div>
+                        <div class="step-desc">These values correspond to the x-intercepts (${fmt(roots[0])}, 0) and (${fmt(roots[1])}, 0) on the graph.</div>
+                     </div>`;
+        } else if (disc === 0) {
+            html += `<div class="step-card" style="border-left-color: var(--accent-red);">
+                        <div class="step-title" style="color: var(--accent-red);">Step 3: Final Real Root (Vertex on x-axis)</div>
+                        <div class="step-math">x = ${fr(fmt(-b), fmt(2 * a))} = ${fmtF(roots[0])}</div>
+                        <div class="step-desc">The parabola touches the x-axis at a single point: (${fmt(roots[0])}, 0).</div>
+                     </div>`;
+        } else {
+            const realPart = -b / (2 * a);
+            const imagPart = Math.sqrt(Math.abs(disc)) / Math.abs(2 * a);
+            html += `<div class="alert-warning">
+                        <h3>No Real Solutions (Complex Roots Only)</h3>
+                        <p>Because the discriminant is negative (<strong>${fmt(disc)}</strong>), taking the square root of a negative number does not produce a real number.</p>
+                        <p style="margin-top:6px;"><strong>Geometrical Meaning:</strong> The parabola never crosses or touches the horizontal x-axis.</p>
+                        <div class="step-math" style="margin-top:8px; font-size:0.95rem;">Complex Roots: x = ${fmt(realPart)} ± ${fmt(imagPart)}i</div>
+                     </div>`;
+        }
+
+        stepsOutput.innerHTML = html;
+    }
+
+    function renderCompletingSquare(a, b, c, disc, roots) {
+        let html = `<h2>Step-by-Step: Completing the Square</h2>`;
+        const bOverA = b / a;
+        const cOverA = c / a;
+        const halfB = bOverA / 2;
+        const halfBSq = halfB * halfB;
+        const rhs = -cOverA + halfBSq;
+
+        html += `<div class="step-card">
+                    <div class="step-title">Step 1: Divide by 'a' (if a ≠ 1) & Move Constant</div>
+                    <div class="step-math">x² ${fmtSignF(bOverA)}x = ${fmtF(-cOverA)}</div>
+                    <div class="step-desc">Ensure the coefficient of x² is 1, and move the constant term to the right side.</div>
+                 </div>`;
+
+        html += `<div class="step-card">
+                    <div class="step-title">Step 2: Add (b/2a)² to Both Sides</div>
+                    <div class="step-math">(${fr(fmtF(bOverA), 2)})² = (${fmtF(halfB)})² = ${fmtF(halfBSq)}</div>
+                    <div class="step-math">x² ${fmtSignF(bOverA)}x + ${fmtF(halfBSq)} = ${fmtF(-cOverA)} + ${fmtF(halfBSq)}</div>
+                 </div>`;
+
+        html += `<div class="step-card">
+                    <div class="step-title">Step 3: Factor the Perfect Square Trinomial</div>
+                    <div class="step-math">(x ${fmtSignF(halfB)})² = ${fmtF(rhs)}</div>
+                    <div class="step-desc">The left side is now written as a squared binomial.</div>
+                 </div>`;
+
+        if (rhs > 0) {
+            const sqrtRhs = Math.sqrt(rhs);
+            html += `<div class="step-card">
+                        <div class="step-title">Step 4: Take Square Root of Both Sides</div>
+                        <div class="step-math">x ${fmtSignF(halfB)} = ±√(${fmtF(rhs)}) ≈ ±${fmt(sqrtRhs)}</div>
+                     </div>
+                     <div class="step-card" style="border-left-color: var(--accent-red);">
+                        <div class="step-title" style="color: var(--accent-red);">Step 5: Solve for x (x-intercepts)</div>
+                        <div class="step-math">x = ${fmtF(-halfB)} ± ${fmt(sqrtRhs)}</div>
+                        <div class="step-math">x₁ = ${fmt(roots[0])} &nbsp;&nbsp;and&nbsp;&nbsp; x₂ = ${fmt(roots[1])}</div>
+                     </div>`;
+        } else if (Math.abs(rhs) < 1e-10) {
+            html += `<div class="step-card" style="border-left-color: var(--accent-red);">
+                        <div class="step-title" style="color: var(--accent-red);">Step 4: Solve for x</div>
+                        <div class="step-math">x ${fmtSignF(halfB)} = 0  ⇒  x = ${fmtF(roots[0])}</div>
+                     </div>`;
+        } else {
+            const imagPart = Math.sqrt(Math.abs(rhs));
+            html += `<div class="alert-warning">
+                        <h3>No Real Solutions</h3>
+                        <p>In Step 3, we have <strong>(x ${fmtSignF(halfB)})² = ${fmtF(rhs)}</strong>. Since the square of any real number cannot be negative, there are no real solutions.</p>
+                        <p style="margin-top:6px;"><strong>Geometrical Meaning:</strong> The vertex is at (${fmtF(-halfB)}, ${fmtF(a * rhs)}), completely ${a > 0 ? 'above' : 'below'} the x-axis.</p>
+                        <div class="step-math" style="margin-top:8px; font-size:0.95rem;">Complex Roots: x = ${fmtF(-halfB)} ± ${fmt(imagPart)}i</div>
+                     </div>`;
+        }
+
+        stepsOutput.innerHTML = html;
+    }
+
+    function updateGraphNote(a, disc, roots) {
+        if (disc > 0) {
+            graphNote.innerHTML = `<strong>Real Roots Found:</strong> The parabola crosses the x-axis at <strong>(${fmt(roots[0])}, 0)</strong> and <strong>(${fmt(roots[1])}, 0)</strong>. These x-intercepts are your solutions.`;
+        } else if (disc === 0) {
+            graphNote.innerHTML = `<strong>One Real Root:</strong> The vertex of the parabola touches the x-axis at exactly one point: <strong>(${fmt(roots[0])}, 0)</strong>.`;
+        } else {
+            graphNote.innerHTML = `<strong>No x-intercepts:</strong> Because there are no real solutions, the parabola stays entirely ${a > 0 ? 'above' : 'below'} the x-axis and never crosses it.`;
+        }
+    }
+
+    function drawGraph(a, b, c, roots) {
+        const width = canvas.width;
+        const height = canvas.height;
+        ctx.clearRect(0, 0, width, height);
+
+        let vx = a !== 0 ? -b / (2 * a) : 0;
+        let vy = a !== 0 ? (a * vx * vx + b * vx + c) : c;
+
+        let xPoints = [0, vx, ...roots];
+        let yPoints = [0, vy, c];
+
+        let maxAbsX = Math.max(6, ...xPoints.map(Math.abs)) * 1.35;
+        let maxAbsY = Math.max(6, ...yPoints.map(Math.abs)) * 1.35;
+
+        let range = Math.ceil(Math.max(maxAbsX, maxAbsY));
+        if (range > 100) range = 100;
+
+        const scale = width / (2 * range);
+        const originX = width / 2;
+        const originY = height / 2;
+
+        const toCanvasX = x => originX + x * scale;
+        const toCanvasY = y => originY - y * scale;
+
+        ctx.strokeStyle = '#f1f5f9';
+        ctx.lineWidth = 1;
+        const step = range <= 15 ? 1 : range <= 40 ? 5 : 10;
+
+        for (let i = -range; i <= range; i += step) {
+            ctx.beginPath();
+            ctx.moveTo(toCanvasX(i), 0);
+            ctx.lineTo(toCanvasX(i), height);
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.moveTo(0, toCanvasY(i));
+            ctx.lineTo(width, toCanvasY(i));
+            ctx.stroke();
+        }
+
+        ctx.strokeStyle = '#64748b';
+        ctx.lineWidth = 2;
+
+        ctx.beginPath();
+        ctx.moveTo(0, originY);
+        ctx.lineTo(width, originY);
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.moveTo(originX, 0);
+        ctx.lineTo(originX, height);
+        ctx.stroke();
+
+        ctx.fillStyle = '#64748b';
+        ctx.font = '12px sans-serif';
+        ctx.textAlign = 'center';
+        for (let i = -range; i <= range; i += step) {
+            if (i === 0) continue;
+            ctx.fillText(i, toCanvasX(i), originY + 16);
+            ctx.fillText(i, originX - 16, toCanvasY(i) + 4);
+        }
+
+        if (a !== 0) {
+            ctx.save();
+            ctx.setLineDash([5, 5]);
+            ctx.strokeStyle = '#cbd5e1';
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.moveTo(toCanvasX(vx), 0);
+            ctx.lineTo(toCanvasX(vx), height);
+            ctx.stroke();
+            ctx.restore();
+        }
+
+        ctx.strokeStyle = '#2563eb';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+
+        let firstPoint = true;
+        for (let px = 0; px <= width; px += 2) {
+            const x = (px - originX) / scale;
+            const y = a * x * x + b * x + c;
+            const py = toCanvasY(y);
+
+            if (py >= -height && py <= height * 2) {
+                if (firstPoint) {
+                    ctx.moveTo(px, py);
+                    firstPoint = false;
+                } else {
+                    ctx.lineTo(px, py);
+                }
+            }
+        }
+        ctx.stroke();
+
+        if (a !== 0) {
+            const vpx = toCanvasX(vx);
+            const vpy = toCanvasY(vy);
+            ctx.fillStyle = '#16a34a';
+            ctx.beginPath();
+            ctx.arc(vpx, vpy, 5, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.font = 'bold 12px sans-serif';
+            ctx.fillText(`Vertex (${fmt(vx)}, ${fmt(vy)})`, vpx, vpy + (a > 0 ? 18 : -10));
+        }
+
+        roots.forEach((r) => {
+            const rpx = toCanvasX(r);
+            const rpy = originY;
+
+            ctx.fillStyle = '#dc2626';
+            ctx.beginPath();
+            ctx.arc(rpx, rpy, 7, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            ctx.fillStyle = '#dc2626';
+            ctx.font = 'bold 13px sans-serif';
+            ctx.fillText(`Root: (${fmt(r)}, 0)`, rpx, rpy - 14);
+        });
+    }
+
+    updateAll();
+</script>
+
+</body>
+</html>
