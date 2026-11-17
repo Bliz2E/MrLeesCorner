@@ -1,0 +1,468 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DC Motor Simulator</title>
+<style>
+:root{--bg:#f3f4f7;--card:#fff;--ink:#1c2230;--muted:#667085;--line:#e3e6ec;--accent:#2563eb;--force:#d62828;--cur:#0f9d58;--cu:#c77b30}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+header{max-width:1400px;margin:auto;padding:18px 24px 0}
+h1{font-size:21px;margin:0}
+header p{margin:3px 0 0;color:var(--muted)}
+main{max-width:1400px;margin:auto;padding:14px 24px 30px;display:grid;gap:16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px}
+.card h2{font-size:13px;margin:0 0 8px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+.controls{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px 24px}
+.ctl label{display:flex;justify-content:space-between;font-weight:600;font-size:13px;margin-bottom:4px}
+.ctl .u{color:var(--muted);font-weight:500}
+.ctl .row{display:flex;gap:8px;align-items:center}
+.ctl input[type=range]{flex:1;min-width:0;accent-color:var(--accent)}
+.ctl input[type=number]{width:76px;padding:4px 6px;border:1px solid var(--line);border-radius:6px;font:inherit}
+.sep{grid-column:1/-1;height:1px;background:var(--line)}
+button{font:inherit;font-weight:600;padding:7px 14px;border:1px solid var(--line);border-radius:8px;background:#fff;cursor:pointer}
+button:hover{background:#f0f3f9}
+.views{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:16px}
+@media(max-width:920px){.views{grid-template-columns:1fr}}
+canvas{width:100%;height:auto;display:block}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:12.5px;color:var(--muted);margin-top:6px}
+.legend i{display:inline-block;width:18px;height:0;border-top:3px solid;vertical-align:middle;margin-right:5px}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px;margin-top:10px}
+.stat{background:#f7f8fa;border:1px solid var(--line);border-radius:8px;padding:6px 10px}
+.stat b{display:block;font-size:11px;color:var(--muted);font-weight:600}
+.stat span{font-size:16px;font-weight:650;font-variant-numeric:tabular-nums}
+#status{margin-top:10px;padding:7px 10px;border-radius:8px;background:#eef4ff;color:#1d4ed8;font-size:13px;min-height:34px}
+#status.warn{background:#fff4e5;color:#b45309}
+.charts{display:grid;grid-template-columns:repeat(auto-fit,minmax(330px,1fr));gap:16px}
+.charts h3{margin:0 0 4px;font-size:14px}
+.charts small{color:var(--muted)}
+.notes{font-size:13px;color:#3b4252}
+.notes code{background:#f1f3f7;padding:1px 5px;border-radius:4px}
+.notes ul{margin:6px 0 0;padding-left:20px}
+</style>
+</head>
+<body>
+<header>
+  <h1>DC Motor Simulator</h1>
+  <p>A battery in series with a resistor drives a single-coil motor with a split-ring commutator.</p>
+</header>
+<main>
+  <section class="card">
+    <div class="controls" id="controls"></div>
+  </section>
+
+  <section class="views">
+    <div class="card">
+      <h2>Motor (3-D view, rotation axis toward you)</h2>
+      <canvas id="motor"></canvas>
+      <div class="legend">
+        <span><i style="border-color:#0f9d58"></i>current direction in the coil</span>
+        <span><i style="border-color:#d62828"></i>force on each active side</span>
+        <span><i style="border-color:#94a3b8;border-top-style:dashed"></i>magnetic field B (N → S)</span>
+        <span>⊙ current toward you &nbsp; ⊗ current away from you</span>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Circuit and commutator (end view)</h2>
+      <canvas id="circuit"></canvas>
+      <div class="stats">
+        <div class="stat"><b>Orientation θ</b><span id="rTheta">0°</span></div>
+        <div class="stat"><b>Back-emf</b><span id="rEb">0 V</span></div>
+        <div class="stat"><b>Current I</b><span id="rI">0 A</span></div>
+        <div class="stat"><b>Force / side</b><span id="rF">0 N</span></div>
+        <div class="stat"><b>Moment M</b><span id="rM">0 N·m</span></div>
+        <div class="stat"><b>Brushes</b><span id="rBr">in contact</span></div>
+      </div>
+      <div id="status"></div>
+    </div>
+  </section>
+
+  <section class="charts">
+    <div class="card"><h3>1. Induced force vs orientation <small>(force on each active side; + drives rotation)</small></h3><canvas id="c1"></canvas></div>
+    <div class="card"><h3>2. Magnitude of moment vs orientation</h3><canvas id="c2"></canvas></div>
+    <div class="card"><h3>3. Magnitude of current vs orientation</h3><canvas id="c3"></canvas></div>
+  </section>
+
+  <section class="card notes">
+    <h2>Model</h2>
+    <ul>
+      <li>θ is the angle between the coil plane and the field. θ = 0° means the plane is parallel to B (flux is zero, moment is greatest); θ = 90° means the plane is perpendicular to B (the commutator switches the current).</li>
+      <li>Coil: N = 20 turns, 10 cm along the axis, 6 cm wide, so A = 0.006 m². Speed is imposed by you; the animation plays in slow motion (set by the playback slider) so the rotation can be followed.</li>
+      <li>Back-emf <code>ε = N B A ω |cos θ|</code>, current <code>I = (E − ε) / R</code>, force on each side <code>F = N B I L</code>, moment <code>M = N B A I |cos θ|</code>.</li>
+      <li>If the back-emf exceeds the battery emf, I goes negative: the coil acts as a generator and the force opposes the rotation.</li>
+      <li>The commutator gaps are wider than the brushes. Within about ±11° of θ = 90° and 270° each brush sits entirely over a gap, the circuit is open and I, F and M drop to zero (shaded red in the graphs).</li>
+      <li>Reversing the battery or swapping the magnet poles flips the force and current directions and the rotation sense. Reversing both restores the original behaviour. The magnitudes in the graphs do not change.</li>
+    </ul>
+  </section>
+</main>
+
+<script>
+(function(){
+'use strict';
+var $=function(id){return document.getElementById(id)};
+var TAU=Math.PI*2, DEG=Math.PI/180;
+var S=Math.max(2,window.devicePixelRatio||1);
+function setup(c,w,h){c.width=Math.round(w*S);c.height=Math.round(h*S);c.style.aspectRatio=w+'/'+h;var g=c.getContext('2d');g.setTransform(S,0,0,S,0,0);return g;}
+
+/* ---------- physics ---------- */
+var N_T=20, L_AX=0.10, W_C=0.06, A_C=L_AX*W_C;
+var P={R:2,E:12,B:0.5,rpm:600};
+var BASE=0.03, GAPH=0.40, BRH=0.206; // base slow-motion factor; commutator gap half-angle; brush half-angle (rad)
+var theta=25*DEG, playing=true, pbSpeed=1, sb=1, sm=1, phase=0, curves=null, Imax=1, Fmax=1;
+function omega(){return P.rpm*TAU/60;}
+// brushes sit at 0° and 180°; the gaps sit at θ±90°. No contact when a brush lies entirely inside a gap.
+function contactAt(th){
+  var m=((th+Math.PI/2)%Math.PI+Math.PI)%Math.PI, d=Math.min(m,Math.PI-m);
+  return d>GAPH-BRH;
+}
+function calc(th){
+  var c=Math.cos(th), ac=Math.abs(c), k=N_T*P.B*A_C, on=contactAt(th);
+  var eb=k*omega()*ac, I=on?(P.E-eb)/P.R:0;
+  return {c:c,eb:eb,I:I,on:on,F:N_T*P.B*I*L_AX,tau:k*I*ac};
+}
+function recompute(){
+  var F=[],T=[],I=[],im=0,fm=0;
+  for(var i=0;i<=360;i++){
+    var r=calc(i*DEG);
+    F.push(r.F);T.push(Math.abs(r.tau));I.push(Math.abs(r.I));
+    im=Math.max(im,Math.abs(r.I));fm=Math.max(fm,Math.abs(r.F));
+  }
+  curves={F:F,T:T,I:I};Imax=im||1;Fmax=fm||1;
+}
+
+/* ---------- controls ---------- */
+var ctlBox=$('controls');
+function makeCtl(o,onInput){
+  var wrap=document.createElement('div');wrap.className='ctl';
+  wrap.innerHTML='<label><span>'+o.name+'</span><span class="u">'+o.unit+'</span></label>'+
+    '<div class="row"><input type="range" min="'+o.min+'" max="'+o.max+'" step="'+o.step+'" value="'+o.val+'">'+
+    '<input type="number" min="'+o.min+'" max="'+o.max+'" step="'+o.step+'" value="'+o.val+'"></div>';
+  ctlBox.appendChild(wrap);
+  var ins=wrap.querySelectorAll('input'),rg=ins[0],nm=ins[1];
+  rg.addEventListener('input',function(){nm.value=rg.value;onInput(+rg.value);});
+  nm.addEventListener('input',function(){
+    var v=parseFloat(nm.value);
+    if(isFinite(v)){var c=Math.min(o.max,Math.max(o.min,v));rg.value=c;onInput(c);}
+  });
+  return {set:function(v){rg.value=v;nm.value=Math.round(v*1000)/1000;},range:rg,num:nm};
+}
+makeCtl({name:'Resistance R',unit:'Ω',min:0.1,max:20,step:0.1,val:P.R},function(v){P.R=v;recompute();});
+makeCtl({name:'Battery emf E',unit:'V',min:0,max:24,step:0.5,val:P.E},function(v){P.E=v;recompute();});
+makeCtl({name:'Magnetic field B',unit:'T',min:0,max:1,step:0.01,val:P.B},function(v){P.B=v;recompute();});
+makeCtl({name:'Speed of rotation',unit:'rpm',min:0,max:3000,step:10,val:P.rpm},function(v){P.rpm=v;recompute();});
+function makeToggle(name,label,stateText,onClick){
+  var w=document.createElement('div');w.className='ctl';
+  w.innerHTML='<label><span>'+name+'</span><span class="u" data-s></span></label><button type="button">'+label+'</button>';
+  ctlBox.appendChild(w);
+  var b=w.querySelector('button'),s=w.querySelector('[data-s]');
+  function upd(){s.textContent=stateText();}
+  b.addEventListener('click',function(){onClick();upd();});
+  upd();
+}
+makeToggle('Battery polarity','⇄ Reverse battery',function(){return sb>0?'+ on top terminal':'+ on bottom terminal';},function(){sb=-sb;});
+makeToggle('Magnet polarity','⇄ Swap N / S poles',function(){return sm>0?'N left, S right':'S left, N right';},function(){sm=-sm;});
+var sep=document.createElement('div');sep.className='sep';ctlBox.appendChild(sep);
+var thCtl=makeCtl({name:'Coil orientation θ (drag to scrub)',unit:'°',min:0,max:360,step:1,val:25},function(v){
+  theta=v*DEG;setPlaying(false);
+});
+makeCtl({name:'Playback speed',unit:'× (1× = base slow motion)',min:0.1,max:3,step:0.05,val:1},function(v){pbSpeed=v;});
+var btnWrap=document.createElement('div');btnWrap.className='ctl';
+btnWrap.innerHTML='<label><span>Animation</span></label><button id="play" type="button"></button>';
+ctlBox.appendChild(btnWrap);
+var playBtn=$('play');
+function setPlaying(p){playing=p;playBtn.textContent=p?'⏸ Pause':'▶ Play';}
+playBtn.addEventListener('click',function(){setPlaying(!playing);});
+setPlaying(true);
+
+/* ---------- canvases ---------- */
+var MW=600,MH=440,gM=setup($('motor'),MW,MH);
+var CW=460,CH=300,gC=setup($('circuit'),CW,CH);
+var KW=380,KH=250,g1=setup($('c1'),KW,KH),g2=setup($('c2'),KW,KH),g3=setup($('c3'),KW,KH);
+
+/* ---------- drawing helpers ---------- */
+function poly(g,pts,fill,stroke){
+  g.beginPath();pts.forEach(function(p,i){i?g.lineTo(p[0],p[1]):g.moveTo(p[0],p[1]);});g.closePath();
+  if(fill){g.fillStyle=fill;g.fill();}
+  if(stroke){g.strokeStyle=stroke;g.lineWidth=1;g.stroke();}
+}
+function arrow(g,x0,y0,x1,y1,color,lw,head){
+  var a=Math.atan2(y1-y0,x1-x0);head=head||10;
+  g.strokeStyle=color;g.fillStyle=color;g.lineWidth=lw;g.lineCap='round';
+  g.beginPath();g.moveTo(x0,y0);g.lineTo(x1-Math.cos(a)*head*0.6,y1-Math.sin(a)*head*0.6);g.stroke();
+  g.beginPath();g.moveTo(x1,y1);
+  g.lineTo(x1-head*Math.cos(a-0.45),y1-head*Math.sin(a-0.45));
+  g.lineTo(x1-head*Math.cos(a+0.45),y1-head*Math.sin(a+0.45));g.closePath();g.fill();
+}
+function flow(g,pts,dir,ph,spacing,color,size){
+  if(dir<0)pts=pts.slice().reverse();
+  var segs=[],total=0,i;
+  for(i=0;i<pts.length-1;i++){
+    var dx=pts[i+1][0]-pts[i][0],dy=pts[i+1][1]-pts[i][1],len=Math.hypot(dx,dy);
+    segs.push({x:pts[i][0],y:pts[i][1],dx:dx,dy:dy,len:len,s:total});total+=len;
+  }
+  var d=((ph%spacing)+spacing)%spacing;
+  g.fillStyle=color;
+  for(;d<total;d+=spacing){
+    var sg=null;for(i=0;i<segs.length;i++){if(d>=segs[i].s&&d<=segs[i].s+segs[i].len){sg=segs[i];break;}}
+    if(!sg||sg.len<1e-6)continue;
+    var t=(d-sg.s)/sg.len,x=sg.x+sg.dx*t,y=sg.y+sg.dy*t,a=Math.atan2(sg.dy,sg.dx);
+    g.save();g.translate(x,y);g.rotate(a);
+    g.beginPath();g.moveTo(size,0);g.lineTo(-size*0.75,-size*0.8);g.lineTo(-size*0.75,size*0.8);g.closePath();
+    g.strokeStyle='rgba(255,255,255,.9)';g.lineWidth=1.5;g.stroke();g.fill();g.restore();
+  }
+}
+function curSymbol(g,x,y,out,r){
+  g.beginPath();g.arc(x,y,r,0,TAU);g.fillStyle='#fff';g.fill();
+  g.strokeStyle='#0f9d58';g.lineWidth=2;g.stroke();
+  g.fillStyle='#0f9d58';g.strokeStyle='#0f9d58';
+  if(out){g.beginPath();g.arc(x,y,r*0.38,0,TAU);g.fill();}
+  else{var q=r*0.55;g.lineWidth=2;g.beginPath();g.moveTo(x-q,y-q);g.lineTo(x+q,y+q);g.moveTo(x+q,y-q);g.lineTo(x-q,y+q);g.stroke();}
+}
+
+/* ---------- motor view ---------- */
+var CX=300,CY=228,RC=70,DC=130,OB=0.3;
+function P3(x,y,z){return [CX+x-OB*z, CY-y+OB*z];}
+function box(g,x0,x1,y0,y1,z0,z1,cF,cT,cR,label){
+  var ln='rgba(0,0,0,.25)';
+  poly(g,[P3(x0,y1,z1),P3(x1,y1,z1),P3(x1,y1,z0),P3(x0,y1,z0)],cT,ln);
+  poly(g,[P3(x1,y0,z1),P3(x1,y1,z1),P3(x1,y1,z0),P3(x1,y0,z0)],cR,ln);
+  poly(g,[P3(x0,y0,z1),P3(x1,y0,z1),P3(x1,y1,z1),P3(x0,y1,z1)],cF,ln);
+  var m=P3((x0+x1)/2,(y0+y1)/2,z1);
+  g.fillStyle='#fff';g.font='700 34px system-ui,sans-serif';g.textAlign='center';g.textBaseline='middle';g.fillText(label,m[0],m[1]);
+}
+function drawMotor(r){
+  var g=gM;g.clearRect(0,0,MW,MH);
+  var RED=['#d64545','#e98a8a','#b73333'],BLUE=['#3b6fd6','#86a7ee','#2c58b0'];
+  var lc=sm>0?RED:BLUE,rcol=sm>0?BLUE:RED;
+  box(g,-195,-125,-100,100,-65,65,lc[0],lc[1],lc[2],sm>0?'N':'S');
+  box(g,125,195,-100,100,-65,65,rcol[0],rcol[1],rcol[2],sm>0?'S':'N');
+
+  // field lines (z = 0 plane), pointing N -> S (+x)
+  var ys=[-90,-60,-30,0,30,60,90];
+  g.setLineDash([7,6]);g.strokeStyle='#94a3b8';g.lineWidth=1.4;
+  ys.forEach(function(y){var a=P3(-125,y,0),b=P3(125,y,0);g.beginPath();g.moveTo(a[0],a[1]);g.lineTo(b[0],b[1]);g.stroke();});
+  g.setLineDash([]);g.fillStyle='#94a3b8';
+  ys.forEach(function(y){[-100,100].forEach(function(x){
+    var p=P3(x,y,0);g.beginPath();g.moveTo(p[0]+8*sm,p[1]);g.lineTo(p[0]-3*sm,p[1]-5);g.lineTo(p[0]-3*sm,p[1]+5);g.closePath();g.fill();});});
+  var bl=P3(0,112,0);g.fillStyle='#64748b';g.font='600 13px system-ui,sans-serif';g.textAlign='center';g.textBaseline='middle';
+  g.fillText('B  (N → S, pointing '+(sm>0?'right':'left')+')',bl[0],bl[1]);
+
+  // axle
+  var a0=P3(0,0,-DC/2-28),a1=P3(0,0,DC/2+30);
+  g.strokeStyle='#98a2b3';g.lineWidth=4;g.lineCap='round';g.beginPath();g.moveTo(a0[0],a0[1]);g.lineTo(a1[0],a1[1]);g.stroke();
+
+  // coil: "right" side is the one with x > 0 (the commutator keeps it carrying the out-of-page current)
+  var px=RC*Math.cos(theta),py=RC*Math.sin(theta);
+  if(px<0){px=-px;py=-py;}
+  var Br=P3(px,py,-DC/2),Fr=P3(px,py,DC/2),Fl=P3(-px,-py,DC/2),Bl=P3(-px,-py,-DC/2);
+  poly(g,[Br,Fr,Fl,Bl],'rgba(199,123,48,.16)',null);
+  g.strokeStyle='#b8641a';g.lineWidth=4.5;g.lineJoin='round';g.lineCap='round';
+  g.beginPath();g.moveTo(Br[0],Br[1]);g.lineTo(Fr[0],Fr[1]);g.lineTo(Fl[0],Fl[1]);g.lineTo(Bl[0],Bl[1]);g.closePath();g.stroke();
+
+  // current flow along the loop (zr = +1: the right-hand side carries current toward the viewer)
+  var zr=(r.I>=0?1:-1)*sb, dir=zr;
+  if(Math.abs(r.I)>1e-6){flow(g,[Br,Fr,Fl,Bl,Br],dir,phase,34,'#0f9d58',7);}
+
+  // active sides: current symbol + force arrow
+  var Mr=P3(px,py,0),Ml=P3(-px,-py,0);
+  var outR=zr>0;
+  if(Math.abs(r.I)>1e-6){
+    var len=26+54*Math.min(1,Math.abs(r.F)/Fmax),up=(zr*sm>0)?-1:1; // screen y: up is negative
+    arrow(g,Mr[0],Mr[1],Mr[0],Mr[1]+up*len,'#d62828',4,13);
+    arrow(g,Ml[0],Ml[1],Ml[0],Ml[1]-up*len,'#d62828',4,13);
+    g.fillStyle='#d62828';g.font='700 15px system-ui,sans-serif';g.textAlign='left';g.textBaseline='middle';
+    g.fillText('F',Mr[0]+10,Mr[1]+up*len);
+    g.fillText('F',Ml[0]+10,Ml[1]-up*len);
+    curSymbol(g,Mr[0],Mr[1],outR,8);
+    curSymbol(g,Ml[0],Ml[1],!outR,8);
+  }
+
+  // rotation indicator (counter-clockwise as seen from the front)
+  var ox=62,oy=62,or=24,rd=sb*sm;
+  g.save();if(rd<0){g.translate(2*ox,0);g.scale(-1,1);}
+  g.strokeStyle='#475569';g.lineWidth=2.5;g.lineCap='round';
+  g.beginPath();g.arc(ox,oy,or,-0.15*Math.PI,-1.45*Math.PI,true);g.stroke();
+  var ea=0.55*Math.PI,ex=ox+or*Math.cos(ea),ey=oy+or*Math.sin(ea);
+  g.fillStyle='#475569';g.save();g.translate(ex,ey);g.rotate(Math.atan2(-Math.cos(ea),Math.sin(ea)));
+  g.beginPath();g.moveTo(8,0);g.lineTo(-4,-6);g.lineTo(-4,6);g.closePath();g.fill();g.restore();
+  g.restore();
+  g.fillStyle='#475569';g.font='600 13px system-ui,sans-serif';g.textAlign='center';g.textBaseline='middle';g.fillText('ω',ox,oy);
+  g.fillStyle='#64748b';g.font='11px system-ui,sans-serif';g.fillText(rd>0?'rotation (ccw)':'rotation (cw)',ox,oy+or+16);
+  if(!r.on){
+    g.fillStyle='rgba(220,38,38,.12)';g.strokeStyle='#dc2626';g.lineWidth=1.5;
+    g.fillRect(150,10,300,30);g.strokeRect(150,10,300,30);
+    g.fillStyle='#b91c1c';g.font='700 13px system-ui,sans-serif';g.textAlign='center';g.textBaseline='middle';
+    g.fillText('⚠ Brushes over the gap: no contact, I = 0',300,25);
+  }
+}
+
+/* ---------- circuit view ---------- */
+var RX=120,RY=150,RR=34;
+function drawCircuit(r){
+  var g=gC;g.clearRect(0,0,CW,CH);
+  g.strokeStyle='#475569';g.lineWidth=2.5;g.lineCap='round';g.lineJoin='round';
+  // wires
+  g.beginPath();g.moveTo(410,133);g.lineTo(410,45);g.lineTo(330,45);
+  g.moveTo(240,45);g.lineTo(190,45);g.lineTo(190,150);g.lineTo(170,150);
+  g.moveTo(70,150);g.lineTo(40,150);g.lineTo(40,262);g.lineTo(410,262);g.lineTo(410,157);g.stroke();
+  // resistor
+  g.beginPath();g.moveTo(330,45);g.lineTo(324,45);
+  for(var i=0;i<8;i++){g.lineTo(324-(i+0.5)*9.75,45+(i%2?9:-9));}
+  g.lineTo(246,45);g.lineTo(240,45);g.stroke();
+  // battery
+  g.lineWidth=3;
+  (sb>0?[[133,14],[149,14]]:[[141,14],[157,14]]).forEach(function(p){g.beginPath();g.moveTo(410-p[1],p[0]);g.lineTo(410+p[1],p[0]);g.stroke();});
+  g.lineWidth=6;
+  (sb>0?[[141,8],[157,8]]:[[133,8],[149,8]]).forEach(function(p){g.beginPath();g.moveTo(410-p[1],p[0]);g.lineTo(410+p[1],p[0]);g.stroke();});
+  g.fillStyle='#475569';g.font='600 13px system-ui,sans-serif';g.textBaseline='middle';
+  g.textAlign='left';g.fillText(sb>0?'+':'−',424,128);g.fillText(sb>0?'−':'+',424,170);
+  g.textAlign='right';g.fillText('E = '+P.E.toFixed(1)+' V',390,148);
+  g.textAlign='center';g.fillText('R = '+P.R.toFixed(1)+' Ω',285,26);
+
+  // current chevrons in external circuit (path drawn from the top battery terminal to the right brush)
+  var dir=(r.I>=0?1:-1)*sb;
+  if(Math.abs(r.I)>1e-6){
+    flow(g,[[410,133],[410,45],[190,45],[190,150],[170,150]],dir,phase,28,'#0f9d58',6);
+    flow(g,[[70,150],[40,150],[40,262],[410,262],[410,157]],dir,phase,28,'#0f9d58',6);
+    g.fillStyle='#0f9d58';g.font='700 13px system-ui,sans-serif';g.textAlign='left';
+    g.fillText('I = '+r.I.toFixed(2)+' A',198,100);
+  }
+
+  // commutator halves (gaps at ±90° from coil plane direction)
+  var gap=GAPH,a=-theta;
+  g.lineWidth=9;g.lineCap='butt';
+  g.strokeStyle='#e07a1f';g.beginPath();g.arc(RX,RY,RR,a-Math.PI/2+gap,a+Math.PI/2-gap);g.stroke();
+  g.strokeStyle='#64748b';g.beginPath();g.arc(RX,RY,RR,a+Math.PI/2+gap,a+1.5*Math.PI-gap);g.stroke();
+  // brushes
+  if(!r.on){
+    g.setLineDash([3,3]);g.strokeStyle='#dc2626';g.lineWidth=2.5;
+    [a+Math.PI/2,a-Math.PI/2].forEach(function(c){g.beginPath();g.arc(RX,RY,RR+22,c-GAPH,c+GAPH);g.stroke();});
+    g.setLineDash([]);
+  }
+  g.fillStyle=r.on?'#1f2937':'#dc2626';
+  g.fillRect(RX+RR+4,RY-7,12,14);g.fillRect(RX-RR-16,RY-7,12,14);
+  g.textAlign='center';g.font=r.on?'11px system-ui,sans-serif':'700 11px system-ui,sans-serif';
+  g.fillStyle=r.on?'#64748b':'#dc2626';
+  g.fillText(r.on?'brush':'no contact',RX+RR+11,RY+22);g.fillText(r.on?'brush':'no contact',RX-RR-10,RY+22);
+  if(!r.on){g.fillText('open circuit: I = 0',RX,RY-RR-30);}
+
+  // coil (end view) inside the ring
+  var rc=22,sx=rc*Math.cos(theta),sy=rc*Math.sin(theta);
+  g.strokeStyle='#b8641a';g.lineWidth=3;g.lineCap='round';
+  g.beginPath();g.moveTo(RX-sx,RY+sy);g.lineTo(RX+sx,RY-sy);g.stroke();
+  var qx=sx,qy=sy;if(qx<0){qx=-qx;qy=-qy;}
+  if(Math.abs(r.I)>1e-6){
+    var zc=(r.I>=0?1:-1)*sb;curSymbol(g,RX+qx,RY-qy,zc>0,7);curSymbol(g,RX-qx,RY+qy,zc<0,7);
+  }else{
+    [[1],[-1]].forEach(function(s){g.beginPath();g.arc(RX+s[0]*qx,RY-s[0]*qy,7,0,TAU);g.fillStyle='#fff';g.fill();g.strokeStyle='#b8641a';g.lineWidth=2;g.stroke();});
+  }
+  g.fillStyle='#64748b';g.font='11px system-ui,sans-serif';g.textAlign='center';
+  g.fillText('split-ring commutator + coil',RX,RY+RR+36);
+}
+
+/* ---------- charts ---------- */
+function niceStep(range,ticks){
+  var raw=range/ticks,mag=Math.pow(10,Math.floor(Math.log10(raw))),n=raw/mag;
+  return (n<1.5?1:n<3?2:n<7?5:10)*mag;
+}
+function fmt(v){
+  if(Math.abs(v)<1e-12)return '0';
+  var a=Math.abs(v),d=a>=100?0:a>=10?1:a>=1?2:3;
+  return parseFloat(v.toFixed(d)).toString();
+}
+function drawChart(g,ys,cfg,thDeg,cur){
+  var W=KW,H=KH;g.clearRect(0,0,W,H);
+  var ml=54,mr=14,mt=16,mb=38,pw=W-ml-mr,ph=H-mt-mb;
+  var lo=0,hi=0,i;
+  for(i=0;i<ys.length;i++){if(ys[i]<lo)lo=ys[i];if(ys[i]>hi)hi=ys[i];}
+  if(hi-lo<1e-9)hi=1;
+  var st=niceStep(hi-lo,5);
+  lo=Math.floor(lo/st-1e-9)*st;hi=Math.ceil(hi/st-1e-9)*st;
+  var X=function(d){return ml+d/360*pw;},Y=function(v){return mt+ph*(1-(v-lo)/(hi-lo));};
+  g.font='11px system-ui,sans-serif';g.textAlign='right';g.textBaseline='middle';
+  var n=Math.round((hi-lo)/st);
+  for(i=0;i<=n;i++){
+    var v=lo+i*st,y=Y(v),z=Math.abs(v)<st*1e-6;
+    g.strokeStyle=z?'#9aa3b2':'#e8ebf0';g.lineWidth=z?1.3:1;
+    g.beginPath();g.moveTo(ml,y);g.lineTo(W-mr,y);g.stroke();
+    g.fillStyle='#667085';g.fillText(fmt(v),ml-6,y);
+  }
+  g.textAlign='center';g.textBaseline='top';
+  [0,90,180,270,360].forEach(function(d){
+    g.strokeStyle='#e8ebf0';g.lineWidth=1;g.beginPath();g.moveTo(X(d),mt);g.lineTo(X(d),mt+ph);g.stroke();
+    g.fillStyle='#667085';g.fillText(d+'°',X(d),mt+ph+5);
+  });
+  var bw=(GAPH-BRH)/DEG;
+  g.fillStyle='rgba(220,38,38,.09)';
+  [90,270].forEach(function(d){g.fillRect(X(d-bw),mt,X(d+bw)-X(d-bw),ph);});
+  g.setLineDash([4,4]);g.strokeStyle='#e9b98a';
+  [90,270].forEach(function(d){g.beginPath();g.moveTo(X(d),mt);g.lineTo(X(d),mt+ph);g.stroke();});
+  g.setLineDash([]);
+  g.fillStyle='#c77b30';g.font='9px system-ui,sans-serif';g.textBaseline='top';
+  [90,270].forEach(function(d){g.fillText('no contact',X(d),mt+2);});
+  g.fillStyle='#667085';g.font='11px system-ui,sans-serif';g.fillText('Orientation θ (°)',ml+pw/2,H-16);
+  g.save();g.translate(12,mt+ph/2);g.rotate(-Math.PI/2);g.textBaseline='top';g.fillText(cfg.unit,0,0);g.restore();
+
+  // curve
+  g.beginPath();g.moveTo(X(0),Y(0));
+  for(i=0;i<ys.length;i++)g.lineTo(X(i),Y(ys[i]));
+  g.lineTo(X(360),Y(0));g.closePath();g.fillStyle=cfg.fill;g.fill();
+  g.beginPath();
+  for(i=0;i<ys.length;i++){i?g.lineTo(X(i),Y(ys[i])):g.moveTo(X(i),Y(ys[i]));}
+  g.strokeStyle=cfg.color;g.lineWidth=2.4;g.lineJoin='round';g.stroke();
+
+  // marker
+  var mx=X(thDeg),my=Y(cur);
+  g.setLineDash([3,3]);g.strokeStyle='#475569';g.lineWidth=1;
+  g.beginPath();g.moveTo(mx,mt);g.lineTo(mx,mt+ph);g.stroke();g.setLineDash([]);
+  g.beginPath();g.arc(mx,my,5,0,TAU);g.fillStyle=cfg.color;g.fill();g.strokeStyle='#fff';g.lineWidth=2;g.stroke();
+  var txt=fmt(cur)+' '+cfg.short;
+  g.font='600 12px system-ui,sans-serif';
+  var tw=g.measureText(txt).width+10,left=mx>W*0.6;
+  var bx=left?mx-8-tw:mx+8,by=Math.min(mt+ph-18,Math.max(mt+2,my-24));
+  g.fillStyle='rgba(255,255,255,.92)';g.fillRect(bx,by,tw,18);
+  g.strokeStyle='#d5dae3';g.lineWidth=1;g.strokeRect(bx,by,tw,18);
+  g.fillStyle='#1c2230';g.textAlign='left';g.textBaseline='middle';g.fillText(txt,bx+5,by+9);
+}
+
+/* ---------- readouts ---------- */
+var elBr=$('rBr'),elTh=$('rTheta'),elEb=$('rEb'),elI=$('rI'),elF=$('rF'),elM=$('rM'),elSt=$('status');
+function readouts(r,deg){
+  elTh.textContent=deg.toFixed(0)+'°';
+  elEb.textContent=r.eb.toFixed(2)+' V';
+  elI.textContent=r.I.toFixed(2)+' A';
+  elF.textContent=r.F.toFixed(2)+' N';
+  elM.textContent=r.tau.toFixed(3)+' N·m';
+  elBr.textContent=r.on?'in contact':'NO CONTACT';elBr.style.color=r.on?'':'#dc2626';
+  var msg='',warn=false;
+  if(!r.on){msg='No contact: both carbon brushes sit over the gaps in the commutator, so the circuit is open. There is no current, force or moment, and the coil coasts through.';warn=true;}
+  else if(r.I<-1e-6){msg='Back-emf exceeds the battery emf, so the current reverses and the force now opposes the rotation (generator action).';warn=true;}
+  else if(Math.abs(r.I)<=1e-6){msg='Back-emf equals the battery emf: no current, no force.';}
+  else{var upR=((r.I>=0?1:-1)*sb*sm)>0;msg='Motor action: the force on the right side is '+(upR?'up':'down')+', on the left side '+(upR?'down':'up')+', so the coil turns '+(sb*sm>0?'counter-clockwise':'clockwise')+'.';}
+  if(elSt.textContent!==msg)elSt.textContent=msg;
+  elSt.className=warn?'warn':'';
+}
+
+/* ---------- main loop ---------- */
+recompute();
+var last=performance.now();
+function frame(t){
+  var dt=Math.min(0.05,(t-last)/1000);last=t;
+  if(playing){theta=(theta+sb*sm*omega()*BASE*pbSpeed*dt)%TAU;if(theta<0)theta+=TAU;}
+  var r=calc(theta),deg=theta/DEG;
+  phase+=dt*(30+90*Math.min(1,Math.abs(r.I)/Imax));
+  var ae=document.activeElement;
+  if(ae!==thCtl.num&&ae!==thCtl.range)thCtl.set(Math.round(deg*10)/10);
+  drawMotor(r);drawCircuit(r);
+  drawChart(g1,curves.F,{color:'#d62828',fill:'rgba(214,40,40,.10)',unit:'Force on each side (N)',short:'N'},deg,r.F);
+  drawChart(g2,curves.T,{color:'#7c3aed',fill:'rgba(124,58,237,.10)',unit:'|Moment| (N·m)',short:'N·m'},deg,Math.abs(r.tau));
+  drawChart(g3,curves.I,{color:'#0f9d58',fill:'rgba(15,157,88,.10)',unit:'|Current| (A)',short:'A'},deg,Math.abs(r.I));
+  readouts(r,deg);
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
