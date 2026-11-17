@@ -46,7 +46,7 @@
     display: flex; align-items: center;
     white-space: nowrap;
     font-style: italic;
-    font-size: 1.15rem;
+    font-size: clamp(.9rem, 0.7rem + 1vw, 1.15rem);
     color: var(--cream);
     will-change: transform;
     transform: translateX(100vw);
@@ -55,7 +55,7 @@
     font-style: normal;
     color: var(--amber);
     margin-left: .6em;
-    font-size: .95rem;
+    font-size: .85em;
     letter-spacing: .02em;
   }
 
@@ -71,17 +71,17 @@
   .hero .eyebrow {
     font-family: system-ui, sans-serif;
     text-transform: uppercase; letter-spacing: .22em;
-    font-size: .75rem; color: var(--amber);
+    font-size: clamp(.65rem, 0.55rem + .5vw, .75rem); color: var(--amber);
     margin-bottom: .8rem;
   }
   .hero h1 {
-    font-size: clamp(2rem, 4.5vw, 3.4rem);
+    font-size: clamp(1.5rem, 1rem + 3.2vw, 3.4rem);
     line-height: 1.1;
     text-shadow: 0 2px 18px rgba(0,0,0,.6);
   }
   .hero p {
     margin-top: 1rem;
-    font-size: 1.1rem;
+    font-size: clamp(.9rem, 0.8rem + .6vw, 1.1rem);
     color: rgba(255,243,220,.85);
     text-shadow: 0 1px 8px rgba(0,0,0,.7);
   }
@@ -109,24 +109,23 @@
   }
   .card .tag {
     font-family: system-ui, sans-serif;
-    font-size: .7rem; letter-spacing: .18em; text-transform: uppercase;
+    font-size: clamp(.6rem, 0.5rem + .4vw, .7rem); letter-spacing: .18em; text-transform: uppercase;
     color: var(--amber);
   }
   .card h2 {
     margin-top: .5rem;
-    font-size: 1.45rem;
+    font-size: clamp(1.1rem, 0.8rem + 1.2vw, 1.45rem);
     font-weight: normal;
   }
   .card p {
     margin-top: .4rem;
     font-family: system-ui, sans-serif;
-    font-size: .88rem;
+    font-size: clamp(.75rem, 0.68rem + .4vw, .88rem);
     color: rgba(255,243,220,.7);
   }
 
   @media (max-width: 600px) {
     .ticker { height: 56px; }
-    .ticker-text { font-size: 1rem; }
   }
   @media (prefers-reduced-motion: reduce) {
     .card { transition: none; }
@@ -246,7 +245,7 @@
 
   if (reduceMotion) {
     // No motion: wrap text and swap quotes every 9 seconds
-    el.style.cssText = "position:static;transform:none;white-space:normal;padding:0 1rem;font-size:.95rem;";
+    el.style.cssText = "position:static;transform:none;white-space:normal;padding:0 1rem;font-size:clamp(.8rem,0.7rem + .5vw,.95rem);";
     const swap = () => show(nextQuote());
     swap();
     setInterval(swap, 9000);
