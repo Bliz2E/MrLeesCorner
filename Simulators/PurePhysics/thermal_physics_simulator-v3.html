@@ -1,0 +1,884 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Thermal Energy & Phase Changes Interactive Lab</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --panel: #1e293b;
+      --panel-light: #334155;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+      --accent: #38bdf8;
+      --ice: #60a5fa;
+      --water: #2dd4bf;
+      --steam: #fb923c;
+      --latent: #f43f5e;
+      --border: #475569;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      padding: 20px;
+      line-height: 1.5;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+
+    header h1 {
+      font-size: 1.9rem;
+      color: var(--accent);
+      margin-bottom: 6px;
+    }
+
+    header p {
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1.3fr 1fr;
+      gap: 20px;
+    }
+
+    @media (max-width: 900px) {
+      .container {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 18px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+    }
+
+    .card h2 {
+      font-size: 1.15rem;
+      margin-bottom: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--panel-light);
+      padding-bottom: 8px;
+    }
+
+    canvas {
+      width: 100%;
+      background: #0b1120;
+      border-radius: 8px;
+      border: 1px solid var(--panel-light);
+      display: block;
+    }
+
+    /* Controls Bar */
+    .controls {
+      grid-column: 1 / -1;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      background: var(--panel);
+      padding: 16px 20px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+    }
+
+    .btn-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    button {
+      background: var(--panel-light);
+      color: var(--text);
+      border: 1px solid var(--border);
+      padding: 8px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 0.88rem;
+      transition: all 0.2s;
+    }
+
+    button:hover {
+      background: #475569;
+    }
+
+    button.primary {
+      background: var(--accent);
+      color: #0f172a;
+      border-color: var(--accent);
+    }
+
+    button.primary:hover {
+      background: #7dd3fc;
+    }
+
+    button.active-speed {
+      background: var(--water);
+      color: #0f172a;
+      border-color: var(--water);
+    }
+
+    .slider-box {
+      flex: 1;
+      min-width: 220px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .slider-box label {
+      font-size: 0.85rem;
+      color: var(--muted);
+      display: flex;
+      justify-content: space-between;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      accent-color: var(--accent);
+      cursor: pointer;
+    }
+
+    /* Live Telemetry Readout */
+    .telemetry {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .stat-box {
+      background: #0b1120;
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid var(--panel-light);
+      text-align: center;
+    }
+
+    .stat-label {
+      font-size: 0.75rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .stat-val {
+      font-size: 1.15rem;
+      font-weight: 700;
+      margin-top: 2px;
+      color: var(--accent);
+    }
+
+    /* Dynamic Explanation Banner */
+    .explanation-box {
+      margin-top: 14px;
+      padding: 14px;
+      border-radius: 8px;
+      background: rgba(56, 189, 248, 0.1);
+      border-left: 4px solid var(--accent);
+    }
+
+    .explanation-box h3 {
+      font-size: 1rem;
+      margin-bottom: 4px;
+      color: var(--accent);
+    }
+
+    .explanation-box p {
+      font-size: 0.9rem;
+      color: #e2e8f0;
+    }
+
+    /* Concept Cards Footer */
+    .concepts-grid {
+      grid-column: 1 / -1;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+    }
+
+    @media (max-width: 900px) {
+      .concepts-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .concept-card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+    }
+
+    .concept-card h3 {
+      font-size: 1.05rem;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .formula {
+      background: #0b1120;
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-family: 'Courier New', monospace;
+      font-weight: bold;
+      color: #fbbf24;
+      margin: 10px 0;
+      text-align: center;
+      border: 1px dashed var(--border);
+    }
+
+    .concept-card p {
+      font-size: 0.88rem;
+      color: var(--muted);
+    }
+
+    /* Full-width Graph Gradient Identification Card */
+    .gradient-card {
+      grid-column: 1 / -1;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
+    }
+
+    .gradient-card h2 {
+      font-size: 1.15rem;
+      color: var(--accent);
+      margin-bottom: 12px;
+      border-bottom: 1px solid var(--panel-light);
+      padding-bottom: 8px;
+    }
+
+    .gradient-grid {
+      display: grid;
+      grid-template-columns: 1fr 1.2fr;
+      gap: 20px;
+      align-items: center;
+    }
+
+    @media (max-width: 900px) {
+      .gradient-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .gradient-rule {
+      background: #0b1120;
+      border: 1px solid var(--panel-light);
+      border-radius: 8px;
+      padding: 14px;
+    }
+
+    .gradient-rule p {
+      font-size: 0.9rem;
+      color: #e2e8f0;
+      margin-bottom: 8px;
+    }
+
+    .gradient-rule p:last-child {
+      margin-bottom: 0;
+    }
+
+    .slope-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .slope-list li {
+      background: #0b1120;
+      border-left: 4px solid var(--accent);
+      padding: 10px 14px;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      color: #e2e8f0;
+    }
+
+    .badge {
+      font-size: 0.75rem;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>Thermal Energy & Phase Change Simulator</h1>
+    <p>Interactive Heating Curve for 1 kg of Water (-20°C Ice to 128°C Steam)</p>
+  </header>
+
+  <div class="container">
+    <!-- Playback Controls -->
+    <div class="controls">
+      <div class="btn-group">
+        <button id="playPauseBtn" class="primary">▶ Play</button>
+        <button id="resetBtn">↺ Reset</button>
+      </div>
+
+      <div class="btn-group">
+        <span style="font-size: 0.85rem; color: var(--muted); font-weight: 600;">Playback Speed:</span>
+        <button class="speed-btn" data-speed="0.05">0.05x (Ultra Slow)</button>
+        <button class="speed-btn active-speed" data-speed="0.2">0.2x (Slow)</button>
+        <button class="speed-btn" data-speed="1">1x (Normal)</button>
+        <button class="speed-btn" data-speed="2.5">2.5x (Fast)</button>
+      </div>
+
+      <div class="slider-box">
+        <label>
+          <span>Heat Energy Added (Q)</span>
+          <span id="sliderEnergyLabel">0 kJ</span>
+        </label>
+        <input type="range" id="energySlider" min="0" max="3110" value="0" step="1" />
+      </div>
+    </div>
+
+    <!-- Left Panel: Heating Curve Graph -->
+    <div class="card">
+      <h2>
+        <span>Temperature (θ) vs. Heat Added (Q) Graph</span>
+        <span id="stageBadge" class="badge" style="background: var(--ice); color: #000;">Stage 1: Heating Ice</span>
+      </h2>
+      <canvas id="graphCanvas" width="620" height="340"></canvas>
+
+      <div class="telemetry">
+        <div class="stat-box">
+          <div class="stat-label">Temperature (θ)</div>
+          <div class="stat-val" id="tempVal">-20.0 °C</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">Heat Added (Q)</div>
+          <div class="stat-val" id="energyVal">0 kJ</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">Physical State</div>
+          <div class="stat-val" id="stateVal">100% Solid</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Panel: Microscopic Particle Diagram -->
+    <div class="card">
+      <h2>
+        <span>Microscopic Particle View</span>
+        <span style="font-size: 0.8rem; color: var(--muted);">Kinetic vs. Potential Energy</span>
+      </h2>
+      <canvas id="particleCanvas" width="440" height="270"></canvas>
+
+      <div class="explanation-box" id="explanationBox">
+        <h3 id="expTitle">Specific Heat Capacity of Ice</h3>
+        <p id="expText">Heat energy increases the average kinetic energy of the water molecules. They vibrate faster in their fixed crystal lattice, causing the temperature (θ) to rise toward 0°C.</p>
+      </div>
+    </div>
+
+    <!-- Bottom Educational Cards -->
+    <div class="concepts-grid">
+      <div class="concept-card">
+        <h3><span style="color: var(--ice);">●</span> Specific Heat Capacity (c)</h3>
+        <div class="formula">Q = m · c · Δθ</div>
+        <p>The heat energy required to raise the temperature (θ) of <strong>1 kg</strong> of a substance by <strong>1°C (or 1 K)</strong> without changing its state. Energy goes into <em>kinetic energy</em> (faster particle motion), so θ rises.</p>
+      </div>
+
+      <div class="concept-card">
+        <h3><span style="color: var(--latent);">●</span> Latent Heat of Fusion (L<sub>f</sub>)</h3>
+        <div class="formula">Q = m · L<sub>f</sub> &nbsp;(334 kJ/kg)</div>
+        <p>The hidden heat required to change <strong>1 kg</strong> of solid into liquid at its melting point (0°C) with <strong>no change in θ</strong>. Energy breaks rigid intermolecular bonds (increasing <em>potential energy</em>).</p>
+      </div>
+
+      <div class="concept-card">
+        <h3><span style="color: var(--steam);">●</span> Latent Heat of Vaporization (L<sub>v</sub>)</h3>
+        <div class="formula">Q = m · L<sub>v</sub> &nbsp;(2260 kJ/kg)</div>
+        <p>The heat required to change <strong>1 kg</strong> of liquid into gas at its boiling point (100°C) with <strong>no change in θ</strong>. Much larger than L<sub>f</sub> because molecules must completely separate against attractive forces.</p>
+      </div>
+    </div>
+
+    <!-- Identifying Smaller Specific Heat Capacity from the Graph -->
+    <div class="gradient-card">
+      <h2>How to Identify Smaller Specific Heat Capacity (c) from the Graph</h2>
+      <div class="gradient-grid">
+        <div class="gradient-rule">
+          <div class="formula" style="margin-top: 0;">Gradient = Δθ / ΔQ = 1 / (m · c)</div>
+          <p>Since mass (<strong>m</strong>) stays constant at 1 kg throughout heating, the <strong>gradient (steepness)</strong> of each sloped section is <strong>inversely proportional</strong> to specific heat capacity (<strong>c</strong>).</p>
+          <p><strong>Key Rule:</strong> A <strong>steeper upward slope</strong> means temperature (θ) rises rapidly for a small amount of heat (Q) added — indicating a <strong>smaller specific heat capacity (c)</strong>.</p>
+        </div>
+        <ul class="slope-list">
+          <li style="border-left-color: var(--steam);">
+            <strong style="color: var(--steam);">Steepest Slope → Gas / Steam (c = 2.0 kJ/kg·°C):</strong><br/>
+            Has the sharpest upward incline, showing the <strong>smallest</strong> specific heat capacity among the three states.
+          </li>
+          <li style="border-left-color: var(--ice);">
+            <strong style="color: var(--ice);">Second Steepest Slope → Solid / Ice (c = 2.1 kJ/kg·°C):</strong><br/>
+            Nearly as steep as steam, showing ice also has a <strong>small</strong> specific heat capacity and warms up quickly per kJ of heat.
+          </li>
+          <li style="border-left-color: var(--water);">
+            <strong style="color: var(--water);">Gentlest (Least Steep) Slope → Liquid / Water (c = 4.18 kJ/kg·°C):</strong><br/>
+            Has the shallowest incline, requiring much more heat energy (Q) for each 1°C rise in θ — showing the <strong>largest</strong> specific heat capacity.
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Physics Constants for 1 kg of H2O (in kJ and °C)
+    // Stage 1: Ice -20°C to 0°C -> Q = 1 * 2.1 * 20 = 42 kJ
+    // Stage 2: Melting at 0°C -> Q = 1 * 334 = 334 kJ (Cumulative: 376 kJ)
+    // Stage 3: Water 0°C to 100°C -> Q = 1 * 4.18 * 100 = 418 kJ (Cumulative: 794 kJ)
+    // Stage 4: Boiling at 100°C -> Q = 1 * 2260 = 2260 kJ (Cumulative: 3054 kJ)
+    // Stage 5: Steam 100°C to 128°C -> Q = 1 * 2.0 * 28 = 56 kJ (Cumulative: 3110 kJ)
+
+    const MAX_Q = 3110;
+    const Q1 = 42;
+    const Q2 = 376;
+    const Q3 = 794;
+    const Q4 = 3054;
+
+    let currentQ = 0;
+    let isPlaying = false;
+    let speedMultiplier = 0.2; // Default 0.2x slow speed
+    let lastTimestamp = null;
+
+    // DOM Elements
+    const playPauseBtn = document.getElementById('playPauseBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const speedBtns = document.querySelectorAll('.speed-btn');
+    const energySlider = document.getElementById('energySlider');
+    const sliderEnergyLabel = document.getElementById('sliderEnergyLabel');
+
+    const tempVal = document.getElementById('tempVal');
+    const energyVal = document.getElementById('energyVal');
+    const stateVal = document.getElementById('stateVal');
+    const stageBadge = document.getElementById('stageBadge');
+    const expTitle = document.getElementById('expTitle');
+    const expText = document.getElementById('expText');
+    const expBox = document.getElementById('explanationBox');
+
+    const graphCanvas = document.getElementById('graphCanvas');
+    const gCtx = graphCanvas.getContext('2d');
+
+    const particleCanvas = document.getElementById('particleCanvas');
+    const pCtx = particleCanvas.getContext('2d');
+
+    // Initialize Particles
+    const NUM_PARTICLES = 36;
+    const particles = [];
+    const cols = 6;
+    const rows = 6;
+
+    for (let i = 0; i < NUM_PARTICLES; i++) {
+      const col = i % cols;
+      const row = Math.floor(i / cols);
+      const homeX = 110 + col * 44;
+      const homeY = 55 + row * 34;
+      particles.push({
+        homeX,
+        homeY,
+        x: homeX,
+        y: homeY,
+        vx: (Math.random() - 0.5) * 2,
+        vy: (Math.random() - 0.5) * 2,
+        phase: Math.random() * Math.PI * 2
+      });
+    }
+
+    // Calculate thermodynamic state from Q
+    function getThermoState(q) {
+      if (q <= Q1) {
+        const temp = -20 + (q / Q1) * 20;
+        return {
+          stage: 1,
+          temp,
+          solidFrac: 1,
+          liquidFrac: 0,
+          gasFrac: 0,
+          badge: 'Stage 1: Heating Ice (c)',
+          color: '#60a5fa',
+          stateText: '100% Solid (Ice)',
+          title: 'Specific Heat Capacity of Ice (c = 2.1 kJ/kg·°C)',
+          desc: 'Added heat increases internal kinetic and potential energy. Ice molecules vibrate faster around fixed crystal lattice positions, raising temperature (θ) steeply from -20°C to 0°C.'
+        };
+      } else if (q <= Q2) {
+        const frac = (q - Q1) / (Q2 - Q1);
+        return {
+          stage: 2,
+          temp: 0,
+          solidFrac: 1 - frac,
+          liquidFrac: frac,
+          gasFrac: 0,
+          badge: 'Stage 2: Melting / Fusion (Lf)',
+          color: '#f43f5e',
+          stateText: `${Math.round((1 - frac) * 100)}% Ice / ${Math.round(frac * 100)}% Water`,
+          title: 'Specific Latent Heat of Fusion (Lf = 334 kJ/kg)',
+          desc: 'Notice the flat plateau! Temperature (θ) stays locked at 0°C. Heat energy is used to break intermolecular bonds (increasing internal potential energy) rather than speeding up molecules. Hence internal kinetic energy stays the same.'
+        };
+      } else if (q <= Q3) {
+        const temp = ((q - Q2) / (Q3 - Q2)) * 100;
+        return {
+          stage: 3,
+          temp,
+          solidFrac: 0,
+          liquidFrac: 1,
+          gasFrac: 0,
+          badge: 'Stage 3: Heating Water (c)',
+          color: '#2dd4bf',
+          stateText: '100% Liquid (Water)',
+          title: 'Specific Heat Capacity of Water (c = 4.18 kJ/kg·°C)',
+          desc: 'All ice has melted. Heat energy increases the kinetic energy of liquid water molecules, making them slide past each other faster as θ rises with a gentler slope to 100°C. The internal potential energy also increases as the average separation between the molecules increases.'
+        };
+      } else if (q <= Q4) {
+        const frac = (q - Q3) / (Q4 - Q3);
+        return {
+          stage: 4,
+          temp: 100,
+          solidFrac: 0,
+          liquidFrac: 1 - frac,
+          gasFrac: frac,
+          badge: 'Stage 4: Boiling / Vaporization (Lv)',
+          color: '#f43f5e',
+          stateText: `${Math.round((1 - frac) * 100)}% Water / ${Math.round(frac * 100)}% Steam`,
+          title: 'Specific Latent Heat of Vaporization (Lv = 2260 kJ/kg)',
+          desc: 'Another flat plateau at θ = 100°C! This section is much longer than melting because molecules need a huge amount of potential energy to completely break free into a gas. The internal kinetic energy remains constant.'
+        };
+      } else {
+        const temp = 100 + ((q - Q4) / (MAX_Q - Q4)) * 28;
+        return {
+          stage: 5,
+          temp,
+          solidFrac: 0,
+          liquidFrac: 0,
+          gasFrac: 1,
+          badge: 'Stage 5: Heating Steam (c)',
+          color: '#fb923c',
+          stateText: '100% Gas (Steam)',
+          title: 'Specific Heat Capacity of Steam (c = 2.0 kJ/kg·°C)',
+          desc: 'All liquid has vaporized into steam. Further heat increases the translational kinetic energy of free gas molecules, raising θ steeply above 100°C.'
+        };
+      }
+    }
+
+    // Draw Heating Curve Graph
+    function drawGraph(state) {
+      const w = graphCanvas.width;
+      const h = graphCanvas.height;
+      gCtx.clearRect(0, 0, w, h);
+
+      const padLeft = 58;
+      const padRight = 25;
+      const padTop = 28;
+      const padBottom = 45;
+      const plotW = w - padLeft - padRight;
+      const plotH = h - padTop - padBottom;
+
+      const mapX = (q) => padLeft + (q / MAX_Q) * plotW;
+      const mapY = (t) => padTop + plotH - ((t - (-30)) / 170) * plotH;
+
+      // Grid lines & Labels
+      gCtx.strokeStyle = '#1e293b';
+      gCtx.lineWidth = 1;
+      gCtx.font = '11px sans-serif';
+      gCtx.fillStyle = '#94a3b8';
+      gCtx.textAlign = 'right';
+
+      [-20, 0, 50, 100, 125].forEach((temp) => {
+        const y = mapY(temp);
+        gCtx.beginPath();
+        gCtx.moveTo(padLeft, y);
+        gCtx.lineTo(w - padRight, y);
+        gCtx.stroke();
+        gCtx.fillText(`${temp}°C`, padLeft - 8, y + 4);
+      });
+
+      // Axes
+      gCtx.strokeStyle = '#64748b';
+      gCtx.lineWidth = 1.5;
+      gCtx.beginPath();
+      gCtx.moveTo(padLeft, padTop);
+      gCtx.lineTo(padLeft, h - padBottom);
+      gCtx.lineTo(w - padRight, h - padBottom);
+      gCtx.stroke();
+
+      // Axis Titles
+      gCtx.fillStyle = '#cbd5e1';
+      gCtx.textAlign = 'center';
+      gCtx.fillText('Heat Energy Added, Q (kJ)', padLeft + plotW / 2, h - 10);
+
+      gCtx.save();
+      gCtx.translate(16, padTop + plotH / 2);
+      gCtx.rotate(-Math.PI / 2);
+      gCtx.fillText('Temperature, θ (°C)', 0, 0);
+      gCtx.restore();
+
+      // Reference Curve (Dimmed background full path)
+      const points = [
+        { q: 0, t: -20 },
+        { q: Q1, t: 0 },
+        { q: Q2, t: 0 },
+        { q: Q3, t: 100 },
+        { q: Q4, t: 100 },
+        { q: MAX_Q, t: 128 }
+      ];
+
+      gCtx.strokeStyle = '#334155';
+      gCtx.lineWidth = 3;
+      gCtx.beginPath();
+      points.forEach((pt, idx) => {
+        if (idx === 0) gCtx.moveTo(mapX(pt.q), mapY(pt.t));
+        else gCtx.lineTo(mapX(pt.q), mapY(pt.t));
+      });
+      gCtx.stroke();
+
+      // Highlighted Active Segments up to currentQ
+      const segmentColors = ['#60a5fa', '#f43f5e', '#2dd4bf', '#f43f5e', '#fb923c'];
+      for (let i = 0; i < points.length - 1; i++) {
+        const p1 = points[i];
+        const p2 = points[i + 1];
+        if (currentQ > p1.q) {
+          const endQ = Math.min(currentQ, p2.q);
+          const ratio = (endQ - p1.q) / (p2.q - p1.q);
+          const endT = p1.t + ratio * (p2.t - p1.t);
+
+          gCtx.strokeStyle = segmentColors[i];
+          gCtx.lineWidth = 4;
+          gCtx.beginPath();
+          gCtx.moveTo(mapX(p1.q), mapY(p1.t));
+          gCtx.lineTo(mapX(endQ), mapY(endT));
+          gCtx.stroke();
+        }
+      }
+
+      // Labels on plateaus & slopes
+      gCtx.font = 'bold 11px sans-serif';
+      gCtx.fillStyle = '#fda4af';
+      gCtx.fillText('Fusion (Lf)', mapX((Q1 + Q2) / 2), mapY(0) - 10);
+      gCtx.fillText('Vaporization (Lv)', mapX((Q3 + Q4) / 2), mapY(100) - 10);
+
+      gCtx.fillStyle = '#99f6e4';
+      gCtx.fillText('Gentler slope (larger c)', mapX((Q2 + Q3) / 2) + 52, mapY(50));
+
+      // Current Position Marker Dot
+      const curX = mapX(currentQ);
+      const curY = mapY(state.temp);
+
+      // Crosshair guidelines
+      gCtx.strokeStyle = 'rgba(255, 255, 255, 0.25)';
+      gCtx.lineWidth = 1;
+      gCtx.setLineDash([4, 4]);
+      gCtx.beginPath();
+      gCtx.moveTo(curX, curY);
+      gCtx.lineTo(curX, h - padBottom);
+      gCtx.moveTo(curX, curY);
+      gCtx.lineTo(padLeft, curY);
+      gCtx.stroke();
+      gCtx.setLineDash([]);
+
+      // Glowing Marker
+      gCtx.fillStyle = state.color;
+      gCtx.beginPath();
+      gCtx.arc(curX, curY, 7, 0, Math.PI * 2);
+      gCtx.fill();
+      gCtx.strokeStyle = '#ffffff';
+      gCtx.lineWidth = 2;
+      gCtx.stroke();
+    }
+
+    // Draw Microscopic Particle Simulation
+    function updateAndDrawParticles(state, dt) {
+      const w = particleCanvas.width;
+      const h = particleCanvas.height;
+      pCtx.clearRect(0, 0, w, h);
+
+      // Draw Container Beaker
+      pCtx.strokeStyle = '#475569';
+      pCtx.lineWidth = 3;
+      pCtx.strokeRect(20, 20, w - 40, h - 40);
+
+      // Draw Heat Flame Indicator at bottom
+      const flameIntensity = isPlaying ? 1 : 0.35;
+      pCtx.fillStyle = `rgba(251, 146, 60, ${flameIntensity})`;
+      pCtx.font = 'bold 12px sans-serif';
+      pCtx.textAlign = 'center';
+      pCtx.fillText(isPlaying ? '🔥🔥 HEATING ACTIVE 🔥🔥' : '⏸ PAUSED (Press Play to Heat)', w / 2, h - 6);
+
+      const numGas = Math.round(state.gasFrac * NUM_PARTICLES);
+      const numSolid = Math.round(state.solidFrac * NUM_PARTICLES);
+
+      // Speed factor scaled by playback speed so ultra-slow 0.05x clearly shows vibrations
+      const simStep = isPlaying ? Math.max(0.08, speedMultiplier) : 0.12;
+
+      particles.forEach((p, idx) => {
+        p.phase += 0.14 * simStep;
+
+        if (idx < numSolid) {
+          // SOLID (ICE): Vibrate around fixed crystal lattice position
+          const amp = 1.5 + ((state.temp + 20) / 20) * 2.5;
+          p.x = p.homeX + Math.sin(p.phase * 2.5 + idx) * amp;
+          p.y = p.homeY + Math.cos(p.phase * 2.2 + idx) * amp;
+
+          // Draw rigid lattice bonds to right and bottom neighbors
+          pCtx.strokeStyle = 'rgba(96, 165, 250, 0.35)';
+          pCtx.lineWidth = 1.5;
+          if ((idx + 1) % cols !== 0 && idx + 1 < numSolid) {
+            pCtx.beginPath();
+            pCtx.moveTo(p.x, p.y);
+            pCtx.lineTo(particles[idx + 1].x, particles[idx + 1].y);
+            pCtx.stroke();
+          }
+          if (idx + cols < numSolid) {
+            pCtx.beginPath();
+            pCtx.moveTo(p.x, p.y);
+            pCtx.lineTo(particles[idx + cols].x, particles[idx + cols].y);
+            pCtx.stroke();
+          }
+
+          drawMolecule(p.x, p.y, '#60a5fa');
+        } else if (idx >= NUM_PARTICLES - numGas) {
+          // GAS (STEAM): Fast free movement across entire container
+          const speed = (2.5 + Math.max(0, state.temp - 100) * 0.08) * simStep;
+          p.x += p.vx * speed;
+          p.y += p.vy * speed;
+
+          if (p.x < 34) { p.x = 34; p.vx *= -1; }
+          if (p.x > w - 34) { p.x = w - 34; p.vx *= -1; }
+          if (p.y < 34) { p.y = 34; p.vy *= -1; }
+          if (p.y > h - 34) { p.y = h - 34; p.vy *= -1; }
+
+          drawMolecule(p.x, p.y, '#fb923c');
+        } else {
+          // LIQUID (WATER): Pooled in lower half, sliding past each other
+          const speed = (0.7 + (state.temp / 100) * 1.4) * simStep;
+          p.x += p.vx * speed;
+          p.y += p.vy * speed;
+
+          const liquidSurfaceY = 125;
+          if (p.x < 34) { p.x = 34; p.vx *= -1; }
+          if (p.x > w - 34) { p.x = w - 34; p.vx *= -1; }
+          if (p.y < liquidSurfaceY) { p.y = liquidSurfaceY; p.vy = Math.abs(p.vy); }
+          if (p.y > h - 34) { p.y = h - 34; p.vy = -Math.abs(p.vy); }
+
+          drawMolecule(p.x, p.y, '#2dd4bf');
+        }
+      });
+    }
+
+    function drawMolecule(x, y, color) {
+      pCtx.fillStyle = color;
+      pCtx.beginPath();
+      pCtx.arc(x, y, 7, 0, Math.PI * 2);
+      pCtx.fill();
+      pCtx.strokeStyle = '#0f172a';
+      pCtx.lineWidth = 1.5;
+      pCtx.stroke();
+    }
+
+    // Update UI Readouts
+    function updateUI() {
+      const state = getThermoState(currentQ);
+
+      energySlider.value = Math.round(currentQ);
+      sliderEnergyLabel.textContent = `${Math.round(currentQ)} kJ`;
+      energyVal.textContent = `${Math.round(currentQ)} kJ`;
+      tempVal.textContent = `${state.temp.toFixed(1)} °C`;
+      tempVal.style.color = state.color;
+
+      stateVal.textContent = state.stateText;
+      stageBadge.textContent = state.badge;
+      stageBadge.style.background = state.color;
+
+      expTitle.textContent = state.title;
+      expTitle.style.color = state.color;
+      expText.textContent = state.desc;
+      expBox.style.borderLeftColor = state.color;
+
+      drawGraph(state);
+      return state;
+    }
+
+    // Main Animation Loop
+    function animate(timestamp) {
+      if (!lastTimestamp) lastTimestamp = timestamp;
+      const dt = (timestamp - lastTimestamp) / 1000;
+      lastTimestamp = timestamp;
+
+      if (isPlaying) {
+        // Base heating rate: 180 kJ per second at 1x speed
+        currentQ += 180 * speedMultiplier * dt;
+        if (currentQ >= MAX_Q) {
+          currentQ = MAX_Q;
+          isPlaying = false;
+          playPauseBtn.textContent = '▶ Play';
+        }
+      }
+
+      const state = updateUI();
+      updateAndDrawParticles(state, dt);
+
+      requestAnimationFrame(animate);
+    }
+
+    // Event Listeners
+    playPauseBtn.addEventListener('click', () => {
+      if (currentQ >= MAX_Q) currentQ = 0;
+      isPlaying = !isPlaying;
+      playPauseBtn.textContent = isPlaying ? '⏸ Pause' : '▶ Play';
+    });
+
+    resetBtn.addEventListener('click', () => {
+      isPlaying = false;
+      currentQ = 0;
+      playPauseBtn.textContent = '▶ Play';
+      particles.forEach((p) => {
+        p.x = p.homeX;
+        p.y = p.homeY;
+      });
+      updateUI();
+    });
+
+    speedBtns.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        speedBtns.forEach((b) => b.classList.remove('active-speed'));
+        btn.classList.add('active-speed');
+        speedMultiplier = parseFloat(btn.dataset.speed);
+      });
+    });
+
+    energySlider.addEventListener('input', (e) => {
+      currentQ = parseFloat(e.target.value);
+      updateUI();
+    });
+
+    // Start loop
+    updateUI();
+    requestAnimationFrame(animate);
+  </script>
+</body>
+</html>
