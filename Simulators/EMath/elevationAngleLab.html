@@ -1,0 +1,123 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Elevation Angle Lab</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: title, input strip, rotatable 3D canvas with view controls, worked calculation underneath */
+:root{
+  --bg:#edf1f4; --panel:#ffffff; --ink:#13232e; --muted:#586a77; --line:#d2dce3;
+  --grid:#dde6eb; --ground:#e8eef2; --adj:#0a7c73; --opp:#d4480f; --hyp:#3a4bc4; --accent:#0d6f8f;
+  --soft:#f4f7f9;
+  --font-d:"Space Grotesk",system-ui,sans-serif; --font-b:"Inter",system-ui,sans-serif; --font-m:"IBM Plex Mono",ui-monospace,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0d1820; --panel:#14232d; --ink:#e4edf2; --muted:#93a6b3; --line:#2a3c48;
+  --grid:#1e313c; --ground:#112029; --adj:#3fcfc2; --opp:#ff8a54; --hyp:#8c9bff; --accent:#52b8d8; --soft:#192b36; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0d1820; --panel:#14232d; --ink:#e4edf2; --muted:#93a6b3; --line:#2a3c48;
+  --grid:#1e313c; --ground:#112029; --adj:#3fcfc2; --opp:#ff8a54; --hyp:#8c9bff; --accent:#52b8d8; --soft:#192b36; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--font-b);font-size:15px;line-height:1.5;
+  padding-block:20px 40px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.wrap{max-width:1080px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+h1{font-family:var(--font-d);font-size:clamp(24px,4vw,34px);line-height:1.1;margin:0 0 4px;letter-spacing:-.01em;text-wrap:balance}
+h2{font-family:var(--font-d);font-size:20px;margin:0 0 10px}
+header p{margin:0;color:var(--muted);max-width:62ch}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px}
+.controls{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:16px 20px}
+.field{display:flex;flex-direction:column;gap:6px;min-width:0}
+.field>label,.field>.lbl{font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.row{display:flex;align-items:center;gap:10px;min-width:0}
+.row input[type=range]{flex:1;min-width:0}
+input[type=number]{width:92px;padding:6px 8px;border:1px solid var(--line);border-radius:6px;background:var(--soft);color:var(--ink);font:500 14px var(--font-m)}
+input[type=number]:disabled,input[type=range]:disabled{opacity:.45}
+input[type=range]{accent-color:var(--accent)}
+.unit{font:400 13px var(--font-m);color:var(--muted)}
+.pair{display:flex;gap:10px;flex-wrap:wrap}
+.pair label{font:500 13px var(--font-m);color:var(--muted);display:flex;align-items:center;gap:6px;text-transform:none;letter-spacing:0}
+.check{display:flex;gap:8px;align-items:center;font-weight:600;font-size:14px;cursor:pointer}
+.err{color:var(--opp);font-size:13px;min-height:1em}
+.stage{padding:0;overflow:hidden}
+.canvas-wrap{position:relative;background:var(--panel)}
+canvas{display:block;width:100%;aspect-ratio:16/10;touch-action:pan-y;cursor:grab}
+canvas:active{cursor:grabbing}
+@media (max-width:640px){canvas{aspect-ratio:4/5}}
+.readout{position:absolute;left:12px;top:10px;right:12px;font:500 12px var(--font-m);color:var(--muted);pointer-events:none}
+.legend{position:absolute;left:12px;bottom:10px;display:flex;gap:12px;flex-wrap:wrap;font-size:12px;font-weight:600;pointer-events:none}
+.legend span::before{content:"";display:inline-block;width:14px;height:3px;border-radius:2px;margin-right:6px;vertical-align:middle;background:currentColor}
+.toolbar{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:center;padding:12px 16px;border-top:1px solid var(--line)}
+.toolbar .field{flex:1 1 180px}
+.btns{display:flex;gap:8px;flex-wrap:wrap}
+button{font:600 13px var(--font-b);padding:8px 12px;border-radius:6px;border:1px solid var(--line);background:var(--soft);color:var(--ink);cursor:pointer}
+button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) button.primary{color:#06202b}}
+:root[data-theme="dark"] button.primary{color:#06202b}
+button:focus-visible,input:focus-visible,canvas:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.note{font-size:12px;color:var(--muted);padding:0 16px 12px}
+ol.steps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:12px}
+ol.steps li{border-left:3px solid var(--line);padding:2px 0 2px 14px;transition:opacity .4s,border-color .4s}
+ol.steps li.pending{opacity:.25}
+ol.steps li.on{border-color:var(--accent)}
+ol.steps h3{margin:0 0 2px;font:600 14px var(--font-d)}
+ol.steps p{margin:2px 0;color:var(--muted);font-size:14px;max-width:80ch}
+.math{font:500 14px/1.7 var(--font-m);color:var(--ink);overflow-x:auto;white-space:nowrap;padding:2px 0}
+.adj{color:var(--adj)} .opp{color:var(--opp)} .hyp{color:var(--hyp)}
+.result{margin-top:4px;padding:12px 14px;border-radius:8px;background:var(--soft);border:1px solid var(--line);font:700 20px var(--font-d)}
+.result small{display:block;font:400 13px var(--font-b);color:var(--muted);margin-top:2px}
+@media (prefers-reduced-motion:reduce){ol.steps li{transition:none}}
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Elevation Angle Lab</h1>
+    <p>A person walks from A to B in front of Marina Bay Sands. Find the spot where the top of the building is seen at its steepest angle.</p>
+  </header>
+
+  <section class="card controls" aria-label="Inputs">
+    <div class="field">
+      <label for="hNum">Building height</label>
+      <div class="row"><input id="hRange" type="range" min="10" max="300" step="1" value="200" aria-label="Building height slider"><input id="hNum" type="number" min="10" max="300" step="1" value="200"><span class="unit">m</span></div>
+    </div>
+    <div class="field">
+      <span class="lbl">Point B (m)</span>
+      <div class="pair">
+        <label>x <input id="bx" type="number" step="1" min="-500" max="500" value="0"></label>
+        <label>y <input id="by" type="number" step="1" min="-500" max="500" value="200"></label>
+        <label>z <input id="bz" type="number" value="0" disabled></label>
+      </div>
+      <div class="err" id="err" role="status"></div>
+    </div>
+    <div class="field">
+      <label class="check"><input id="useH" type="checkbox"> Include height of viewer</label>
+      <div class="row"><input id="vRange" type="range" min="1.2" max="2.7" step="0.01" value="1.7" disabled aria-label="Viewer height slider"><input id="vNum" type="number" min="1.2" max="2.7" step="0.01" value="1.70" disabled><span class="unit">m</span></div>
+    </div>
+  </section>
+
+  <section class="card stage" aria-label="3D scene">
+    <div class="canvas-wrap">
+      <canvas id="scene" tabindex="0" aria-label="3D scene of the building, the path AB and the walking person. Drag sideways to rotate."></canvas>
+      <div class="readout" id="readout"></div>
+      <div class="legend"><span style="color:var(--adj)">Adjacent</span><span style="color:var(--opp)">Opposite</span><span style="color:var(--hyp)">Line of sight</span></div>
+    </div>
+    <div class="toolbar">
+      <div class="field"><label for="yaw">Rotate horizontally</label><div class="row"><input id="yaw" type="range" min="0" max="360" step="1" value="125"><span class="unit" id="yawv">125°</span></div></div>
+      <div class="field"><label for="pitch">Tilt</label><div class="row"><input id="pitch" type="range" min="0" max="80" step="1" value="25"><span class="unit" id="pitchv">25°</span></div></div>
+      <div class="btns">
+        <button id="replay" class="primary" type="button">Replay walk</button>
+        <button id="face" type="button">View triangle in 2D</button>
+        <button id="reset" type="button">Reset view</button>
+      </div>
+    </div>
+    <p class="note">Drag the scene sideways to rotate it. The building is a drawn picture of Marina Bay Sands that always faces you. The person is drawn larger than true scale so that it can be seen.</p>
+  </section>
+
+  <section class="card" aria-label="Calculation">
+    <h2>Calculation</h2>
+    <ol class="steps" id="steps"></ol>
+  </section>
+</div>
+
+<script src="draw.js"></script>
+<script src="app.js"></script>
+
+</body></html>

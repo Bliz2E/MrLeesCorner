@@ -1,0 +1,1217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sine & Cosine Graph Builder (Degrees)</title>
+  <style>
+    :root {
+      --bg-app: #f3f6fb;
+      --bg-card: #ffffff;
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --accent: #e11d48;
+      --green: #059669;
+      --text-main: #1e293b;
+      --text-muted: #64748b;
+      --border: #cbd5e1;
+      --shadow: 0 4px 12px rgba(15, 23, 42, 0.06);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-app);
+      color: var(--text-main);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* Top Control Bar */
+    header {
+      background: var(--bg-card);
+      border-bottom: 1px solid var(--border);
+      padding: 12px 24px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+      z-index: 10;
+    }
+
+    .app-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .toggle-group {
+      display: flex;
+      background: #e2e8f0;
+      padding: 4px;
+      border-radius: 8px;
+    }
+
+    .toggle-btn {
+      border: none;
+      background: transparent;
+      padding: 6px 14px;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      cursor: pointer;
+      color: var(--text-muted);
+      transition: all 0.2s;
+    }
+
+    .toggle-btn.active {
+      background: var(--bg-card);
+      color: var(--primary);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    .equation-controls {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 12px;
+      font-size: 0.95rem;
+      font-weight: 600;
+    }
+
+    .input-group {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      background: #f8fafc;
+      padding: 4px 8px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+    }
+
+    input[type="number"] {
+      width: 58px;
+      padding: 4px;
+      border: 1px solid #94a3b8;
+      border-radius: 4px;
+      text-align: center;
+      font-weight: 700;
+      font-size: 0.95rem;
+      color: var(--text-main);
+    }
+
+    .btn-calculate {
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 8px 18px;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .btn-calculate:hover {
+      background: var(--primary-hover);
+    }
+
+    /* Main Split Layout */
+    main {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+      padding: 16px;
+      gap: 16px;
+    }
+
+    /* Left Panel: 6 Cards */
+    .left-panel {
+      width: 450px;
+      min-width: 400px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+
+    .step-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 11px 15px;
+      box-shadow: var(--shadow);
+      transition: border-color 0.2s, opacity 0.2s;
+    }
+
+    .step-card.disabled {
+      opacity: 0.55;
+      pointer-events: none;
+    }
+
+    .step-card.active-step {
+      border-left: 5px solid var(--primary);
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+
+    .card-title {
+      font-weight: 700;
+      font-size: 0.95rem;
+      color: var(--text-main);
+    }
+
+    .play-btn {
+      background: var(--green);
+      color: white;
+      border: none;
+      border-radius: 20px;
+      padding: 4px 13px;
+      font-size: 0.84rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      transition: transform 0.1s, background 0.2s;
+    }
+
+    .play-btn:hover {
+      background: #047857;
+    }
+
+    .play-btn:active {
+      transform: scale(0.96);
+    }
+
+    .play-btn:disabled {
+      background: #94a3b8;
+      cursor: not-allowed;
+    }
+
+    .card-body {
+      font-size: 0.87rem;
+      line-height: 1.45;
+      color: #334155;
+    }
+
+    .card-1-layout {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .card-1-text {
+      flex: 1;
+    }
+
+    #miniWaveCanvas {
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      background: #f8fafc;
+      flex-shrink: 0;
+    }
+
+    .highlight-val {
+      font-weight: 700;
+      color: var(--primary);
+    }
+
+    .alert-flip {
+      margin-top: 6px;
+      padding: 5px 8px;
+      background: #fff1f2;
+      border-left: 3px solid var(--accent);
+      color: #be123c;
+      font-weight: 600;
+      font-size: 0.82rem;
+      border-radius: 4px;
+    }
+
+    .formula-block {
+      background: #f8fafc;
+      padding: 6px 10px;
+      border-radius: 6px;
+      margin-top: 5px;
+      border: 1px solid #e2e8f0;
+      font-family: Consolas, monospace;
+      font-size: 0.84rem;
+    }
+
+    /* Stacked Fraction Display */
+    .frac {
+      display: inline-flex;
+      flex-direction: column;
+      align-items: center;
+      vertical-align: middle;
+      margin: 0 4px;
+      font-weight: 700;
+    }
+
+    .frac-num {
+      border-bottom: 1.5px solid #1e293b;
+      padding: 0 4px 1px 4px;
+      line-height: 1.15;
+    }
+
+    .frac-den {
+      padding: 1px 4px 0 4px;
+      line-height: 1.15;
+    }
+
+    .calc-block-row {
+      margin-top: 6px;
+      padding: 6px 10px;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 4px;
+    }
+
+    .phase-status {
+      margin-top: 5px;
+      padding: 4px 8px;
+      background: #eff6ff;
+      border-left: 3px solid var(--primary);
+      color: #1e40af;
+      font-weight: 600;
+      font-size: 0.83rem;
+      border-radius: 4px;
+    }
+
+    /* Right Panel: Main X-Y Graph */
+    .right-panel {
+      flex: 1;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-direction: column;
+      padding: 14px;
+      position: relative;
+    }
+
+    .graph-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid #e2e8f0;
+    }
+
+    .graph-equation-display {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .status-badge {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--primary);
+      background: #eff6ff;
+      padding: 4px 10px;
+      border-radius: 12px;
+    }
+
+    .canvas-container {
+      flex: 1;
+      position: relative;
+      width: 100%;
+      height: 100%;
+    }
+
+    #mainGraphCanvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .error-banner {
+      color: #dc2626;
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Controls -->
+  <header>
+    <div class="app-title">
+      <span>📐 Trig Graph Builder (°)</span>
+    </div>
+
+    <!-- Option Selector: Sine vs Cosine -->
+    <div class="toggle-group">
+      <button id="btnSin" class="toggle-btn active" onclick="selectFunc('sin')">Sine Graph</button>
+      <button id="btnCos" class="toggle-btn" onclick="selectFunc('cos')">Cosine Graph</button>
+    </div>
+
+    <!-- Equation & Angle Range Inputs -->
+    <div class="equation-controls">
+      <div class="input-group">
+        <span>y =</span>
+        <input type="number" id="inputA" value="2" step="any" title="Amplitude a" />
+        <span id="funcLabel">sin</span>
+        <input type="number" id="inputB" value="1" step="any" title="Frequency b" />
+        <span>x° +</span>
+        <input type="number" id="inputC" value="1" step="any" title="Vertical shift c" />
+      </div>
+
+      <div class="input-group">
+        <span>Range:</span>
+        <input type="number" id="inputMinDeg" value="0" min="-360" max="720" step="15" />
+        <span>° to</span>
+        <input type="number" id="inputMaxDeg" value="360" min="-360" max="720" step="15" />
+        <span>°</span>
+      </div>
+
+      <button class="btn-calculate" onclick="executeCalculation()">Calculate & Reset Steps</button>
+    </div>
+  </header>
+
+  <div id="validationMsg" style="padding: 4px 24px; background: #fee2e2; display: none;" class="error-banner"></div>
+
+  <!-- Main Workspace -->
+  <main>
+    <!-- Left Column: 6 Interactive Cards -->
+    <section class="left-panel">
+
+      <!-- Card 1: Period -->
+      <div class="step-card disabled" id="card1">
+        <div class="card-header">
+          <span class="card-title">1. Calculate the Period</span>
+          <button class="play-btn" id="play1" onclick="playStep(1)">▶ Play</button>
+        </div>
+        <div class="card-body card-1-layout">
+          <div class="card-1-text" id="card1Content">
+            Click <strong>Calculate & Reset Steps</strong> above to begin.
+          </div>
+          <canvas id="miniWaveCanvas" width="145" height="90"></canvas>
+        </div>
+      </div>
+
+      <!-- Card 2: Max & Min -->
+      <div class="step-card disabled" id="card2">
+        <div class="card-header">
+          <span class="card-title">2. Calculate Maximum & Minimum y</span>
+          <button class="play-btn" id="play2" onclick="playStep(2)">▶ Play</button>
+        </div>
+        <div class="card-body" id="card2Content">
+          Waiting for calculation...
+        </div>
+      </div>
+
+      <!-- Card 3: Mid-line -->
+      <div class="step-card disabled" id="card3">
+        <div class="card-header">
+          <span class="card-title">3. Calculate Mid-line Value</span>
+          <button class="play-btn" id="play3" onclick="playStep(3)">▶ Play</button>
+        </div>
+        <div class="card-body" id="card3Content">
+          Waiting for calculation...
+        </div>
+      </div>
+
+      <!-- Card 4: Mark out points for one period first -->
+      <div class="step-card disabled" id="card4">
+        <div class="card-header">
+          <span class="card-title">4. Mark Out Points for One Period First</span>
+          <button class="play-btn" id="play4" onclick="playStep(4)">▶ Play</button>
+        </div>
+        <div class="card-body" id="card4Content">
+          Waiting for calculation...
+        </div>
+      </div>
+
+      <!-- Card 5: Mark Out Remaining Key Points -->
+      <div class="step-card disabled" id="card5">
+        <div class="card-header">
+          <span class="card-title">5. Mark Out Remaining Key Points</span>
+          <button class="play-btn" id="play5" onclick="playStep(5)">▶ Play</button>
+        </div>
+        <div class="card-body" id="card5Content">
+          Waiting for calculation...
+        </div>
+      </div>
+
+      <!-- Card 6: Draw Graph -->
+      <div class="step-card disabled" id="card6">
+        <div class="card-header">
+          <span class="card-title">6. Draw the Smooth Curve</span>
+          <button class="play-btn" id="play6" onclick="playStep(6)">▶ Play</button>
+        </div>
+        <div class="card-body" id="card6Content">
+          Waiting for calculation...
+        </div>
+      </div>
+
+    </section>
+
+    <!-- Right Column: X-Y Graph -->
+    <section class="right-panel">
+      <div class="graph-header">
+        <div class="graph-equation-display" id="displayEquation">y = 2 sin(1x°) + 1</div>
+        <div class="status-badge" id="statusBadge">Ready — Press Calculate</div>
+      </div>
+      <div class="canvas-container">
+        <canvas id="mainGraphCanvas"></canvas>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const state = {
+      funcType: 'sin',
+      a: 2,
+      b: 1,
+      c: 1,
+      minDeg: 0,
+      maxDeg: 360,
+      period: 360,
+      quarterPeriod: 90,
+      yMax: 3,
+      yMin: -1,
+      midline: 1,
+      calculated: false,
+      // Graph visualization flags
+      showMiniWave: false,
+      showMaxMinTicks: false,
+      showMidline: false,
+      showXAxisLabels: false,
+      // Point lists
+      onePeriodPoints: [],
+      leftRemainingPoints: [],
+      rightRemainingPoints: [],
+      plottedPoints: [],
+      curveProgress: 0,
+      animTimer: null,
+      animFrame: null
+    };
+
+    const mainCanvas = document.getElementById('mainGraphCanvas');
+    const ctx = mainCanvas.getContext('2d');
+    const miniCanvas = document.getElementById('miniWaveCanvas');
+    const miniCtx = miniCanvas.getContext('2d');
+
+    function fracHTML(num, den) {
+      return `<span class="frac"><span class="frac-num">${num}</span><span class="frac-den">${den}</span></span>`;
+    }
+
+    function selectFunc(type) {
+      state.funcType = type;
+      document.getElementById('btnSin').classList.toggle('active', type === 'sin');
+      document.getElementById('btnCos').classList.toggle('active', type === 'cos');
+      document.getElementById('funcLabel').textContent = type;
+      
+      resetVisuals();
+      document.getElementById('statusBadge').textContent = 'Mode changed — Press Calculate';
+    }
+
+    function showError(msg) {
+      const banner = document.getElementById('validationMsg');
+      banner.textContent = msg;
+      banner.style.display = 'block';
+    }
+
+    function clearError() {
+      const banner = document.getElementById('validationMsg');
+      banner.style.display = 'none';
+    }
+
+    function stopAnimations() {
+      if (state.animTimer) {
+        clearInterval(state.animTimer);
+        state.animTimer = null;
+      }
+      if (state.animFrame) {
+        cancelAnimationFrame(state.animFrame);
+        state.animFrame = null;
+      }
+    }
+
+    function resetVisuals() {
+      stopAnimations();
+      state.calculated = false;
+      state.showMiniWave = false;
+      state.showMaxMinTicks = false;
+      state.showMidline = false;
+      state.showXAxisLabels = false;
+      state.plottedPoints = [];
+      state.curveProgress = 0;
+
+      for (let i = 1; i <= 6; i++) {
+        const card = document.getElementById(`card${i}`);
+        card.classList.add('disabled');
+        card.classList.remove('active-step');
+      }
+
+      miniCtx.clearRect(0, 0, miniCanvas.width, miniCanvas.height);
+      drawMainGraph();
+    }
+
+    function executeCalculation() {
+      clearError();
+      stopAnimations();
+
+      const a = parseFloat(document.getElementById('inputA').value);
+      const b = parseFloat(document.getElementById('inputB').value);
+      const c = parseFloat(document.getElementById('inputC').value);
+      const minDeg = parseFloat(document.getElementById('inputMinDeg').value);
+      const maxDeg = parseFloat(document.getElementById('inputMaxDeg').value);
+
+      if (isNaN(a) || isNaN(b) || isNaN(c) || isNaN(minDeg) || isNaN(maxDeg)) {
+        showError('Please enter valid numbers for a, b, c, and angle range.');
+        return;
+      }
+      if (a === 0) {
+        showError('Value of "a" cannot be 0 (otherwise the wave becomes a flat line).');
+        return;
+      }
+      if (b === 0) {
+        showError('Value of "b" cannot be 0 (division by zero when finding period).');
+        return;
+      }
+      if (b < 0) {
+        showError('Please enter a positive value for "b".');
+        return;
+      }
+      if (minDeg < -360 || maxDeg > 720) {
+        showError('Angle range must be between -360° and 720°.');
+        return;
+      }
+      if (minDeg >= maxDeg) {
+        showError('Minimum angle must be strictly less than maximum angle.');
+        return;
+      }
+
+      state.a = a;
+      state.b = b;
+      state.c = c;
+      state.minDeg = minDeg;
+      state.maxDeg = maxDeg;
+      state.period = 360 / b;
+      state.quarterPeriod = state.period / 4;
+      state.yMax = Math.abs(a) + c;
+      state.yMin = -Math.abs(a) + c;
+      state.midline = c;
+      state.calculated = true;
+
+      state.showMiniWave = false;
+      state.showMaxMinTicks = false;
+      state.showMidline = false;
+      state.showXAxisLabels = false;
+      state.plottedPoints = [];
+      state.curveProgress = 0;
+
+      const signC = c >= 0 ? `+ ${c}` : `- ${Math.abs(c)}`;
+      document.getElementById('displayEquation').textContent = 
+        `y = ${a} ${state.funcType}(${b}x°) ${signC}`;
+
+      computePointGroups();
+
+      for (let i = 1; i <= 6; i++) {
+        const card = document.getElementById(`card${i}`);
+        card.classList.remove('disabled', 'active-step');
+      }
+
+      populateCardsText();
+      miniCtx.clearRect(0, 0, miniCanvas.width, miniCanvas.height);
+      document.getElementById('statusBadge').textContent = 'Calculated! Press ▶ Play on Card 1';
+      drawMainGraph();
+    }
+
+    function evaluateY(deg) {
+      const rad = (state.b * deg * Math.PI) / 180;
+      const trigVal = state.funcType === 'sin' ? Math.sin(rad) : Math.cos(rad);
+      return state.a * trigVal + state.c;
+    }
+
+    function computePointGroups() {
+      state.onePeriodPoints = [];
+      state.leftRemainingPoints = [];
+      state.rightRemainingPoints = [];
+
+      const q = state.quarterPeriod;
+      const eps = 1e-7;
+
+      // 1. One period starting from 0 degrees (0, q, 2q, 3q, 4q)
+      for (let k = 0; k <= 4; k++) {
+        const xDeg = Number((k * q).toFixed(4));
+        const yVal = Number(evaluateY(xDeg).toFixed(4));
+        state.onePeriodPoints.push({ x: xDeg, y: yVal });
+      }
+
+      // 2. Negative x-axis points: starting from 0 degrees sequentially to the left (-q, -2q, ...) down to minDeg
+      if (state.minDeg < -eps) {
+        const minIndex = Math.ceil((state.minDeg - eps) / q);
+        for (let k = -1; k >= minIndex; k--) {
+          const xDeg = Number((k * q).toFixed(4));
+          const yVal = Number(evaluateY(xDeg).toFixed(4));
+          state.leftRemainingPoints.push({ x: xDeg, y: yVal });
+        }
+      }
+
+      // 3. Remaining right points: starting from end of 1 period (5q, 6q, ...) up to maxDeg
+      const maxIndex = Math.floor((state.maxDeg + eps) / q);
+      for (let k = 5; k <= maxIndex; k++) {
+        const xDeg = Number((k * q).toFixed(4));
+        const yVal = Number(evaluateY(xDeg).toFixed(4));
+        state.rightRemainingPoints.push({ x: xDeg, y: yVal });
+      }
+    }
+
+    function populateCardsText() {
+      const fnName = state.funcType;
+
+      // Card 1 Text
+      let card1HTML = `
+        <div>Calculate the period:</div>
+        <div class="calc-block-row">
+          <span>Period =</span>
+          ${fracHTML('360°', 'b')}
+          <span>=</span>
+          ${fracHTML('360°', state.b)}
+          <span>= <span class="highlight-val">${formatNum(state.period)}°</span></span>
+        </div>
+      `;
+      if (state.a < 0) {
+        const waveWord = fnName === 'sin' ? 'sine' : 'cosine';
+        card1HTML += `
+          <div class="alert-flip">
+            "a" is negative (${state.a}): The ${waveWord} wave is flipped upside down!
+          </div>
+        `;
+      }
+      document.getElementById('card1Content').innerHTML = card1HTML;
+
+      // Card 2 Text
+      const valAt1 = state.a * 1 + state.c;
+      const valAtNeg1 = state.a * -1 + state.c;
+      document.getElementById('card2Content').innerHTML = `
+        <div>Replace <strong>${fnName} ${state.b}x°</strong> with <strong>1</strong> and <strong>-1</strong>:</div>
+        <div class="formula-block">
+          • When ${fnName}(${state.b}x°) = 1 &nbsp;→ y = ${state.a}(1) + (${state.c}) = <strong>${formatNum(valAt1)}</strong><br>
+          • When ${fnName}(${state.b}x°) = -1 → y = ${state.a}(-1) + (${state.c}) = <strong>${formatNum(valAtNeg1)}</strong>
+        </div>
+        <div style="margin-top:4px;">
+          Maximum y = <span class="highlight-val">${formatNum(state.yMax)}</span>, 
+          Minimum y = <span class="highlight-val">${formatNum(state.yMin)}</span>
+        </div>
+      `;
+
+      // Card 3 Text
+      document.getElementById('card3Content').innerHTML = `
+        <div>Mid-line value = <strong>the value of c</strong> = <span class="highlight-val">${formatNum(state.c)}</span></div>
+        <div class="calc-block-row">
+          <span>OR mid-line value =</span>
+          ${fracHTML('max + min', '2')}
+          <span>=</span>
+          ${fracHTML(`${formatNum(state.yMax)} + (${formatNum(state.yMin)})`, '2')}
+          <span>= <strong>${formatNum(state.midline)}</strong></span>
+        </div>
+      `;
+
+      // Card 4 Text: Mark out points for one period first
+      document.getElementById('card4Content').innerHTML = `
+        <div>Divide period into 4 equal intervals:</div>
+        <div class="calc-block-row">
+          <span>Interval =</span>
+          ${fracHTML('Period', '4')}
+          <span>=</span>
+          ${fracHTML(`${formatNum(state.period)}°`, '4')}
+          <span>= <span class="highlight-val">${formatNum(state.quarterPeriod)}°</span></span>
+        </div>
+        <div style="margin-top:4px;">
+          Mark out with <strong>"x"</strong> cross hairs from <strong>0°</strong> to <strong>${formatNum(state.period)}°</strong> sequentially at 0.25x speed.
+        </div>
+      `;
+
+      // Card 5 Text: Mark out remaining key points
+      let card5Details = '';
+      if (state.leftRemainingPoints.length > 0 && state.rightRemainingPoints.length > 0) {
+        card5Details = `First mark left side from <strong>0°</strong> to <strong>${state.minDeg}°</strong>, then right side from <strong>${formatNum(state.period)}°</strong> to <strong>${state.maxDeg}°</strong>.`;
+      } else if (state.leftRemainingPoints.length > 0) {
+        card5Details = `Mark left side from <strong>0°</strong> sequentially to <strong>${state.minDeg}°</strong> at 0.25x speed.`;
+      } else if (state.rightRemainingPoints.length > 0) {
+        card5Details = `Mark right side from <strong>${formatNum(state.period)}°</strong> sequentially to <strong>${state.maxDeg}°</strong> at 0.25x speed.`;
+      } else {
+        card5Details = `All key points for <strong>${state.minDeg}°</strong> to <strong>${state.maxDeg}°</strong> are already covered in one period.`;
+      }
+
+      document.getElementById('card5Content').innerHTML = `
+        <div>${card5Details}</div>
+        <div id="card5PhaseIndicator"></div>
+      `;
+
+      // Card 6 Text: Draw Graph
+      document.getElementById('card6Content').innerHTML = `
+        <div>Connect the plotted <strong>"x"</strong> cross hairs smoothly from <strong>${state.minDeg}°</strong> to <strong>${state.maxDeg}°</strong>.</div>
+      `;
+    }
+
+    function formatNum(n) {
+      return Number.isInteger(n) ? n : Number(n.toFixed(2));
+    }
+
+    function playStep(step) {
+      if (!state.calculated) return;
+      stopAnimations();
+
+      for (let i = 1; i <= 6; i++) {
+        document.getElementById(`card${i}`).classList.toggle('active-step', i === step);
+      }
+
+      if (step === 1) {
+        state.showMiniWave = true;
+        drawMiniWave();
+        document.getElementById('statusBadge').textContent = `Step 1: Period = ${formatNum(state.period)}°`;
+      } 
+      else if (step === 2) {
+        state.showMaxMinTicks = true;
+        drawMainGraph();
+        document.getElementById('statusBadge').textContent = `Step 2: Max y = ${formatNum(state.yMax)}, Min y = ${formatNum(state.yMin)} marked on y-axis`;
+      } 
+      else if (step === 3) {
+        state.showMaxMinTicks = true;
+        state.showMidline = true;
+        drawMainGraph();
+        document.getElementById('statusBadge').textContent = `Step 3: Dotted Mid-line drawn at y = ${formatNum(state.midline)}`;
+      } 
+      else if (step === 4) {
+        // Reveal x-axis interval labels now
+        state.showMaxMinTicks = true;
+        state.showMidline = true;
+        state.showXAxisLabels = true;
+        state.curveProgress = 0;
+        state.plottedPoints = [];
+        drawMainGraph();
+
+        document.getElementById('statusBadge').textContent = 'Step 4: Marking one period from 0° at 0.25x speed...';
+
+        let idx = 0;
+        const intervalMs = 1100; // 0.25x speed
+        state.animTimer = setInterval(() => {
+          if (idx < state.onePeriodPoints.length) {
+            state.plottedPoints.push(state.onePeriodPoints[idx]);
+            idx++;
+            drawMainGraph();
+          } else {
+            clearInterval(state.animTimer);
+            state.animTimer = null;
+            document.getElementById('statusBadge').textContent = `Step 4 Complete: One period (0° to ${formatNum(state.period)}°) marked`;
+          }
+        }, intervalMs);
+      } 
+      else if (step === 5) {
+        // Ensure prior steps are displayed
+        state.showMaxMinTicks = true;
+        state.showMidline = true;
+        state.showXAxisLabels = true;
+        state.curveProgress = 0;
+        state.plottedPoints = [...state.onePeriodPoints];
+        drawMainGraph();
+
+        const phaseBox = document.getElementById('card5PhaseIndicator');
+        const leftPts = state.leftRemainingPoints;
+        const rightPts = state.rightRemainingPoints;
+
+        if (leftPts.length === 0 && rightPts.length === 0) {
+          phaseBox.innerHTML = `<div class="phase-status">No extra points outside 0° to ${formatNum(state.period)}°.</div>`;
+          document.getElementById('statusBadge').textContent = 'Step 5 Complete: All points marked';
+          return;
+        }
+
+        // Build sequential queue: left side first (from 0° leftward), then right side (from end of 1 period rightward)
+        const queue = [];
+        leftPts.forEach(pt => queue.push({ pt, side: 'left' }));
+        rightPts.forEach(pt => queue.push({ pt, side: 'right' }));
+
+        let qIdx = 0;
+        const intervalMs = 1100; // 0.25x speed
+
+        const updatePhaseUI = (side) => {
+          if (side === 'left') {
+            phaseBox.innerHTML = `<div class="phase-status">Currently: Marking out the left side (from 0° to ${state.minDeg}°)</div>`;
+            document.getElementById('statusBadge').textContent = 'Step 5: Marking out the left side (0.25x speed)...';
+          } else {
+            phaseBox.innerHTML = `<div class="phase-status">Currently: Marking out the right side (from ${formatNum(state.period)}° to ${state.maxDeg}°)</div>`;
+            document.getElementById('statusBadge').textContent = 'Step 5: Marking out the right side (0.25x speed)...';
+          }
+        };
+
+        updatePhaseUI(queue[0].side);
+
+        state.animTimer = setInterval(() => {
+          if (qIdx < queue.length) {
+            const item = queue[qIdx];
+            updatePhaseUI(item.side);
+            state.plottedPoints.push(item.pt);
+            qIdx++;
+            drawMainGraph();
+          } else {
+            clearInterval(state.animTimer);
+            state.animTimer = null;
+            phaseBox.innerHTML = `<div class="phase-status">Completed: All remaining key points marked.</div>`;
+            document.getElementById('statusBadge').textContent = 'Step 5 Complete: All key points marked';
+          }
+        }, intervalMs);
+      }
+      else if (step === 6) {
+        // Ensure all points and guides are visible
+        state.showMaxMinTicks = true;
+        state.showMidline = true;
+        state.showXAxisLabels = true;
+        state.plottedPoints = [
+          ...state.onePeriodPoints,
+          ...state.leftRemainingPoints,
+          ...state.rightRemainingPoints
+        ];
+        state.curveProgress = 0;
+
+        document.getElementById('statusBadge').textContent = 'Step 6: Drawing smooth curve...';
+
+        const duration = 1800;
+        const startTime = performance.now();
+
+        function animateCurve(now) {
+          const elapsed = now - startTime;
+          state.curveProgress = Math.min(1, elapsed / duration);
+          drawMainGraph();
+
+          if (state.curveProgress < 1) {
+            state.animFrame = requestAnimationFrame(animateCurve);
+          } else {
+            state.animFrame = null;
+            document.getElementById('statusBadge').textContent = 'Graph Complete!';
+          }
+        }
+        state.animFrame = requestAnimationFrame(animateCurve);
+      }
+    }
+
+    // Draw 1-Cycle Preview Wave inside Card 1
+    function drawMiniWave() {
+      const w = miniCanvas.width;
+      const h = miniCanvas.height;
+      miniCtx.clearRect(0, 0, w, h);
+
+      const padX = 16;
+      const padY = 18;
+      const plotW = w - padX * 2;
+      const midY = h / 2 - 4;
+      const amp = (h - padY * 2) / 2 - 4;
+      const sign = state.a < 0 ? -1 : 1;
+
+      miniCtx.strokeStyle = '#cbd5e1';
+      miniCtx.lineWidth = 1;
+      miniCtx.beginPath();
+      miniCtx.moveTo(padX, midY);
+      miniCtx.lineTo(w - padX, midY);
+      miniCtx.stroke();
+
+      miniCtx.strokeStyle = state.a < 0 ? '#e11d48' : '#2563eb';
+      miniCtx.lineWidth = 2.2;
+      miniCtx.beginPath();
+      for (let px = 0; px <= plotW; px++) {
+        const t = (px / plotW) * 2 * Math.PI;
+        const val = state.funcType === 'sin' ? Math.sin(t) : Math.cos(t);
+        const y = midY - sign * amp * val;
+        if (px === 0) miniCtx.moveTo(padX + px, y);
+        else miniCtx.lineTo(padX + px, y);
+      }
+      miniCtx.stroke();
+
+      const bracketY = h - 14;
+      miniCtx.strokeStyle = '#0f172a';
+      miniCtx.lineWidth = 1.2;
+      miniCtx.beginPath();
+      miniCtx.moveTo(padX, bracketY - 4);
+      miniCtx.lineTo(padX, bracketY + 4);
+      miniCtx.moveTo(padX, bracketY);
+      miniCtx.lineTo(w - padX, bracketY);
+      miniCtx.moveTo(w - padX, bracketY - 4);
+      miniCtx.lineTo(w - padX, bracketY + 4);
+      miniCtx.stroke();
+
+      miniCtx.fillStyle = '#0f172a';
+      miniCtx.font = 'bold 10px sans-serif';
+      miniCtx.textAlign = 'center';
+      miniCtx.fillText(`Period = ${formatNum(state.period)}°`, w / 2, h - 3);
+    }
+
+    function resizeCanvas() {
+      const container = mainCanvas.parentElement;
+      const dpr = window.devicePixelRatio || 1;
+      mainCanvas.width = container.clientWidth * dpr;
+      mainCanvas.height = container.clientHeight * dpr;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      drawMainGraph();
+    }
+
+    window.addEventListener('resize', resizeCanvas);
+
+    function drawMainGraph() {
+      const width = mainCanvas.clientWidth;
+      const height = mainCanvas.clientHeight;
+      ctx.clearRect(0, 0, width, height);
+
+      const padLeft = 65;
+      const padRight = 35;
+      const padTop = 35;
+      const padBottom = 45;
+
+      const plotW = width - padLeft - padRight;
+      const plotH = height - padTop - padBottom;
+
+      // Include 0° and at least one full period so Card 4 always fits cleanly
+      const xStart = Math.min(0, state.minDeg);
+      const xEnd = state.calculated ? Math.max(0, state.maxDeg, state.period) : Math.max(0, state.maxDeg);
+      const xSpan = xEnd - xStart || 360;
+
+      const rawMax = Math.max(state.yMax, 1);
+      const rawMin = Math.min(state.yMin, -1);
+      const yMargin = Math.max(1, (rawMax - rawMin) * 0.2);
+      const yTop = Math.ceil(rawMax + yMargin);
+      const yBottom = Math.floor(rawMin - yMargin);
+      const ySpan = yTop - yBottom || 4;
+
+      const toScreenX = (deg) => padLeft + ((deg - xStart) / xSpan) * plotW;
+      const toScreenY = (val) => padTop + ((yTop - val) / ySpan) * plotH;
+
+      // 1. Draw Background Grid
+      ctx.strokeStyle = '#e2e8f0';
+      ctx.lineWidth = 1;
+
+      const stepDeg = state.calculated ? state.quarterPeriod : 45;
+      const firstGridX = Math.ceil((xStart - 1e-9) / stepDeg) * stepDeg;
+      for (let d = firstGridX; d <= xEnd + 1e-6; d += stepDeg) {
+        const sx = toScreenX(d);
+        ctx.beginPath();
+        ctx.moveTo(sx, padTop);
+        ctx.lineTo(sx, height - padBottom);
+        ctx.stroke();
+      }
+
+      for (let y = yBottom; y <= yTop; y++) {
+        const sy = toScreenY(y);
+        ctx.beginPath();
+        ctx.moveTo(padLeft, sy);
+        ctx.lineTo(width - padRight, sy);
+        ctx.stroke();
+      }
+
+      // 2. Shade Active Angle Range [minDeg, maxDeg]
+      if (state.calculated) {
+        const rx1 = toScreenX(state.minDeg);
+        const rx2 = toScreenX(state.maxDeg);
+        ctx.fillStyle = 'rgba(37, 99, 235, 0.04)';
+        ctx.fillRect(rx1, padTop, rx2 - rx1, plotH);
+      }
+
+      // 3. Draw X and Y Axes
+      const originX = toScreenX(0);
+      const originY = toScreenY(0);
+
+      ctx.strokeStyle = '#334155';
+      ctx.lineWidth = 2;
+
+      // X-axis
+      ctx.beginPath();
+      ctx.moveTo(padLeft, originY);
+      ctx.lineTo(width - padRight, originY);
+      ctx.stroke();
+
+      // Y-axis
+      ctx.beginPath();
+      ctx.moveTo(originX, padTop);
+      ctx.lineTo(originX, height - padBottom);
+      ctx.stroke();
+
+      // X-Axis Values: DO NOT show any values on the x-axis until Card 4 has been played
+      if (state.showXAxisLabels) {
+        ctx.fillStyle = '#0f172a';
+        ctx.font = 'bold 12px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'top';
+
+        for (let d = firstGridX; d <= xEnd + 1e-6; d += stepDeg) {
+          const cleanD = Math.abs(d) < 1e-9 ? 0 : d;
+          if (cleanD === 0) continue;
+          const sx = toScreenX(cleanD);
+          // Draw small tick mark on x-axis
+          ctx.strokeStyle = '#334155';
+          ctx.lineWidth = 1.5;
+          ctx.beginPath();
+          ctx.moveTo(sx, originY - 4);
+          ctx.lineTo(sx, originY + 4);
+          ctx.stroke();
+
+          ctx.fillText(`${formatNum(cleanD)}°`, sx, originY + 7);
+        }
+        ctx.fillText('0°', originX - 12, originY + 7);
+      }
+
+      // Y-Axis Labels
+      ctx.fillStyle = '#475569';
+      ctx.font = '12px sans-serif';
+      ctx.textAlign = 'right';
+      ctx.textBaseline = 'middle';
+      for (let y = yBottom; y <= yTop; y++) {
+        if (y === 0) continue;
+        const sy = toScreenY(y);
+        ctx.fillText(y.toString(), originX - 8, sy);
+      }
+      if (!state.showXAxisLabels) {
+        ctx.fillText('0', originX - 8, originY + 12);
+      }
+
+      // Axis Title Labels
+      ctx.fillStyle = '#0f172a';
+      ctx.font = 'bold 13px sans-serif';
+      ctx.textAlign = 'left';
+      ctx.fillText('x°', width - padRight + 8, originY);
+      ctx.textAlign = 'center';
+      ctx.fillText('y', originX, padTop - 16);
+
+      if (!state.calculated) return;
+
+      // 4. Card 2 Visual: Indicate Max and Min on the Y-axis
+      if (state.showMaxMinTicks) {
+        const syMax = toScreenY(state.yMax);
+        const syMin = toScreenY(state.yMin);
+
+        drawYAxisIndicator(originX, syMax, `Max = ${formatNum(state.yMax)}`, '#059669');
+        drawYAxisIndicator(originX, syMin, `Min = ${formatNum(state.yMin)}`, '#e11d48');
+      }
+
+      // 5. Card 3 Visual: Dotted Horizontal Mid-line
+      if (state.showMidline) {
+        const syMid = toScreenY(state.midline);
+        const x1 = toScreenX(xStart);
+        const x2 = toScreenX(xEnd);
+
+        ctx.save();
+        ctx.strokeStyle = '#7c3aed';
+        ctx.lineWidth = 2;
+        ctx.setLineDash([6, 5]);
+        ctx.beginPath();
+        ctx.moveTo(x1, syMid);
+        ctx.lineTo(x2, syMid);
+        ctx.stroke();
+        ctx.restore();
+
+        ctx.fillStyle = '#7c3aed';
+        ctx.font = 'bold 12px sans-serif';
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'bottom';
+        ctx.fillText(`Mid-line y = ${formatNum(state.midline)}`, x1 + 6, syMid - 4);
+      }
+
+      // 6. Card 4 & Card 5 Visual: "x" cross hairs in black
+      if (state.plottedPoints.length > 0) {
+        for (let i = 0; i < state.plottedPoints.length; i++) {
+          const pt = state.plottedPoints[i];
+          const px = toScreenX(pt.x);
+          const py = toScreenY(pt.y);
+
+          drawBlackXCrosshair(px, py, 6);
+
+          ctx.fillStyle = '#000000';
+          ctx.font = 'bold 11px sans-serif';
+          ctx.textAlign = 'center';
+          const offsetY = pt.y >= state.midline ? -11 : 14;
+          ctx.fillText(`(${formatNum(pt.x)}°, ${formatNum(pt.y)})`, px, py + offsetY);
+        }
+      }
+
+      // 7. Card 6 Visual: Smooth Sine/Cosine Curve across [minDeg, maxDeg]
+      if (state.curveProgress > 0) {
+        const drawEndDeg = state.minDeg + (state.maxDeg - state.minDeg) * state.curveProgress;
+        const steps = 400;
+
+        ctx.strokeStyle = '#2563eb';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+
+        for (let s = 0; s <= steps; s++) {
+          const deg = state.minDeg + ((drawEndDeg - state.minDeg) * s) / steps;
+          const val = evaluateY(deg);
+          const sx = toScreenX(deg);
+          const sy = toScreenY(val);
+          if (s === 0) ctx.moveTo(sx, sy);
+          else ctx.lineTo(sx, sy);
+        }
+        ctx.stroke();
+      }
+    }
+
+    function drawYAxisIndicator(axisX, yPos, label, color) {
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(axisX - 8, yPos);
+      ctx.lineTo(axisX + 8, yPos);
+      ctx.stroke();
+
+      ctx.save();
+      ctx.strokeStyle = color;
+      ctx.globalAlpha = 0.25;
+      ctx.lineWidth = 1.2;
+      ctx.setLineDash([4, 4]);
+      ctx.beginPath();
+      ctx.moveTo(axisX, yPos);
+      ctx.lineTo(mainCanvas.clientWidth - 35, yPos);
+      ctx.stroke();
+      ctx.restore();
+
+      ctx.fillStyle = color;
+      ctx.font = 'bold 12px sans-serif';
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(label, axisX + 12, yPos);
+    }
+
+    // Black "x" cross hair
+    function drawBlackXCrosshair(x, y, size) {
+      ctx.strokeStyle = '#000000';
+      ctx.lineWidth = 2.4;
+      ctx.beginPath();
+      ctx.moveTo(x - size, y - size);
+      ctx.lineTo(x + size, y + size);
+      ctx.moveTo(x - size, y + size);
+      ctx.lineTo(x + size, y - size);
+      ctx.stroke();
+    }
+
+    window.onload = () => {
+      resizeCanvas();
+    };
+  </script>
+</body>
+</html>

@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>E Math Simulators | Mr Lee's Corner</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: Georgia, "Times New Roman", serif;
+    color: #fff3dc;
+    background: #2a1a0a url("../background.jpeg") center / cover no-repeat fixed;
+    min-height: 100vh; display: flex; align-items: center; justify-content: center;
+    padding: 1.5rem;
+  }
+  body::before { content: ""; position: fixed; inset: 0; background: rgba(15,8,2,.7); }
+  .panel {
+    position: relative; max-width: 36rem; width: 100%;
+    padding: 2.5rem 2rem; border-radius: 16px;
+    background: rgba(26,16,6,.7); border: 1px solid rgba(242,180,90,.35);
+    backdrop-filter: blur(8px); text-align: center;
+  }
+  .panel.wide { max-width: 68rem; }
+  .tag { font-family: system-ui, sans-serif; font-size: .75rem; letter-spacing: .2em; text-transform: uppercase; color: #f2b45a; }
+  h1 { margin-top: .6rem; font-size: clamp(2rem, 5vw, 2.8rem); font-weight: normal; }
+  p { margin-top: 1rem; color: rgba(255,243,220,.8); }
+  a.back { display: inline-block; margin-top: 1.8rem; color: #f2b45a; text-decoration: none; font-family: system-ui, sans-serif; border-bottom: 1px solid rgba(242,180,90,.5); }
+  a.back:hover { border-color: #f2b45a; }
+  .topics { margin-top: 1.6rem; text-align: left; }
+  .topics details { margin-top: .7rem; border: 1px solid rgba(242,180,90,.35); border-radius: 10px; background: rgba(15,8,2,.35); }
+  .topics summary { cursor: pointer; list-style: none; padding: .8rem 1rem; font-size: 1.15rem; display: flex; justify-content: space-between; align-items: center; gap: .6rem; }
+  .topics summary::-webkit-details-marker { display: none; }
+  .topics summary::after { content: "+"; color: #f2b45a; font-family: system-ui, sans-serif; font-size: 1.3rem; }
+  .topics details[open] summary::after { content: "\2212"; }
+  .topics summary:hover { color: #f2b45a; }
+  .topics ul { list-style: none; padding: 0 1rem .8rem; }
+  .topics li a, .topics li span { display: block; padding: .45rem 0; color: rgba(255,243,220,.85); text-decoration: none; font-family: system-ui, sans-serif; font-size: .95rem; border-top: 1px solid rgba(242,180,90,.15); }
+  .topics li span { color: rgba(255,243,220,.5); font-style: italic; }
+  .topics li a:hover { color: #f2b45a; }
+  /* 3-column title grid */
+  .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0 1rem; align-items: start; }
+  .grid details { margin-top: .9rem; }
+  @media (max-width: 900px) { .grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 560px) { .grid { grid-template-columns: 1fr; } }
+  /* cards on main page */
+  .cards { margin-top: 1.6rem; display: grid; gap: .8rem; text-align: left; }
+  .cards a { display: flex; justify-content: space-between; align-items: center; padding: 1rem 1.1rem; border: 1px solid rgba(242,180,90,.35); border-radius: 10px; background: rgba(15,8,2,.35); color: #fff3dc; text-decoration: none; font-size: 1.15rem; }
+  .cards a::after { content: "\2192"; color: #f2b45a; font-family: system-ui, sans-serif; }
+  .cards a:hover { color: #f2b45a; border-color: #f2b45a; }
+  /* tabs */
+  .tabs { margin-top: 1.6rem; display: flex; gap: .6rem; justify-content: center; }
+  .tabs button { font: inherit; font-family: system-ui, sans-serif; font-size: .95rem; cursor: pointer; padding: .6rem 1.2rem; border-radius: 999px; border: 1px solid rgba(242,180,90,.35); background: rgba(15,8,2,.35); color: rgba(255,243,220,.85); }
+  .tabs button:hover { color: #f2b45a; }
+  .tabs button.active { background: #f2b45a; color: #2a1a0a; border-color: #f2b45a; }
+  .tabpanel[hidden] { display: none; }
+</style>
+</head>
+<body>
+  <main class="panel wide">
+    <span class="tag">Math &amp; Physics</span>
+    <h1>E Math</h1>
+    <div class="tabs" role="tablist">
+      <button type="button" role="tab" id="tab-lower" aria-controls="panel-lower" aria-selected="false">Lower Secondary</button>
+      <button type="button" role="tab" id="tab-upper" aria-controls="panel-upper" aria-selected="false">Upper Secondary</button>
+    </div>
+    <div class="tabpanel topics" id="panel-lower" role="tabpanel" aria-labelledby="tab-lower" hidden>
+      <p style="text-align:center">Coming soon</p>
+    </div>
+    <div class="tabpanel topics" id="panel-upper" role="tabpanel" aria-labelledby="tab-upper" hidden>
+<div class="grid">
+  <details>
+    <summary>Quadratic Functions</summary>
+    <ul>
+      <li><a href="./EMath/quadratic-solver-v2.html">Quadratic Equation Solver &amp; Visualizer</a></li>
+    </ul>
+    <ul>
+      <li><a href="./EMath/tank-rate-problem-solver-v3.html">Quadratic Tank Rate Problem</a></li>
+    </ul>
+  </details>
+  <details>
+    <summary>Inequality</summary>
+    <ul>
+      <li><a href="./EMath/linear-inequality-solver-v3.html">Linear Inequality Solver</a></li>
+    </ul>
+  </details>
+  <details>
+    <summary>Indices &amp; Standard Form</summary>
+    <ul>
+      <li><span>Coming soon</span></li>
+    </ul>
+  </details>
+  <details>
+    <summary>Compound and Simple Interest</summary>
+    <ul>
+      <li><span>Coming soon</span></li>
+    </ul>
+  </details>
+  <details>
+    <summary>Graphical Solutions</summary>
+    <ul>
+      <li><span>Coming soon</span></li>
+    </ul>
+  </details>
+  <details>
+    <summary>Kinematics &amp; Rates Graph</summary>
+    <ul>
+      <li><span>Coming soon</span></li>
+    </ul>
+  </details>
+  <details>
+    <summary>Trigonometry</summary>
+    <ul>
+      <li><a href="./EMath/elevationAngleLab.html">Angle of Elevation</a></li>
+    </ul>
+  </details>
+  <details>
+    <summary>Congruence &amp; Similarity</summary>
+    <ul>
+      <li><span>Coming soon</span></li>
+    </ul>
+  </details>
+  <details>
+    <summary>Area and Volume of Similar Figures and Solids</summary>
+    <ul>
+      <li><span>Coming soon</span></li>
+    </ul>
+  </details>
+  <details>
+    <summary>Radian Measure</summary>
+    <ul>
+      <li><span>Coming soon</span></li>
+    </ul>
+  </details>
+  <details>
+    <summary>Geometrical Properties of Circles</summary>
+    <ul>
+      <li><span>Coming soon</span></li>
+    </ul>
+  </details>
+  <details>
+    <summary>Sets and Venn Diagrams</summary>
+    <ul>
+      <li><a href="./EMath/venn_diagram_shading_studio.html">Custom Sets and Venn Diagrams shading</a></li>
+    </ul>
+  </details>
+  <details>
+    <summary>Probability</summary>
+    <ul>
+      <li><span>Coming soon</span></li>
+    </ul>
+  </details>
+  <details>
+    <summary>Statistics </summary>
+    <ul>
+      <li><span>Coming soon</span></li>
+    </ul>
+  </details>
+  <details>
+    <summary>Matrices</summary>
+    <ul>
+      <li><span>Coming soon</span></li>
+    </ul>
+  </details>
+  <details>
+    <summary>Vectors</summary>
+    <ul>
+      <li><span>Coming soon</span></li>
+    </ul>
+  </details>
+</div>
+    </div>
+    <a class="back" href="../simulators.html">&larr; Back to Simulators</a>
+  </main>
+<script>
+  (function () {
+    var tabs = { lower: document.getElementById('tab-lower'), upper: document.getElementById('tab-upper') };
+    var panels = { lower: document.getElementById('panel-lower'), upper: document.getElementById('panel-upper') };
+    function show(k) {
+      for (var key in tabs) {
+        var on = key === k;
+        tabs[key].classList.toggle('active', on);
+        tabs[key].setAttribute('aria-selected', on);
+        panels[key].hidden = !on;
+      }
+    }
+    tabs.lower.addEventListener('click', function () { show('lower'); });
+    tabs.upper.addEventListener('click', function () { show('upper'); });
+    show('upper');
+  })();
+</script>
+</body>
+</html>
