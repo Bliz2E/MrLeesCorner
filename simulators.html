@@ -20,6 +20,7 @@
     background: rgba(26,16,6,.7); border: 1px solid rgba(242,180,90,.35);
     backdrop-filter: blur(8px); text-align: center;
   }
+  .panel.wide { max-width: 68rem; }
   .tag { font-family: system-ui, sans-serif; font-size: .75rem; letter-spacing: .2em; text-transform: uppercase; color: #f2b45a; }
   h1 { margin-top: .6rem; font-size: clamp(2rem, 5vw, 2.8rem); font-weight: normal; }
   p { margin-top: 1rem; color: rgba(255,243,220,.8); }
@@ -27,55 +28,42 @@
   a.back:hover { border-color: #f2b45a; }
   .topics { margin-top: 1.6rem; text-align: left; }
   .topics details { margin-top: .7rem; border: 1px solid rgba(242,180,90,.35); border-radius: 10px; background: rgba(15,8,2,.35); }
-  .topics summary { cursor: pointer; list-style: none; padding: .8rem 1rem; font-size: 1.15rem; display: flex; justify-content: space-between; align-items: center; }
+  .topics summary { cursor: pointer; list-style: none; padding: .8rem 1rem; font-size: 1.15rem; display: flex; justify-content: space-between; align-items: center; gap: .6rem; }
   .topics summary::-webkit-details-marker { display: none; }
   .topics summary::after { content: "+"; color: #f2b45a; font-family: system-ui, sans-serif; font-size: 1.3rem; }
   .topics details[open] summary::after { content: "\2212"; }
   .topics summary:hover { color: #f2b45a; }
   .topics ul { list-style: none; padding: 0 1rem .8rem; }
-  .topics li a { display: block; padding: .45rem 0; color: rgba(255,243,220,.85); text-decoration: none; font-family: system-ui, sans-serif; font-size: .95rem; border-top: 1px solid rgba(242,180,90,.15); }
+  .topics li a, .topics li span { display: block; padding: .45rem 0; color: rgba(255,243,220,.85); text-decoration: none; font-family: system-ui, sans-serif; font-size: .95rem; border-top: 1px solid rgba(242,180,90,.15); }
+  .topics li span { color: rgba(255,243,220,.5); font-style: italic; }
   .topics li a:hover { color: #f2b45a; }
+  /* 3-column title grid */
+  .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0 1rem; align-items: start; }
+  .grid details { margin-top: .9rem; }
+  @media (max-width: 900px) { .grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 560px) { .grid { grid-template-columns: 1fr; } }
+  /* cards on main page */
+  .cards { margin-top: 1.6rem; display: grid; gap: .8rem; text-align: left; }
+  .cards a { display: flex; justify-content: space-between; align-items: center; padding: 1rem 1.1rem; border: 1px solid rgba(242,180,90,.35); border-radius: 10px; background: rgba(15,8,2,.35); color: #fff3dc; text-decoration: none; font-size: 1.15rem; }
+  .cards a::after { content: "\2192"; color: #f2b45a; font-family: system-ui, sans-serif; }
+  .cards a:hover { color: #f2b45a; border-color: #f2b45a; }
+  /* tabs */
+  .tabs { margin-top: 1.6rem; display: flex; gap: .6rem; justify-content: center; }
+  .tabs button { font: inherit; font-family: system-ui, sans-serif; font-size: .95rem; cursor: pointer; padding: .6rem 1.2rem; border-radius: 999px; border: 1px solid rgba(242,180,90,.35); background: rgba(15,8,2,.35); color: rgba(255,243,220,.85); }
+  .tabs button:hover { color: #f2b45a; }
+  .tabs button.active { background: #f2b45a; color: #2a1a0a; border-color: #f2b45a; }
+  .tabpanel[hidden] { display: none; }
 </style>
 </head>
 <body>
   <main class="panel">
-    <span class="tag">Math & Physics</span>
+    <span class="tag">Math &amp; Physics</span>
     <h1>Simulators</h1>
-    <div class="topics">
-      <details>
-        <summary>E Math</summary>
-        <ul>
-          <li><a href="./Simulators/EMath/linear-inequality-solver-v3.html">Linear Inequality Solver</a></li>    
-          <li><a href="./Simulators/EMath/quadratic-solver-v2.html">Quadratic Equation Solver & Visualizer</a></li>         
-          <li><a href="./Simulators/EMath/tank-rate-problem-solver-v3.html">Quadratic Tank Rate Problem</a></li>        
-          <li><a href="./Simulators/EMath/venn_diagram_shading_studio.html">Custom Sets and Venn Diagrams shading</a></li>
-        </ul>
-      </details>
-      <details>
-        <summary>A Math</summary>
-        <ul>
-          <li><a href="./Simulators/AMath/astc_trigonometry_simulator.html">ASTC Simulator</a></li>
-          <li><a href="./Simulators/AMath/R-Formula Lab.html">R-Formula Simulator</a></li>
-        </ul>
-      </details>
-      <details>
-        <summary>Pure Physics</summary>
-        <ul>
-          <li><a href="./Simulators/PurePhysics/thermal_physics_simulator-v3.html">Specific Heat Capacity & Specific Latent Heat</a></li>
-          <li><a href="./Simulators/PurePhysics/IcetoSteamHeatingCurve-advanced.html">Heating Curve Simulator</a></li>
-          <li><a href="./Simulators/PurePhysics/lens_ray_simulator-v2.html">Lenses Diagram Simulator</a></li>
-          <li><a href="./Simulators/PurePhysics/wave_particle_simulator_longitudinal-v4.html">Longitudinal Wave Simulator</a></li>
-          <li><a href="./Simulators/PurePhysics/charged_particle_magnetic_field.html">Moving charge in a magnetic field</a></li>
-          <li><a href="./Simulators/PurePhysics/dc_motorv2.html">DC Motor</a></li>
-
-        </ul>
-      </details>
-      <details>
-        <summary>H2 Math</summary>
-        <ul>
-          <li><a href="h2-math-1.html">Coming soon</a></li>
-        </ul>
-      </details>
+    <div class="cards">
+      <a href="./Simulators/emathsim.html">E Math</a>
+      <a href="./Simulators/amathsim.html">A Math</a>
+      <a href="./Simulators/physicssim.html">Pure Physics</a>
+      <a href="./Simulators/h2mathsim.html">H2 Math</a>
     </div>
     <a class="back" href="index.html">&larr; Back to Mr Lee's Corner</a>
   </main>
