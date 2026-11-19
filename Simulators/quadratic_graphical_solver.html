@@ -1,0 +1,955 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Graphical Solutions of Quadratic Equations</title>
+  <style>
+    :root {
+      --bg-color: #f4f6f9;
+      --panel-bg: #ffffff;
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --secondary: #059669;
+      --accent: #dc2626;
+      --text-main: #1e293b;
+      --text-muted: #64748b;
+      --border: #cbd5e1;
+    }
+
+    * {
+      box-sizing: border-box;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    body {
+      margin: 0;
+      padding: 16px;
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      margin-bottom: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    header h1 {
+      font-size: 1.25rem;
+      margin: 0;
+      color: var(--text-main);
+    }
+
+    .badge {
+      background: #dbeafe;
+      color: #1e40af;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+
+    /* Main 3-Column Layout: Left Controls + 2 Side-by-Side Graphs */
+    .workspace {
+      display: grid;
+      grid-template-columns: 390px 1fr 1fr;
+      gap: 16px;
+      flex: 1;
+      min-height: 0;
+    }
+
+    /* Left Panel: Tabs + Cards */
+    .left-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+
+    .tabs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      background: #e2e8f0;
+      padding: 4px;
+      border-radius: 8px;
+      gap: 4px;
+    }
+
+    .tab-btn {
+      border: none;
+      background: transparent;
+      padding: 10px 8px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .tab-btn.active {
+      background: var(--panel-bg);
+      color: var(--primary);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+
+    .card {
+      background: var(--panel-bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.03);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #f1f5f9;
+      padding-bottom: 8px;
+    }
+
+    .card-title {
+      font-weight: 700;
+      font-size: 0.95rem;
+      color: var(--primary);
+    }
+
+    .equation-row {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 6px;
+      font-size: 1rem;
+      font-weight: 500;
+      background: #f8fafc;
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid #e2e8f0;
+    }
+
+    .coef-input {
+      width: 54px;
+      padding: 6px 4px;
+      text-align: center;
+      border: 1.5px solid #94a3b8;
+      border-radius: 6px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--text-main);
+      background: #fff;
+    }
+
+    .coef-input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+    }
+
+    .hint {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      margin-top: -6px;
+    }
+
+    .play-btn {
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 10px 16px;
+      border-radius: 8px;
+      font-size: 0.92rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: background 0.2s;
+    }
+
+    .play-btn:hover:not(:disabled) {
+      background: var(--primary-hover);
+    }
+
+    .play-btn:disabled {
+      background: #94a3b8;
+      cursor: not-allowed;
+    }
+
+    .play-btn.secondary {
+      background: var(--secondary);
+    }
+
+    .play-btn.secondary:hover:not(:disabled) {
+      background: #047857;
+    }
+
+    .output-box {
+      background: #f8fafc;
+      border-left: 4px solid var(--primary);
+      padding: 10px 12px;
+      border-radius: 4px;
+      font-size: 0.9rem;
+      line-height: 1.55;
+      min-height: 44px;
+    }
+
+    .output-box.card2-out {
+      border-left-color: var(--secondary);
+    }
+
+    .step-line {
+      margin: 4px 0;
+      animation: fadeIn 0.4s ease-in;
+    }
+
+    .solution-highlight {
+      font-weight: 700;
+      color: var(--accent);
+      background: #fef2f2;
+      padding: 4px 8px;
+      border-radius: 4px;
+      display: inline-block;
+      margin-top: 4px;
+    }
+
+    /* Graph Panels */
+    .graph-panel {
+      background: var(--panel-bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.03);
+      min-height: 0;
+    }
+
+    .graph-title {
+      text-align: center;
+      font-weight: 700;
+      font-size: 1rem;
+      margin-bottom: 8px;
+      color: var(--text-main);
+      padding-bottom: 6px;
+      border-bottom: 1px solid #f1f5f9;
+    }
+
+    .canvas-wrapper {
+      flex: 1;
+      position: relative;
+      width: 100%;
+      height: 100%;
+      min-height: 300px;
+    }
+
+    canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+      border-radius: 6px;
+      background: #ffffff;
+    }
+
+    .status-bar {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      text-align: center;
+      margin-top: 6px;
+      min-height: 18px;
+      font-weight: 500;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>Graphical Solutions of Quadratic Equations</h1>
+    <span class="badge">Playback Speed: 0.2x (Step-by-Step)</span>
+  </header>
+
+  <div class="workspace">
+    <!-- LEFT SIDEBAR: Tabs + 2 Cards -->
+    <div class="left-panel">
+      <div class="tabs">
+        <button class="tab-btn active" id="tabHorizontal" onclick="switchMode('horizontal')">
+          Intersection with horizontal line
+        </button>
+        <button class="tab-btn" id="tabDiagonal" onclick="switchMode('diagonal')">
+          Intersection with a diagonal line
+        </button>
+      </div>
+
+      <!-- CARD 1 -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Card 1: Graph Equations</span>
+          <span class="hint" style="margin:0;">Fractions allowed (e.g. 1/2)</span>
+        </div>
+
+        <div>
+          <div style="font-size: 0.85rem; margin-bottom: 4px; font-weight: 600;">
+            1. Quadratic Curve: <em>y = Ax² + Bx + C</em>
+          </div>
+          <div class="equation-row">
+            <span>y =</span>
+            <input type="text" id="inputA" class="coef-input" value="1" placeholder="A" aria-label="Coefficient A" />
+            <span>x² +</span>
+            <input type="text" id="inputB" class="coef-input" value="-2" placeholder="B" aria-label="Coefficient B" />
+            <span>x +</span>
+            <input type="text" id="inputC" class="coef-input" value="-3" placeholder="C" aria-label="Coefficient C" />
+          </div>
+        </div>
+
+        <div>
+          <div style="font-size: 0.85rem; margin-bottom: 4px; font-weight: 600;" id="linePrompt">
+            2. Horizontal Line: <em>y = k</em>
+          </div>
+          <div class="equation-row" id="horizontalInputRow">
+            <span>y =</span>
+            <input type="text" id="inputK" class="coef-input" value="5" placeholder="k" aria-label="Horizontal line value" />
+          </div>
+          <div class="equation-row" id="diagonalInputRow" style="display: none;">
+            <span>y =</span>
+            <input type="text" id="inputM" class="coef-input" value="1" placeholder="m" aria-label="Gradient m" />
+            <span>x +</span>
+            <input type="text" id="inputD" class="coef-input" value="1" placeholder="c" aria-label="Y-intercept c" />
+          </div>
+        </div>
+
+        <button class="play-btn" id="playCard1Btn" onclick="playCard1()">
+          ▶ Play (0.2x)
+        </button>
+
+        <div class="output-box" id="card1Output">
+          <span style="color: var(--text-muted);">Press Play to plot both graphs and find intersections.</span>
+        </div>
+      </div>
+
+      <!-- CARD 2 -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title" style="color: var(--secondary);">Card 2: Equivalent x-Intercepts</span>
+        </div>
+
+        <div style="font-size: 0.88rem; line-height: 1.4; color: var(--text-main);">
+          The intersection of the 2 graphs above is the same as finding the x-intercepts of a quadratic curve.
+        </div>
+
+        <button class="play-btn secondary" id="playCard2Btn" onclick="playCard2()">
+          ▶ Play (0.2x)
+        </button>
+
+        <div class="output-box card2-out" id="card2Output">
+          <span style="color: var(--text-muted);">Press Play to equate equations and solve via x-intercepts.</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- MIDDLE GRAPH -->
+    <div class="graph-panel">
+      <div class="graph-title">Intersection between 2 graphs</div>
+      <div class="canvas-wrapper">
+        <canvas id="canvas1"></canvas>
+      </div>
+      <div class="status-bar" id="status1">Ready</div>
+    </div>
+
+    <!-- RIGHT GRAPH -->
+    <div class="graph-panel">
+      <div class="graph-title">Intersection of quadratic graph with x axis</div>
+      <div class="canvas-wrapper">
+        <canvas id="canvas2"></canvas>
+      </div>
+      <div class="status-bar" id="status2">Ready</div>
+    </div>
+  </div>
+
+  <script>
+    // State management
+    let currentMode = 'horizontal'; // 'horizontal' or 'diagonal'
+    let timers1 = [];
+    let timers2 = [];
+
+    // 0.2x playback speed = 5x slower than normal (2500ms per step)
+    const STEP_DELAY_MS = 2500;
+
+    // Parse fractions (e.g., "-3/4", "1/2") or decimals
+    function parseFraction(str) {
+      if (!str || typeof str !== 'string') return NaN;
+      str = str.trim();
+      if (str === '') return NaN;
+      if (str.includes('/')) {
+        const parts = str.split('/');
+        if (parts.length !== 2) return NaN;
+        const num = parseFloat(parts[0]);
+        const den = parseFloat(parts[1]);
+        if (isNaN(num) || isNaN(den) || den === 0) return NaN;
+        return num / den;
+      }
+      return parseFloat(str);
+    }
+
+    // Format numbers cleanly for display
+    function fmt(n) {
+      if (Math.abs(n) < 1e-9) return '0';
+      return Number.isInteger(n) ? n.toString() : parseFloat(n.toFixed(3)).toString();
+    }
+
+    // Format signed term for equations
+    function fmtTerm(coef, variable, isFirst = false) {
+      if (Math.abs(coef) < 1e-9) return '';
+      const sign = coef < 0 ? ' - ' : (isFirst ? '' : ' + ');
+      const absVal = Math.abs(coef);
+      const coefStr = (absVal === 1 && variable !== '') ? '' : fmt(absVal);
+      return `${sign}${coefStr}${variable}`;
+    }
+
+    function buildQuadExpr(A, B, C) {
+      let expr = fmtTerm(A, 'x²', true);
+      expr += fmtTerm(B, 'x', expr === '');
+      expr += fmtTerm(C, '', expr === '');
+      return expr || '0';
+    }
+
+    function buildLineExpr(mode, k, m, d) {
+      if (mode === 'horizontal') {
+        return fmt(k);
+      } else {
+        let expr = fmtTerm(m, 'x', true);
+        expr += fmtTerm(d, '', expr === '');
+        return expr || '0';
+      }
+    }
+
+    // Switch Tabs
+    function switchMode(mode) {
+      currentMode = mode;
+      document.getElementById('tabHorizontal').classList.toggle('active', mode === 'horizontal');
+      document.getElementById('tabDiagonal').classList.toggle('active', mode === 'diagonal');
+
+      if (mode === 'horizontal') {
+        document.getElementById('linePrompt').innerHTML = '2. Horizontal Line: <em>y = k</em>';
+        document.getElementById('horizontalInputRow').style.display = 'flex';
+        document.getElementById('diagonalInputRow').style.display = 'none';
+      } else {
+        document.getElementById('linePrompt').innerHTML = '2. Diagonal Line: <em>y = mx + c</em>';
+        document.getElementById('horizontalInputRow').style.display = 'none';
+        document.getElementById('diagonalInputRow').style.display = 'flex';
+      }
+
+      resetAll();
+    }
+
+    function clearTimers() {
+      timers1.forEach(clearTimeout);
+      timers2.forEach(clearTimeout);
+      timers1 = [];
+      timers2 = [];
+    }
+
+    function resetAll() {
+      clearTimers();
+      document.getElementById('card1Output').innerHTML =
+        '<span style="color: var(--text-muted);">Press Play to plot both graphs and find intersections.</span>';
+      document.getElementById('card2Output').innerHTML =
+        '<span style="color: var(--text-muted);">Press Play to equate equations and solve via x-intercepts.</span>';
+      document.getElementById('status1').textContent = 'Ready';
+      document.getElementById('status2').textContent = 'Ready';
+      drawEmptyGrid('canvas1');
+      drawEmptyGrid('canvas2');
+    }
+
+    // Read and validate inputs
+    function getInputs() {
+      const A = parseFraction(document.getElementById('inputA').value);
+      const B = parseFraction(document.getElementById('inputB').value);
+      const C = parseFraction(document.getElementById('inputC').value);
+
+      if (isNaN(A) || isNaN(B) || isNaN(C)) {
+        alert('Please enter valid numbers or fractions for A, B, and C.');
+        return null;
+      }
+      if (Math.abs(A) < 1e-9) {
+        alert('Coefficient A cannot be 0 for a quadratic equation.');
+        return null;
+      }
+
+      if (currentMode === 'horizontal') {
+        const k = parseFraction(document.getElementById('inputK').value);
+        if (isNaN(k)) {
+          alert('Please enter a valid number or fraction for the horizontal line.');
+          return null;
+        }
+        return { mode: 'horizontal', A, B, C, m: 0, d: k };
+      } else {
+        const m = parseFraction(document.getElementById('inputM').value);
+        const d = parseFraction(document.getElementById('inputD').value);
+        if (isNaN(m) || isNaN(d)) {
+          alert('Please enter valid numbers or fractions for the diagonal line.');
+          return null;
+        }
+        return { mode: 'diagonal', A, B, C, m, d };
+      }
+    }
+
+    // Solve A x^2 + B_new x + C_new = 0
+    function solveQuadratic(A, B, C) {
+      const disc = B * B - 4 * A * C;
+      if (disc < -1e-9) return [];
+      if (Math.abs(disc) <= 1e-9) return [-B / (2 * A)];
+      const sqrtD = Math.sqrt(disc);
+      const x1 = (-B - sqrtD) / (2 * A);
+      const x2 = (-B + sqrtD) / (2 * A);
+      return [x1, x2].sort((a, b) => a - b);
+    }
+
+    // Compute dynamic viewport bounds so curves & intersections are well-framed
+    function getViewport(A, B, C, m, d, roots) {
+      const vertexX = -B / (2 * A);
+      const vertexY = A * vertexX * vertexX + B * vertexX + C;
+
+      let xs = [vertexX, 0];
+      let ys = [vertexY, 0, C, d];
+
+      roots.forEach(rx => {
+        xs.push(rx);
+        ys.push(m * rx + d);
+      });
+
+      let minX = Math.min(...xs) - 3;
+      let maxX = Math.max(...xs) + 3;
+      if (maxX - minX < 10) {
+        const midX = (minX + maxX) / 2;
+        minX = midX - 5;
+        maxX = midX + 5;
+      }
+
+      // Sample curve across X range to ensure vertical fit
+      for (let x = minX; x <= maxX; x += (maxX - minX) / 20) {
+        ys.push(A * x * x + B * x + C);
+        ys.push(m * x + d);
+      }
+
+      let minY = Math.min(...ys);
+      let maxY = Math.max(...ys);
+      const padY = Math.max(2, (maxY - minY) * 0.15);
+      minY = Math.min(minY - padY, -2);
+      maxY = Math.max(maxY + padY, 2);
+
+      // Clamp extreme y ranges for very steep quadratics
+      if (maxY - minY > 60) {
+        const centerY = roots.length ? (m * roots[0] + d) : vertexY;
+        minY = centerY - 25;
+        maxY = centerY + 25;
+      }
+
+      return { minX, maxX, minY, maxY };
+    }
+
+    // Canvas Rendering Helpers
+    function setupCanvas(canvasId) {
+      const canvas = document.getElementById(canvasId);
+      const rect = canvas.parentElement.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = rect.width * dpr;
+      canvas.height = rect.height * dpr;
+      const ctx = canvas.getContext('2d');
+      ctx.scale(dpr, dpr);
+      return { ctx, width: rect.width, height: rect.height };
+    }
+
+    function drawGridAndAxes(ctx, width, height, vp) {
+      ctx.clearRect(0, 0, width, height);
+
+      const toPxX = x => ((x - vp.minX) / (vp.maxX - vp.minX)) * width;
+      const toPxY = y => height - ((y - vp.minY) / (vp.maxY - vp.minY)) * height;
+
+      // Determine nice grid step
+      const stepX = Math.max(1, Math.round((vp.maxX - vp.minX) / 10));
+      const stepY = Math.max(1, Math.round((vp.maxY - vp.minY) / 10));
+
+      ctx.lineWidth = 1;
+      ctx.font = '11px sans-serif';
+      ctx.fillStyle = '#64748b';
+
+      // Vertical grid lines
+      const startX = Math.ceil(vp.minX / stepX) * stepX;
+      for (let x = startX; x <= vp.maxX; x += stepX) {
+        const px = toPxX(x);
+        ctx.strokeStyle = '#f1f5f9';
+        ctx.beginPath();
+        ctx.moveTo(px, 0);
+        ctx.lineTo(px, height);
+        ctx.stroke();
+
+        if (x !== 0) {
+          const axisY = Math.min(Math.max(toPxY(0), 12), height - 14);
+          ctx.fillText(x.toString(), px - 4, axisY + 12);
+        }
+      }
+
+      // Horizontal grid lines
+      const startY = Math.ceil(vp.minY / stepY) * stepY;
+      for (let y = startY; y <= vp.maxY; y += stepY) {
+        const py = toPxY(y);
+        ctx.strokeStyle = '#f1f5f9';
+        ctx.beginPath();
+        ctx.moveTo(0, py);
+        ctx.lineTo(width, py);
+        ctx.stroke();
+
+        if (y !== 0) {
+          const axisX = Math.min(Math.max(toPxX(0), 6), width - 24);
+          ctx.fillText(y.toString(), axisX + 4, py + 4);
+        }
+      }
+
+      // Main X and Y Axes
+      ctx.strokeStyle = '#334155';
+      ctx.lineWidth = 1.5;
+
+      // X-axis
+      if (vp.minY <= 0 && vp.maxY >= 0) {
+        const y0 = toPxY(0);
+        ctx.beginPath();
+        ctx.moveTo(0, y0);
+        ctx.lineTo(width, y0);
+        ctx.stroke();
+        ctx.fillStyle = '#1e293b';
+        ctx.font = 'bold 12px sans-serif';
+        ctx.fillText('x', width - 14, y0 - 6);
+      }
+
+      // Y-axis
+      if (vp.minX <= 0 && vp.maxX >= 0) {
+        const x0 = toPxX(0);
+        ctx.beginPath();
+        ctx.moveTo(x0, 0);
+        ctx.lineTo(x0, height);
+        ctx.stroke();
+        ctx.fillStyle = '#1e293b';
+        ctx.font = 'bold 12px sans-serif';
+        ctx.fillText('y', x0 + 8, 14);
+      }
+
+      return { toPxX, toPxY };
+    }
+
+    function drawEmptyGrid(canvasId) {
+      const { ctx, width, height } = setupCanvas(canvasId);
+      drawGridAndAxes(ctx, width, height, { minX: -6, maxX: 6, minY: -6, maxY: 10 });
+    }
+
+    function plotCurve(ctx, width, height, vp, toPxX, toPxY, A, B, C, color, labelText) {
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      let started = false;
+      const samples = 300;
+      for (let i = 0; i <= samples; i++) {
+        const x = vp.minX + (i / samples) * (vp.maxX - vp.minX);
+        const y = A * x * x + B * x + C;
+        const px = toPxX(x);
+        const py = toPxY(y);
+        if (py >= -100 && py <= height + 100) {
+          if (!started) {
+            ctx.moveTo(px, py);
+            started = true;
+          } else {
+            ctx.lineTo(px, py);
+          }
+        } else {
+          started = false;
+        }
+      }
+      ctx.stroke();
+
+      // Label curve near top-left
+      ctx.fillStyle = color;
+      ctx.font = 'bold 12px sans-serif';
+      ctx.fillText(labelText, 12, 22);
+    }
+
+    function plotLine(ctx, vp, toPxX, toPxY, m, d, color, labelText) {
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      const y1 = m * vp.minX + d;
+      const y2 = m * vp.maxX + d;
+      ctx.moveTo(toPxX(vp.minX), toPxY(y1));
+      ctx.lineTo(toPxX(vp.maxX), toPxY(y2));
+      ctx.stroke();
+
+      ctx.fillStyle = color;
+      ctx.font = 'bold 12px sans-serif';
+      ctx.fillText(labelText, 12, 40);
+    }
+
+    // ==========================================
+    // CARD 1 SEQUENTIAL PLAYBACK (4 STEPS)
+    // ==========================================
+    function playCard1() {
+      const data = getInputs();
+      if (!data) return;
+
+      timers1.forEach(clearTimeout);
+      timers1 = [];
+
+      const { mode, A, B, C, m, d } = data;
+      const B_comb = B - m;
+      const C_comb = C - d;
+      const roots = solveQuadratic(A, B_comb, C_comb);
+      const vp = getViewport(A, B, C, m, d, roots);
+
+      const quadLabel = `y = ${buildQuadExpr(A, B, C)}`;
+      const lineLabel = `y = ${buildLineExpr(mode, d, m, d)}`;
+
+      const outBox = document.getElementById('card1Output');
+      const status1 = document.getElementById('status1');
+      outBox.innerHTML = '';
+
+      // STEP 1: Draw and indicate both graphs on the middle graph
+      timers1.push(setTimeout(() => {
+        status1.textContent = 'Step 1 of 4: Drawing both graphs...';
+        const { ctx, width, height } = setupCanvas('canvas1');
+        const { toPxX, toPxY } = drawGridAndAxes(ctx, width, height, vp);
+        plotCurve(ctx, width, height, vp, toPxX, toPxY, A, B, C, '#2563eb', quadLabel);
+        plotLine(ctx, vp, toPxX, toPxY, m, d, '#059669', lineLabel);
+
+        outBox.innerHTML += `<div class="step-line"><strong>Step 1:</strong> Plotted <em>${quadLabel}</em> and <em>${lineLabel}</em>.</div>`;
+      }, 100));
+
+      // STEP 2: Indicate points of intersection
+      timers1.push(setTimeout(() => {
+        status1.textContent = 'Step 2 of 4: Marking points of intersection...';
+        const { ctx, width, height } = setupCanvas('canvas1');
+        const { toPxX, toPxY } = drawGridAndAxes(ctx, width, height, vp);
+        plotCurve(ctx, width, height, vp, toPxX, toPxY, A, B, C, '#2563eb', quadLabel);
+        plotLine(ctx, vp, toPxX, toPxY, m, d, '#059669', lineLabel);
+
+        roots.forEach(rx => {
+          const ry = m * rx + d;
+          const px = toPxX(rx);
+          const py = toPxY(ry);
+
+          ctx.fillStyle = '#dc2626';
+          ctx.beginPath();
+          ctx.arc(px, py, 6, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.fillStyle = '#991b1b';
+          ctx.font = 'bold 12px sans-serif';
+          ctx.fillText(`(${fmt(rx)}, ${fmt(ry)})`, px + 8, py - 8);
+        });
+
+        const msg = roots.length === 0
+          ? 'No points of intersection found.'
+          : `Found ${roots.length} point(s) of intersection.`;
+        outBox.innerHTML += `<div class="step-line"><strong>Step 2:</strong> ${msg}</div>`;
+      }, STEP_DELAY_MS));
+
+      // STEP 3: Dotted lines from intersection points to x-axis + label x values
+      timers1.push(setTimeout(() => {
+        status1.textContent = 'Step 3 of 4: Projecting dotted lines to x-axis...';
+        const { ctx, width, height } = setupCanvas('canvas1');
+        const { toPxX, toPxY } = drawGridAndAxes(ctx, width, height, vp);
+        plotCurve(ctx, width, height, vp, toPxX, toPxY, A, B, C, '#2563eb', quadLabel);
+        plotLine(ctx, vp, toPxX, toPxY, m, d, '#059669', lineLabel);
+
+        const y0 = toPxY(0);
+
+        roots.forEach(rx => {
+          const ry = m * rx + d;
+          const px = toPxX(rx);
+          const py = toPxY(ry);
+
+          // Dotted line
+          ctx.save();
+          ctx.setLineDash([5, 5]);
+          ctx.strokeStyle = '#dc2626';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.moveTo(px, py);
+          ctx.lineTo(px, y0);
+          ctx.stroke();
+          ctx.restore();
+
+          // Intersection dot
+          ctx.fillStyle = '#dc2626';
+          ctx.beginPath();
+          ctx.arc(px, py, 6, 0, Math.PI * 2);
+          ctx.fill();
+
+          // Coordinate label
+          ctx.fillStyle = '#991b1b';
+          ctx.font = 'bold 12px sans-serif';
+          ctx.fillText(`(${fmt(rx)}, ${fmt(ry)})`, px + 8, py - 8);
+
+          // X-value label on x-axis
+          ctx.fillStyle = '#dc2626';
+          ctx.fillRect(px - 22, y0 + 4, 44, 18);
+          ctx.fillStyle = '#ffffff';
+          ctx.font = 'bold 11px sans-serif';
+          ctx.textAlign = 'center';
+          ctx.fillText(`x=${fmt(rx)}`, px, y0 + 16);
+          ctx.textAlign = 'start';
+        });
+
+        outBox.innerHTML += `<div class="step-line"><strong>Step 3:</strong> Projected vertical dotted lines to the x-axis.</div>`;
+      }, STEP_DELAY_MS * 2));
+
+      // STEP 4: Write x values as solutions in Card 1
+      timers1.push(setTimeout(() => {
+        status1.textContent = 'Step 4 of 4: Complete.';
+        let solText = '';
+        if (roots.length === 0) {
+          solText = 'No real solutions (graphs do not intersect).';
+        } else if (roots.length === 1) {
+          solText = `x = ${fmt(roots[0])}`;
+        } else {
+          solText = `x = ${fmt(roots[0])}  or  x = ${fmt(roots[1])}`;
+        }
+
+        outBox.innerHTML += `<div class="step-line"><strong>Step 4 Solutions:</strong><br><span class="solution-highlight">${solText}</span></div>`;
+      }, STEP_DELAY_MS * 3));
+    }
+
+    // ==========================================
+    // CARD 2 SEQUENTIAL PLAYBACK (5 STEPS)
+    // ==========================================
+    function playCard2() {
+      const data = getInputs();
+      if (!data) return;
+
+      timers2.forEach(clearTimeout);
+      timers2 = [];
+
+      const { mode, A, B, C, m, d } = data;
+      const B_new = B - m;
+      const C_new = C - d;
+      const roots = solveQuadratic(A, B_new, C_new);
+      const vp = getViewport(A, B_new, C_new, 0, 0, roots);
+
+      const lhsQuad = buildQuadExpr(A, B, C);
+      const rhsLine = buildLineExpr(mode, d, m, d);
+      const combinedQuad = buildQuadExpr(A, B_new, C_new);
+
+      const outBox = document.getElementById('card2Output');
+      const status2 = document.getElementById('status2');
+      outBox.innerHTML = '';
+
+      // STEP 1: Equate the two equations with quadratic on LHS
+      timers2.push(setTimeout(() => {
+        status2.textContent = 'Step 1 of 5: Equating both equations...';
+        outBox.innerHTML += `<div class="step-line"><strong>Step 1:</strong> Equate both equations:<br><code>${lhsQuad} = ${rhsLine}</code></div>`;
+      }, 100));
+
+      // STEP 2: Show every line of working steps until RHS is zero
+      timers2.push(setTimeout(() => {
+        status2.textContent = 'Step 2 of 5: Rearranging until RHS = 0...';
+        let workingHtml = `<div class="step-line"><strong>Step 2:</strong> Rearrange to make RHS = 0:`;
+
+        if (mode === 'diagonal' && Math.abs(m) > 1e-9) {
+          // Move mx first, then constant d
+          const midExpr = buildQuadExpr(A, B_new, C);
+          const rhsRem = fmt(d);
+          workingHtml += `<br><code>${midExpr} = ${rhsRem}</code>`;
+        }
+
+        if (Math.abs(d) > 1e-9 || mode === 'horizontal') {
+          workingHtml += `<br><code>${combinedQuad} = 0</code>`;
+        } else if (Math.abs(m) <= 1e-9) {
+          workingHtml += `<br><code>${combinedQuad} = 0</code>`;
+        }
+
+        workingHtml += `</div>`;
+        outBox.innerHTML += workingHtml;
+      }, STEP_DELAY_MS));
+
+      // STEP 3: Draw and indicate the quadratic curve y = LHS on the right graph
+      timers2.push(setTimeout(() => {
+        status2.textContent = 'Step 3 of 5: Drawing combined quadratic curve...';
+        const { ctx, width, height } = setupCanvas('canvas2');
+        const { toPxX, toPxY } = drawGridAndAxes(ctx, width, height, vp);
+        plotCurve(ctx, width, height, vp, toPxX, toPxY, A, B_new, C_new, '#7c3aed', `y = ${combinedQuad}`);
+
+        outBox.innerHTML += `<div class="step-line"><strong>Step 3:</strong> Plotted <em>y = ${combinedQuad}</em> on the right graph.</div>`;
+      }, STEP_DELAY_MS * 2));
+
+      // STEP 4: Indicate the x-intercepts on the graph on the right
+      timers2.push(setTimeout(() => {
+        status2.textContent = 'Step 4 of 5: Marking x-intercepts...';
+        const { ctx, width, height } = setupCanvas('canvas2');
+        const { toPxX, toPxY } = drawGridAndAxes(ctx, width, height, vp);
+        plotCurve(ctx, width, height, vp, toPxX, toPxY, A, B_new, C_new, '#7c3aed', `y = ${combinedQuad}`);
+
+        const y0 = toPxY(0);
+
+        roots.forEach(rx => {
+          const px = toPxX(rx);
+
+          ctx.fillStyle = '#dc2626';
+          ctx.beginPath();
+          ctx.arc(px, y0, 6, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.fillStyle = '#dc2626';
+          ctx.fillRect(px - 24, y0 + 6, 48, 18);
+          ctx.fillStyle = '#ffffff';
+          ctx.font = 'bold 11px sans-serif';
+          ctx.textAlign = 'center';
+          ctx.fillText(`(${fmt(rx)}, 0)`, px, y0 + 18);
+          ctx.textAlign = 'start';
+        });
+
+        const interceptMsg = roots.length === 0
+          ? 'The curve does not cross the x-axis.'
+          : `Marked x-intercept(s) on the x-axis.`;
+        outBox.innerHTML += `<div class="step-line"><strong>Step 4:</strong> ${interceptMsg}</div>`;
+      }, STEP_DELAY_MS * 3));
+
+      // STEP 5: Write solutions in Card 2
+      timers2.push(setTimeout(() => {
+        status2.textContent = 'Step 5 of 5: Complete.';
+        let solText = '';
+        if (roots.length === 0) {
+          solText = 'No real solutions (no x-intercepts).';
+        } else if (roots.length === 1) {
+          solText = `x = ${fmt(roots[0])}`;
+        } else {
+          solText = `x = ${fmt(roots[0])}  or  x = ${fmt(roots[1])}`;
+        }
+
+        outBox.innerHTML += `<div class="step-line"><strong>Step 5 Solutions:</strong><br><span class="solution-highlight">${solText}</span></div>`;
+      }, STEP_DELAY_MS * 4));
+    }
+
+    // Initialize empty grids on load & handle window resize
+    window.addEventListener('load', () => {
+      drawEmptyGrid('canvas1');
+      drawEmptyGrid('canvas2');
+    });
+
+    window.addEventListener('resize', () => {
+      drawEmptyGrid('canvas1');
+      drawEmptyGrid('canvas2');
+    });
+  </script>
+</body>
+</html>
